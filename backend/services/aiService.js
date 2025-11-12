@@ -91,8 +91,13 @@ class AIService {
         return this.callGemini(prompt, history, retries - 1);
       }
 
+      // Handle specific HTTP error codes
       if (error.response?.status === 429) {
         return 'Xin lỗi, hệ thống AI đang quá tải. Vui lòng thử lại sau vài phút. 🙏';
+      }
+
+      if (error.response?.status === 503 || error.response?.data?.error?.code === 503) {
+        return 'Xin lỗi, dịch vụ AI của Google hiện đang quá tải. Vui lòng thử lại sau ít phút. 🔄\n\nBạn có thể tiếp tục sử dụng các tính năng khác của hệ thống.';
       }
 
       if (error.response?.status === 400) {
