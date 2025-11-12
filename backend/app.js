@@ -61,32 +61,33 @@ app.use(helmet());
  */
 app.use(cors({
   origin: function (origin, callback) {
-    // Get allowed origins from environment or use defaults
-    const allowedOrigins = process.env.CORS_ORIGIN
-      ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-      : ['http://localhost:3000', 'http://localhost:3001'];
-
-    // 🔍 DEBUG: Log CORS check details
-    console.log('🔍 CORS Debug:', {
-      incoming_origin: origin,
-      allowedOrigins: allowedOrigins,
-      env_CORS_ORIGIN: process.env.CORS_ORIGIN,
-      indexOf_result: allowedOrigins.indexOf(origin)
-    });
-
     // Allow requests with no origin (mobile apps, Postman, curl, server-to-server)
     if (!origin) {
       return callback(null, true);
     }
 
-    // ✅ SECURITY FIX: Removed wildcard bypass - enforce strict origin whitelist
+    // Get CORS configuration from environment
+    const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3001';
 
-    // Check if origin is allowed
+    // ✅ DEVELOPMENT MODE: Allow wildcard for LAN access
+    if (corsOrigin === '*') {
+      if (process.env.NODE_ENV === 'production') {
+        console.error('❌ SECURITY ERROR: Wildcard CORS (*) is NOT allowed in production!');
+        return callback(new Error('Wildcard CORS not allowed in production'), false);
+      }
+      console.log(`✅ [DEV MODE] Allowed origin (wildcard): ${origin}`);
+      return callback(null, true);
+    }
+
+    // ✅ WHITELIST MODE: Check against allowed origins
+    const allowedOrigins = corsOrigin.split(',').map(o => o.trim());
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       console.log(`✅ Allowed origin: ${origin}`);
       return callback(null, true);
     } else {
       console.warn(`⚠️  Blocked request from unauthorized origin: ${origin}`);
+      console.warn(`   Allowed origins: ${allowedOrigins.join(', ')}`);
       return callback(new Error('Not allowed by CORS'), false);
     }
   },
