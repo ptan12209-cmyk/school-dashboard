@@ -23,13 +23,20 @@ class AIService {
   }
 
   /**
-   * Call Gemini API
+   * Call Gemini API with retry logic
    * @param {string} prompt - User prompt
    * @param {Array} history - Optional conversation history
+   * @param {number} retries - Number of retries left
    * @returns {Promise<string>} AI response
    */
-  async callGemini(prompt, history = []) {
+  async callGemini(prompt, history = [], retries = 2) {
     try {
+      // ✅ FIX: Check if API key is configured
+      if (!this.apiKey || this.apiKey === '') {
+        console.warn('⚠️  Gemini API key not configured');
+        return this.getFallbackResponse(prompt);
+      }
+
       // Build contents array for Gemini API
       const contents = [];
 
@@ -77,16 +84,50 @@ class AIService {
     } catch (error) {
       console.error('Gemini API Error:', error.response?.data || error.message);
 
+      // ✅ FIX: Retry on timeout or network errors
+      if (retries > 0 && (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT')) {
+        console.log(`⚠️  Timeout, retrying... (${retries} retries left)`);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+        return this.callGemini(prompt, history, retries - 1);
+      }
+
       if (error.response?.status === 429) {
-        throw new Error('Đã vượt quá giới hạn API. Vui lòng thử lại sau vài phút.');
+        return 'Xin lỗi, hệ thống AI đang quá tải. Vui lòng thử lại sau vài phút. 🙏';
       }
 
       if (error.response?.status === 400) {
-        throw new Error('Yêu cầu không hợp lệ. Vui lòng thử lại.');
+        return 'Xin lỗi, câu hỏi của bạn không hợp lệ. Vui lòng thử lại với câu hỏi khác.';
       }
 
-      throw new Error('Không thể kết nối với AI assistant. Vui lòng kiểm tra API key.');
+      // ✅ FIX: Return fallback response instead of throwing error
+      console.warn('⚠️  Gemini API failed, using fallback response');
+      return this.getFallbackResponse(prompt);
     }
+  }
+
+  /**
+   * Get fallback response when API is unavailable
+   * @param {string} prompt - User prompt
+   * @returns {string} Fallback response
+   */
+  getFallbackResponse(prompt) {
+    const lowercasePrompt = prompt.toLowerCase();
+
+    // Context-aware fallback responses
+    if (lowercasePrompt.includes('điểm') || lowercasePrompt.includes('grade')) {
+      return 'Xin lỗi, tôi hiện không thể truy cập dữ liệu điểm. Vui lòng kiểm tra trang Điểm số để xem chi tiết.';
+    }
+
+    if (lowercasePrompt.includes('điểm danh') || lowercasePrompt.includes('attendance')) {
+      return 'Xin lỗi, tôi hiện không thể truy cập dữ liệu điểm danh. Vui lòng kiểm tra trang Điểm danh để xem chi tiết.';
+    }
+
+    if (lowercasePrompt.includes('bài tập') || lowercasePrompt.includes('assignment')) {
+      return 'Xin lỗi, tôi hiện không thể truy cập dữ liệu bài tập. Vui lòng kiểm tra trang Bài tập để xem chi tiết.';
+    }
+
+    // Generic fallback
+    return 'Xin lỗi, AI assistant hiện đang không khả dụng do lỗi kết nối hoặc API key chưa được cấu hình. Vui lòng liên hệ quản trị viên hoặc thử lại sau. 🙏\n\nBạn có thể tiếp tục sử dụng các tính năng khác của hệ thống.';
   }
 
   /**
