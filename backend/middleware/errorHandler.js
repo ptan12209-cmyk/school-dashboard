@@ -4,7 +4,7 @@ class AppError extends Error {
     this.statusCode = statusCode;
     this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
     this.isOperational = true;
-    
+
     Error.captureStackTrace(this, this.constructor);
   }
 }
@@ -44,40 +44,40 @@ class ConflictError extends AppError {
  */
 const handleSequelizeError = (err) => {
   if (err.name === 'SequelizeValidationError') {
-    const errors = err.errors.map(e => ({
+    const errors = err.errors.map((e) => ({
       field: e.path,
-      message: e.message
+      message: e.message,
     }));
-    
+
     return {
       statusCode: 400,
       message: 'Validation error',
-      errors
+      errors,
     };
   }
-  
+
   if (err.name === 'SequelizeUniqueConstraintError') {
     const field = err.errors[0]?.path || 'field';
     return {
       statusCode: 409,
-      message: `${field} already exists`
+      message: `${field} already exists`,
     };
   }
-  
+
   if (err.name === 'SequelizeForeignKeyConstraintError') {
     return {
       statusCode: 400,
-      message: 'Invalid reference to related resource'
+      message: 'Invalid reference to related resource',
     };
   }
-  
+
   if (err.name === 'SequelizeDatabaseError') {
     return {
       statusCode: 500,
-      message: 'Database error'
+      message: 'Database error',
     };
   }
-  
+
   return null;
 };
 
@@ -88,17 +88,17 @@ const handleJWTError = (err) => {
   if (err.name === 'JsonWebTokenError') {
     return {
       statusCode: 401,
-      message: 'Invalid token'
+      message: 'Invalid token',
     };
   }
-  
+
   if (err.name === 'TokenExpiredError') {
     return {
       statusCode: 401,
-      message: 'Token expired'
+      message: 'Token expired',
     };
   }
-  
+
   return null;
 };
 
@@ -112,7 +112,7 @@ const sendErrorDev = (err, res) => {
     message: err.message,
     error: err,
     stack: err.stack,
-    ...(err.errors && { errors: err.errors })
+    ...(err.errors && { errors: err.errors }),
   });
 };
 
@@ -125,16 +125,16 @@ const sendErrorProd = (err, res) => {
     res.status(err.statusCode).json({
       success: false,
       message: err.message,
-      ...(err.errors && { errors: err.errors })
+      ...(err.errors && { errors: err.errors }),
     });
-  } 
+  }
   // Programming or unknown error: don't leak error details
   else {
     console.error('ERROR 💥:', err);
-    
+
     res.status(500).json({
       success: false,
-      message: 'Something went wrong'
+      message: 'Something went wrong',
     });
   }
 };
@@ -146,7 +146,7 @@ const errorHandler = (err, req, res, next) => {
   // Default values
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
-  
+
   // Handle specific error types
   const sequelizeError = handleSequelizeError(err);
   if (sequelizeError) {
@@ -155,14 +155,14 @@ const errorHandler = (err, req, res, next) => {
     err.errors = sequelizeError.errors;
     err.isOperational = true;
   }
-  
+
   const jwtError = handleJWTError(err);
   if (jwtError) {
     err.statusCode = jwtError.statusCode;
     err.message = jwtError.message;
     err.isOperational = true;
   }
-  
+
   // Send error response based on environment
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
@@ -175,10 +175,8 @@ const errorHandler = (err, req, res, next) => {
  * Async Error Wrapper
  * Wraps async route handlers to catch errors
  */
-const catchAsync = (fn) => {
-  return (req, res, next) => {
-    fn(req, res, next).catch(next);
-  };
+const catchAsync = (fn) => (req, res, next) => {
+  fn(req, res, next).catch(next);
 };
 
 /**
@@ -198,5 +196,5 @@ module.exports = {
   AuthenticationError,
   AuthorizationError,
   NotFoundError,
-  ConflictError
+  ConflictError,
 };

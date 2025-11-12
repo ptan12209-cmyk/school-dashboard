@@ -1,6 +1,8 @@
-const { User, Student } = require('../models');
-const { catchAsync, NotFoundError, ValidationError, ConflictError, AuthorizationError } = require('../middleware/errorHandler');
 const { Op } = require('sequelize');
+const { User, Student } = require('../models');
+const {
+  catchAsync, NotFoundError, ValidationError, ConflictError, AuthorizationError,
+} = require('../middleware/errorHandler');
 
 /**
  * @route   GET /api/students
@@ -12,36 +14,36 @@ exports.getAllStudents = catchAsync(async (req, res) => {
   if (!['admin', 'teacher'].includes(req.user.role)) {
     throw new AuthorizationError('Only admins and teachers can view all students');
   }
-  
+
   // Pagination
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
-  
+
   // Filtering
   const where = {};
-  
+
   if (req.query.gender) {
     where.gender = req.query.gender;
   }
-  
+
   if (req.query.class_id) {
     where.class_id = req.query.class_id;
   }
-  
+
   // Unassigned students (no class)
   if (req.query.unassigned === 'true') {
     where.class_id = null;
   }
-  
+
   // Search by name
   if (req.query.search) {
     where[Op.or] = [
       { first_name: { [Op.iLike]: `%${req.query.search}%` } },
-      { last_name: { [Op.iLike]: `%${req.query.search}%` } }
+      { last_name: { [Op.iLike]: `%${req.query.search}%` } },
     ];
   }
-  
+
   // Sorting with whitelist validation to prevent SQL injection
   const order = [];
   if (req.query.sort) {
@@ -62,28 +64,28 @@ exports.getAllStudents = catchAsync(async (req, res) => {
   } else {
     order.push(['last_name', 'ASC']);
   }
-  
+
   // Include user data
   const include = [
     {
       model: User,
       as: 'user',
       attributes: ['id', 'email', 'is_active'],
-      where: req.user.role === 'admin' 
-        ? {} 
-        : { is_active: true } // Non-admins only see active students
-    }
+      where: req.user.role === 'admin'
+        ? {}
+        : { is_active: true }, // Non-admins only see active students
+    },
   ];
-  
+
   // Query
   const { count, rows } = await Student.findAndCountAll({
     where,
     include,
     limit,
     offset,
-    order
+    order,
   });
-  
+
   res.json({
     success: true,
     data: {
@@ -92,9 +94,9 @@ exports.getAllStudents = catchAsync(async (req, res) => {
         total: count,
         page,
         pages: Math.ceil(count / limit),
-        limit
-      }
-    }
+        limit,
+      },
+    },
   });
 });
 
@@ -105,33 +107,33 @@ exports.getAllStudents = catchAsync(async (req, res) => {
  */
 exports.getStudentById = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   const student = await Student.findByPk(id, {
     include: [
       {
         model: User,
         as: 'user',
-        attributes: ['id', 'email', 'is_active']
-      }
-    ]
+        attributes: ['id', 'email', 'is_active'],
+      },
+    ],
   });
-  
+
   if (!student) {
     throw new NotFoundError('Student not found');
   }
-  
+
   // Check permissions
   const isAdmin = req.user.role === 'admin';
   const isTeacher = req.user.role === 'teacher';
   const isSelf = student.user_id === req.user.id;
-  
+
   if (!isAdmin && !isTeacher && !isSelf) {
     throw new AuthorizationError('Access denied');
   }
-  
+
   res.json({
     success: true,
-    data: { student }
+    data: { student },
   });
 });
 
@@ -153,21 +155,21 @@ exports.createStudent = catchAsync(async (req, res) => {
     parentName,
     parentPhone,
     parentEmail,
-    classId
+    classId,
   } = req.body;
 
   // Validate required fields
   if (!firstName || !lastName) {
     return res.status(400).json({
       success: false,
-      message: 'First name and last name are required'
+      message: 'First name and last name are required',
     });
   }
 
   if (!dateOfBirth) {
     return res.status(400).json({
       success: false,
-      message: 'Date of birth is required'
+      message: 'Date of birth is required',
     });
   }
 
@@ -176,7 +178,7 @@ exports.createStudent = catchAsync(async (req, res) => {
   if (birthDate >= new Date()) {
     return res.status(400).json({
       success: false,
-      message: 'Date of birth must be in the past'
+      message: 'Date of birth must be in the past',
     });
   }
 
@@ -191,15 +193,15 @@ exports.createStudent = catchAsync(async (req, res) => {
   if (!passwordValidation.valid) {
     throw new ValidationError('Password does not meet requirements');
   }
-  
+
   // Create user account
   const user = await User.create({
     email,
     password_hash: password,
     role: 'student',
-    is_active: true
+    is_active: true,
   });
-  
+
   // Create student profile
   const student = await Student.create({
     user_id: user.id,
@@ -212,9 +214,9 @@ exports.createStudent = catchAsync(async (req, res) => {
     parent_name: parentName || null,
     parent_phone: parentPhone || null,
     parent_email: parentEmail || null,
-    class_id: classId || null
+    class_id: classId || null,
   });
-  
+
   res.status(201).json({
     success: true,
     message: 'Student created successfully',
@@ -228,10 +230,10 @@ exports.createStudent = catchAsync(async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          role: user.role
-        }
-      }
-    }
+          role: user.role,
+        },
+      },
+    },
   });
 });
 
@@ -243,24 +245,24 @@ exports.createStudent = catchAsync(async (req, res) => {
 exports.updateStudent = catchAsync(async (req, res) => {
   const { id } = req.params;
   const isAdmin = req.user.role === 'admin';
-  
+
   const student = await Student.findByPk(id, {
-    include: [{ model: User, as: 'user' }]
+    include: [{ model: User, as: 'user' }],
   });
-  
+
   if (!student) {
     throw new NotFoundError('Student not found');
   }
-  
+
   // Check permissions
   const isSelf = student.user_id === req.user.id;
   if (!isAdmin && !isSelf) {
     throw new AuthorizationError('You can only update your own profile');
   }
-  
+
   // Fields that can be updated - handle both camelCase and snake_case
   const updates = {};
-  
+
   if (isAdmin) {
     // Admin can update all fields
     if (req.body.firstName !== undefined) updates.first_name = req.body.firstName;
@@ -285,13 +287,13 @@ exports.updateStudent = catchAsync(async (req, res) => {
     if (req.body.phone !== undefined) updates.phone = req.body.phone;
     if (req.body.address !== undefined) updates.address = req.body.address;
   }
-  
+
   await student.update(updates);
-  
+
   res.json({
     success: true,
     message: 'Student updated successfully',
-    data: { student }
+    data: { student },
   });
 });
 
@@ -302,27 +304,27 @@ exports.updateStudent = catchAsync(async (req, res) => {
  */
 exports.deleteStudent = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   const student = await Student.findByPk(id, {
-    include: [{ model: User, as: 'user' }]
+    include: [{ model: User, as: 'user' }],
   });
-  
+
   if (!student) {
     throw new NotFoundError('Student not found');
   }
-  
+
   // Prevent deleting yourself
   if (student.user_id === req.user.id) {
     throw new ValidationError('You cannot delete your own account');
   }
-  
+
   // Soft delete by deactivating user account
   await student.user.update({ is_active: false });
-  
+
   res.json({
     success: true,
     message: 'Student deleted successfully',
-    data: { deletedStudentId: id }
+    data: { deletedStudentId: id },
   });
 });
 
@@ -334,18 +336,18 @@ exports.deleteStudent = catchAsync(async (req, res) => {
  */
 exports.getStudentGrades = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   const student = await Student.findByPk(id);
-  
+
   if (!student) {
     throw new NotFoundError('Student not found');
   }
-  
+
   // Check permissions
   const isAdmin = req.user.role === 'admin';
   const isTeacher = req.user.role === 'teacher';
   const isSelf = student.user_id === req.user.id;
-  
+
   if (!isAdmin && !isTeacher && !isSelf) {
     throw new AuthorizationError('Access denied');
   }
@@ -354,8 +356,8 @@ exports.getStudentGrades = catchAsync(async (req, res) => {
     success: true,
     message: 'Grade feature will be implemented in Day 5',
     data: {
-      grades: []
-    }
+      grades: [],
+    },
   });
 });
 
@@ -369,15 +371,15 @@ exports.getUnassignedStudents = catchAsync(async (req, res) => {
   if (!['admin', 'teacher'].includes(req.user.role)) {
     throw new AuthorizationError('Only admins and teachers can view unassigned students');
   }
-  
+
   const students = await Student.findUnassigned();
-  
+
   res.json({
     success: true,
     data: {
       student: students,
-      count: students.length
-    }
+      count: students.length,
+    },
   });
 });
 
@@ -393,27 +395,27 @@ exports.getStudentStats = catchAsync(async (req, res) => {
       include: [{
         model: User,
         as: 'user',
-        where: { is_active: true }
-      }]
+        where: { is_active: true },
+      }],
     }),
     Student.count({
-      where: { class_id: { [Op.ne]: null } }
+      where: { class_id: { [Op.ne]: null } },
     }),
     Student.count({
-      where: { class_id: null }
+      where: { class_id: null },
     }),
     Student.findAll({
       attributes: [
         'gender',
-        [Student.sequelize.fn('COUNT', Student.sequelize.col('id')), 'count']
+        [Student.sequelize.fn('COUNT', Student.sequelize.col('id')), 'count'],
       ],
       where: {
-        gender: { [Op.ne]: null }
+        gender: { [Op.ne]: null },
       },
-      group: ['gender']
-    })
+      group: ['gender'],
+    }),
   ]);
-  
+
   res.json({
     success: true,
     data: {
@@ -421,10 +423,10 @@ exports.getStudentStats = catchAsync(async (req, res) => {
       active,
       assigned,
       unassigned,
-      byGender: byGender.map(g => ({
+      byGender: byGender.map((g) => ({
         gender: g.gender,
-        count: parseInt(g.dataValues.count)
-      }))
-    }
+        count: parseInt(g.dataValues.count),
+      })),
+    },
   });
 });

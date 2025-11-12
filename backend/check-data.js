@@ -25,7 +25,7 @@ async function checkData() {
       courses: await Course.count(),
       grades: await Grade.count(),
       attendance: await Attendance.count(),
-      assignments: await Assignment.count()
+      assignments: await Assignment.count(),
     };
 
     console.log('📊 Database Counts:');
@@ -42,7 +42,7 @@ async function checkData() {
     console.log('===============');
 
     const sampleClass = await Class.findOne({
-      include: [{ model: Teacher, as: 'homeRoomTeacher' }]
+      include: [{ model: Teacher, as: 'homeRoomTeacher' }],
     });
     if (sampleClass) {
       console.log(`✅ Sample Class: ${sampleClass.name} (Grade ${sampleClass.grade_level})`);
@@ -73,7 +73,6 @@ async function checkData() {
 
     await sequelize.close();
     console.log('\n✅ Database check complete!');
-
   } catch (error) {
     console.error('❌ Error checking database:', error.message);
     process.exit(1);

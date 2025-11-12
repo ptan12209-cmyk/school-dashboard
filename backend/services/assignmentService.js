@@ -4,7 +4,9 @@
  * Business logic for assignment management and grading
  */
 
-const { Assignment, Question, Submission, Student, Course, Teacher, User } = require('../models');
+const {
+  Assignment, Question, Submission, Student, Course, Teacher, User,
+} = require('../models');
 const notificationService = require('./notificationService');
 
 class AssignmentService {
@@ -19,7 +21,7 @@ class AssignmentService {
       ...data,
       course_id,
       teacher_id: teacherId,
-      status: 'draft'
+      status: 'draft',
     });
 
     // Create questions if provided
@@ -27,7 +29,7 @@ class AssignmentService {
       const questionsData = questions.map((q, index) => ({
         ...q,
         assignment_id: assignment.id,
-        order: q.order !== undefined ? q.order : index
+        order: q.order !== undefined ? q.order : index,
       }));
 
       await Question.bulkCreate(questionsData);
@@ -45,12 +47,12 @@ class AssignmentService {
         {
           model: Question,
           as: 'questions',
-          order: [['order', 'ASC']]
+          order: [['order', 'ASC']],
         },
         {
           model: Course,
           as: 'course',
-          attributes: ['id', 'name', 'code']
+          attributes: ['id', 'name', 'code'],
         },
         {
           model: Teacher,
@@ -58,10 +60,10 @@ class AssignmentService {
           include: [{
             model: User,
             as: 'user',
-            attributes: ['firstName', 'lastName', 'email']
-          }]
-        }
-      ]
+            attributes: ['firstName', 'lastName', 'email'],
+          }],
+        },
+      ],
     });
   }
 
@@ -85,10 +87,10 @@ class AssignmentService {
         {
           model: Question,
           as: 'questions',
-          attributes: ['id']
-        }
+          attributes: ['id'],
+        },
       ],
-      order: [['created_at', 'DESC']]
+      order: [['created_at', 'DESC']],
     });
   }
 
@@ -97,7 +99,7 @@ class AssignmentService {
    */
   async getStudentAssignments(studentId) {
     const student = await Student.findByPk(studentId, {
-      include: [{ model: User, as: 'user' }]
+      include: [{ model: User, as: 'user' }],
     });
 
     if (!student) {
@@ -106,35 +108,35 @@ class AssignmentService {
 
     // Get student's courses
     const courses = await Course.findAll({
-      where: { class_id: student.class_id }
+      where: { class_id: student.class_id },
     });
 
-    const courseIds = courses.map(c => c.id);
+    const courseIds = courses.map((c) => c.id);
 
     // Get published assignments for these courses
     const assignments = await Assignment.findAll({
       where: {
         course_id: courseIds,
-        status: 'published'
+        status: 'published',
       },
       include: [
         {
           model: Course,
           as: 'course',
-          attributes: ['id', 'name', 'code']
+          attributes: ['id', 'name', 'code'],
         },
         {
           model: Submission,
           as: 'submissions',
           where: { student_id: studentId },
-          required: false
-        }
+          required: false,
+        },
       ],
-      order: [['due_date', 'ASC']]
+      order: [['due_date', 'ASC']],
     });
 
     // Add metadata about submission status
-    return assignments.map(assignment => {
+    return assignments.map((assignment) => {
       const assignmentJson = assignment.toJSON();
       const submission = assignmentJson.submissions?.[0];
 
@@ -142,10 +144,10 @@ class AssignmentService {
         ...assignmentJson,
         submission_status: submission ? submission.status : 'not_started',
         submission_score: submission?.score || null,
-        can_submit: assignment.isAvailable() &&
-                    (!submission || (submission.status === 'draft' &&
-                    assignment.max_attempts > submission.attempt_number)),
-        is_overdue: assignment.isOverdue()
+        can_submit: assignment.isAvailable()
+                    && (!submission || (submission.status === 'draft'
+                    && assignment.max_attempts > submission.attempt_number)),
+        is_overdue: assignment.isOverdue(),
       };
     });
   }
@@ -169,7 +171,7 @@ class AssignmentService {
 
     // Calculate max score
     const questions = await Question.findAll({
-      where: { assignment_id: assignmentId }
+      where: { assignment_id: assignmentId },
     });
 
     const maxScore = questions.reduce((sum, q) => sum + parseFloat(q.points), 0);
@@ -182,7 +184,7 @@ class AssignmentService {
       max_score: maxScore,
       status: 'draft',
       started_at: new Date(),
-      answers: {}
+      answers: {},
     });
 
     return submission;
@@ -204,7 +206,7 @@ class AssignmentService {
 
     const assignment = await this.getAssignmentById(submission.assignment_id);
     const questions = await Question.findAll({
-      where: { assignment_id: assignment.id }
+      where: { assignment_id: assignment.id },
     });
 
     // Grade each answer
@@ -220,7 +222,7 @@ class AssignmentService {
           answer: null,
           is_correct: false,
           points_earned: 0,
-          max_points: question.points
+          max_points: question.points,
         };
         continue;
       }
@@ -234,7 +236,7 @@ class AssignmentService {
           answer: studentAnswer,
           is_correct: isCorrect,
           points_earned: pointsEarned,
-          max_points: question.points
+          max_points: question.points,
         };
 
         // Update question statistics
@@ -246,7 +248,7 @@ class AssignmentService {
           is_correct: null,
           points_earned: 0,
           max_points: question.points,
-          needs_manual_grading: true
+          needs_manual_grading: true,
         };
         needsManualGrading = true;
       }
@@ -269,7 +271,7 @@ class AssignmentService {
 
     // Send notification
     const student = await Student.findByPk(studentId, {
-      include: [{ model: User, as: 'user' }]
+      include: [{ model: User, as: 'user' }],
     });
 
     if (io && student.user) {
@@ -280,15 +282,15 @@ class AssignmentService {
         message: `Bạn đã nộp bài "${assignment.title}". ${needsManualGrading ? 'Đang chờ giáo viên chấm điểm.' : `Điểm: ${submission.score}/${submission.max_score}`}`,
         related_type: 'submission',
         related_id: submission.id,
-        priority: 'medium'
+        priority: 'medium',
       }, { io, sendEmail: false });
     }
 
     return await Submission.findByPk(submission.id, {
       include: [
         { model: Assignment, as: 'assignment' },
-        { model: Student, as: 'student', include: [{ model: User, as: 'user' }] }
-      ]
+        { model: Student, as: 'student', include: [{ model: User, as: 'user' }] },
+      ],
     });
   }
 
@@ -299,8 +301,8 @@ class AssignmentService {
     const submission = await Submission.findByPk(submissionId, {
       include: [
         { model: Assignment, as: 'assignment' },
-        { model: Student, as: 'student', include: [{ model: User, as: 'user' }] }
-      ]
+        { model: Student, as: 'student', include: [{ model: User, as: 'user' }] },
+      ],
     });
 
     if (!submission) {
@@ -310,12 +312,12 @@ class AssignmentService {
     // Update answers with teacher's grading
     const updatedAnswers = { ...submission.answers };
 
-    Object.keys(gradedAnswers).forEach(questionId => {
+    Object.keys(gradedAnswers).forEach((questionId) => {
       if (updatedAnswers[questionId]) {
         updatedAnswers[questionId] = {
           ...updatedAnswers[questionId],
           ...gradedAnswers[questionId],
-          manually_graded: true
+          manually_graded: true,
         };
       }
     });
@@ -337,7 +339,7 @@ class AssignmentService {
         message: `Bài tập "${submission.assignment.title}" đã được chấm. Điểm: ${submission.score}/${submission.max_score} (${submission.percentage}%)`,
         related_type: 'submission',
         related_id: submission.id,
-        priority: 'high'
+        priority: 'high',
       }, { io, sendEmail: true });
     }
 
@@ -361,10 +363,10 @@ class AssignmentService {
     const course = await Course.findByPk(assignment.course_id);
     const students = await Student.findAll({
       where: { class_id: course.class_id },
-      include: [{ model: User, as: 'user' }]
+      include: [{ model: User, as: 'user' }],
     });
 
-    const studentUserIds = students.map(s => s.user_id).filter(Boolean);
+    const studentUserIds = students.map((s) => s.user_id).filter(Boolean);
 
     // Send bulk notification
     if (io && studentUserIds.length > 0) {
@@ -376,9 +378,9 @@ class AssignmentService {
           message: `Bài tập mới "${assignment.title}" đã được giao. Hạn nộp: ${assignment.due_date ? new Date(assignment.due_date).toLocaleString('vi-VN') : 'Không giới hạn'}`,
           related_type: 'assignment',
           related_id: assignment.id,
-          priority: 'medium'
+          priority: 'medium',
         },
-        { io, sendEmail: true }
+        { io, sendEmail: true },
       );
     }
 
@@ -398,16 +400,16 @@ class AssignmentService {
     return await Submission.findAll({
       where: {
         assignment_id: assignmentId,
-        status: ['submitted', 'grading', 'graded']
+        status: ['submitted', 'grading', 'graded'],
       },
       include: [
         {
           model: Student,
           as: 'student',
-          include: [{ model: User, as: 'user' }]
-        }
+          include: [{ model: User, as: 'user' }],
+        },
       ],
-      order: [['submitted_at', 'ASC']]
+      order: [['submitted_at', 'ASC']],
     });
   }
 
@@ -419,16 +421,16 @@ class AssignmentService {
     const stats = await Submission.getAssignmentStats(assignmentId);
 
     const questions = await Question.findAll({
-      where: { assignment_id: assignmentId }
+      where: { assignment_id: assignmentId },
     });
 
-    const questionStats = questions.map(q => ({
+    const questionStats = questions.map((q) => ({
       id: q.id,
       text: q.question_text,
       type: q.question_type,
       points: q.points,
       times_answered: q.times_answered,
-      success_rate: q.getSuccessRate()
+      success_rate: q.getSuccessRate(),
     }));
 
     return {
@@ -437,10 +439,10 @@ class AssignmentService {
         title: assignment.title,
         total_points: assignment.total_points,
         total_submissions: assignment.total_submissions,
-        avg_score: assignment.avg_score
+        avg_score: assignment.avg_score,
       },
       submissions: stats,
-      questions: questionStats
+      questions: questionStats,
     };
   }
 }

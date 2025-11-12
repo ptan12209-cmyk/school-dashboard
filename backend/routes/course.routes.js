@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const { body, param, query } = require('express-validator');
 const courseController = require('../controllers/courseController');
@@ -15,15 +16,16 @@ router.get(
   [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-    query('subject').optional().trim().isLength({ max: 50 }).withMessage('Subject must not exceed 50 characters'),
+    query('subject').optional().trim().isLength({ max: 50 })
+      .withMessage('Subject must not exceed 50 characters'),
     query('semester').optional().isIn(['1', '2', 'Full Year']).withMessage('Semester must be 1, 2, or Full Year'),
     query('school_year').optional().matches(/^\d{4}-\d{4}$/).withMessage('School year must be in format YYYY-YYYY'),
     query('teacher_id').optional().isUUID().withMessage('Invalid teacher ID'),
     query('class_id').optional().isUUID().withMessage('Invalid class ID'),
     query('is_active').optional().isBoolean().withMessage('is_active must be boolean'),
-    validate
+    validate,
   ],
-  courseController.getAllCourses
+  courseController.getAllCourses,
 );
 
 /**
@@ -35,9 +37,9 @@ router.get(
   '/subjects',
   [
     query('school_year').optional().matches(/^\d{4}-\d{4}$/).withMessage('School year must be in format YYYY-YYYY'),
-    validate
+    validate,
   ],
-  courseController.getAllSubjects
+  courseController.getAllSubjects,
 );
 
 /**
@@ -51,9 +53,9 @@ router.get(
   checkRole('admin'),
   [
     query('school_year').optional().matches(/^\d{4}-\d{4}$/).withMessage('School year must be in format YYYY-YYYY'),
-    validate
+    validate,
   ],
-  courseController.getCourseStats
+  courseController.getCourseStats,
 );
 
 /**
@@ -65,9 +67,9 @@ router.get(
   '/:id',
   [
     param('id').isUUID().withMessage('Invalid course ID'),
-    validate
+    validate,
   ],
-  courseController.getCourseById
+  courseController.getCourseById,
 );
 
 /**
@@ -83,20 +85,25 @@ router.post(
     body('name')
       .trim()
       .notEmpty().withMessage('Course name is required')
-      .isLength({ max: 200 }).withMessage('Course name must not exceed 200 characters'),
+      .isLength({ max: 200 })
+      .withMessage('Course name must not exceed 200 characters'),
     body('code')
       .trim()
       .notEmpty().withMessage('Course code is required')
-      .isLength({ max: 20 }).withMessage('Course code must not exceed 20 characters')
-      .matches(/^[A-Z0-9-]+$/).withMessage('Course code must contain only uppercase letters, numbers, and hyphens'),
+      .isLength({ max: 20 })
+      .withMessage('Course code must not exceed 20 characters')
+      .matches(/^[A-Z0-9-]+$/)
+      .withMessage('Course code must contain only uppercase letters, numbers, and hyphens'),
     body('subject')
       .trim()
       .notEmpty().withMessage('Subject is required')
-      .isLength({ max: 50 }).withMessage('Subject must not exceed 50 characters'),
+      .isLength({ max: 50 })
+      .withMessage('Subject must not exceed 50 characters'),
     body('description')
       .optional()
       .trim()
-      .isLength({ max: 1000 }).withMessage('Description must not exceed 1000 characters'),
+      .isLength({ max: 1000 })
+      .withMessage('Description must not exceed 1000 characters'),
     body('credits')
       .optional()
       .isFloat({ min: 0.5, max: 10.0 }).withMessage('Credits must be between 0.5 and 10.0'),
@@ -115,9 +122,9 @@ router.post(
     body('schedule')
       .optional()
       .isJSON().withMessage('Schedule must be valid JSON'),
-    validate
+    validate,
   ],
-  courseController.createCourse
+  courseController.createCourse,
 );
 
 /**
@@ -134,23 +141,31 @@ router.put(
     body('name')
       .optional()
       .trim()
-      .notEmpty().withMessage('Course name cannot be empty')
-      .isLength({ max: 200 }).withMessage('Course name must not exceed 200 characters'),
+      .notEmpty()
+      .withMessage('Course name cannot be empty')
+      .isLength({ max: 200 })
+      .withMessage('Course name must not exceed 200 characters'),
     body('code')
       .optional()
       .trim()
-      .notEmpty().withMessage('Course code cannot be empty')
-      .isLength({ max: 20 }).withMessage('Course code must not exceed 20 characters')
-      .matches(/^[A-Z0-9-]+$/).withMessage('Course code must contain only uppercase letters, numbers, and hyphens'),
+      .notEmpty()
+      .withMessage('Course code cannot be empty')
+      .isLength({ max: 20 })
+      .withMessage('Course code must not exceed 20 characters')
+      .matches(/^[A-Z0-9-]+$/)
+      .withMessage('Course code must contain only uppercase letters, numbers, and hyphens'),
     body('subject')
       .optional()
       .trim()
-      .notEmpty().withMessage('Subject cannot be empty')
-      .isLength({ max: 50 }).withMessage('Subject must not exceed 50 characters'),
+      .notEmpty()
+      .withMessage('Subject cannot be empty')
+      .isLength({ max: 50 })
+      .withMessage('Subject must not exceed 50 characters'),
     body('description')
       .optional()
       .trim()
-      .isLength({ max: 1000 }).withMessage('Description must not exceed 1000 characters'),
+      .isLength({ max: 1000 })
+      .withMessage('Description must not exceed 1000 characters'),
     body('credits')
       .optional()
       .isFloat({ min: 0.5, max: 10.0 }).withMessage('Credits must be between 0.5 and 10.0'),
@@ -172,9 +187,9 @@ router.put(
     body('is_active')
       .optional()
       .isBoolean().withMessage('is_active must be boolean'),
-    validate
+    validate,
   ],
-  courseController.updateCourse
+  courseController.updateCourse,
 );
 
 /**
@@ -188,9 +203,9 @@ router.delete(
   checkRole('admin'),
   [
     param('id').isUUID().withMessage('Invalid course ID'),
-    validate
+    validate,
   ],
-  courseController.deleteCourse
+  courseController.deleteCourse,
 );
 
 /**
@@ -206,9 +221,9 @@ router.get(
     param('id').isUUID().withMessage('Invalid course ID'),
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-    validate
+    validate,
   ],
-  courseController.getCourseGrades
+  courseController.getCourseGrades,
 );
 
 /**
@@ -222,9 +237,9 @@ router.get(
   checkRole('admin', 'teacher'),
   [
     param('id').isUUID().withMessage('Invalid course ID'),
-    validate
+    validate,
   ],
-  courseController.getCourseStudents
+  courseController.getCourseStudents,
 );
 
 module.exports = router;

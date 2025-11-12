@@ -41,17 +41,17 @@ class AIService {
       const contents = [];
 
       // Add conversation history
-      history.forEach(msg => {
+      history.forEach((msg) => {
         contents.push({
           role: msg.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: msg.content }]
+          parts: [{ text: msg.content }],
         });
       });
 
       // Add current prompt
       contents.push({
         role: 'user',
-        parts: [{ text: prompt }]
+        parts: [{ text: prompt }],
       });
 
       const url = `${this.apiUrl}/models/${this.model}:generateContent?key=${this.apiKey}`;
@@ -59,18 +59,18 @@ class AIService {
       const response = await axios.post(
         url,
         {
-          contents: contents,
+          contents,
           generationConfig: {
             temperature: geminiConfig.temperature,
             maxOutputTokens: geminiConfig.maxTokens,
-          }
+          },
         },
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          timeout: geminiConfig.timeout
-        }
+          timeout: geminiConfig.timeout,
+        },
       );
 
       // Extract text from Gemini response
@@ -86,16 +86,16 @@ class AIService {
 
       // ✅ FIX: Retry on timeout, network errors, or 503 overload
       const shouldRetry = retries > 0 && (
-        error.code === 'ECONNABORTED' ||
-        error.code === 'ETIMEDOUT' ||
-        error.response?.status === 503 ||
-        error.response?.data?.error?.code === 503
+        error.code === 'ECONNABORTED'
+        || error.code === 'ETIMEDOUT'
+        || error.response?.status === 503
+        || error.response?.data?.error?.code === 503
       );
 
       if (shouldRetry) {
         const retryDelay = geminiConfig.retryDelay * (3 - retries); // Exponential backoff: 2s, 4s, 6s
-        console.log(`⚠️  ${error.code || 'Service overloaded'}, retrying in ${retryDelay/1000}s... (${retries} retries left)`);
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        console.log(`⚠️  ${error.code || 'Service overloaded'}, retrying in ${retryDelay / 1000}s... (${retries} retries left)`);
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
         return this.callGemini(prompt, history, retries - 1);
       }
 
@@ -188,7 +188,7 @@ class AIService {
       // ✅ Store with timestamp
       this.conversationHistory.set(userId, {
         messages: history,
-        lastAccess: Date.now()
+        lastAccess: Date.now(),
       });
 
       // ✅ Enforce max size to prevent unbounded growth
@@ -285,7 +285,7 @@ Vai trò của bạn:
 - Tạo báo cáo và tóm tắt`;
     }
 
-    prompt += `\n\nHãy hữu ích, thân thiện và chuyên nghiệp. Nếu bạn không biết điều gì, hãy thừa nhận một cách trung thực.`;
+    prompt += '\n\nHãy hữu ích, thân thiện và chuyên nghiệp. Nếu bạn không biết điều gì, hãy thừa nhận một cách trung thực.';
 
     return prompt;
   }
@@ -295,7 +295,9 @@ Vai trò của bạn:
    */
   async generateStudyRecommendations(studentData) {
     try {
-      const { name, grades, weakSubjects, strengths } = studentData;
+      const {
+        name, grades, weakSubjects, strengths,
+      } = studentData;
 
       const prompt = `Phân tích hiệu suất học sinh này và đưa ra gợi ý học tập cá nhân hóa:
 
@@ -331,7 +333,8 @@ Trả lời bằng tiếng Việt với các gạch đầu dòng rõ ràng.`;
 
     // Simple linear regression
     const n = grades.length;
-    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    let sumX = 0; let sumY = 0; let sumXY = 0; let
+      sumX2 = 0;
 
     grades.forEach((grade, index) => {
       const x = index + 1;
@@ -359,7 +362,7 @@ Trả lời bằng tiếng Việt với các gạch đầu dòng rõ ràng.`;
       trend,
       prediction: Math.max(0, Math.min(10, prediction)).toFixed(2),
       slope: slope.toFixed(3),
-      confidence: this.calculateConfidence(grades)
+      confidence: this.calculateConfidence(grades),
     };
   }
 
@@ -367,9 +370,9 @@ Trả lời bằng tiếng Việt với các gạch đầu dòng rõ ràng.`;
    * Calculate confidence level based on grade variance
    */
   calculateConfidence(grades) {
-    const scores = grades.map(g => parseFloat(g.score));
+    const scores = grades.map((g) => parseFloat(g.score));
     const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
-    const variance = scores.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / scores.length;
+    const variance = scores.reduce((acc, val) => acc + (val - mean) ** 2, 0) / scores.length;
     const stdDev = Math.sqrt(variance);
 
     // Lower std dev = higher confidence
@@ -383,7 +386,9 @@ Trả lời bằng tiếng Việt với các gạch đầu dòng rõ ràng.`;
    */
   async generateCourseRecommendations(studentProfile) {
     try {
-      const { interests, completedCourses, avgGrade, careerGoals } = studentProfile;
+      const {
+        interests, completedCourses, avgGrade, careerGoals,
+      } = studentProfile;
 
       const prompt = `Dựa trên hồ sơ học sinh này, gợi ý 5 khóa học phù hợp:
 
@@ -413,7 +418,9 @@ Trả lời bằng tiếng Việt.`;
    */
   async generateReportSummary(reportData) {
     try {
-      const { studentName, grades, attendance, behavior, period } = reportData;
+      const {
+        studentName, grades, attendance, behavior, period,
+      } = reportData;
 
       const prompt = `Tạo bản tóm tắt báo cáo toàn diện cho học sinh này:
 
@@ -424,7 +431,7 @@ Tỷ lệ điểm danh: ${attendance.rate}%
 Điểm hạnh kiểm: ${behavior.score}/10
 
 Các môn học:
-${grades.subjects.map(s => `- ${s.name}: ${s.score}/10`).join('\n')}
+${grades.subjects.map((s) => `- ${s.name}: ${s.score}/10`).join('\n')}
 
 Vui lòng viết:
 1. Tóm tắt hiệu suất tổng thể

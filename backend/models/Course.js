@@ -5,9 +5,9 @@ const Course = sequelize.define('Course', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
+    primaryKey: true,
   },
-  
+
   name: {
     type: DataTypes.STRING(100),
     allowNull: false,
@@ -15,11 +15,11 @@ const Course = sequelize.define('Course', {
       notEmpty: { msg: 'Course name cannot be empty' },
       len: {
         args: [1, 100],
-        msg: 'Course name must be 1-100 characters'
-      }
-    }
+        msg: 'Course name must be 1-100 characters',
+      },
+    },
   },
-  
+
   code: {
     type: DataTypes.STRING(20),
     allowNull: false,
@@ -28,44 +28,44 @@ const Course = sequelize.define('Course', {
       notEmpty: { msg: 'Course code cannot be empty' },
       is: {
         args: /^[A-Z0-9-]+$/i,
-        msg: 'Course code can only contain letters, numbers, and hyphens'
-      }
-    }
+        msg: 'Course code can only contain letters, numbers, and hyphens',
+      },
+    },
   },
-  
+
   description: {
     type: DataTypes.TEXT,
-    allowNull: true
+    allowNull: true,
   },
-  
+
   class_id: {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'classes',
-      key: 'id'
+      key: 'id',
     },
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   },
-  
+
   teacher_id: {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'teachers',
-      key: 'id'
+      key: 'id',
     },
-    onDelete: 'RESTRICT'
+    onDelete: 'RESTRICT',
   },
-  
+
   subject: {
     type: DataTypes.STRING(50),
     allowNull: false,
     validate: {
-      notEmpty: { msg: 'Subject cannot be empty' }
-    }
+      notEmpty: { msg: 'Subject cannot be empty' },
+    },
   },
-  
+
   credits: {
     type: DataTypes.DECIMAL(3, 1),
     allowNull: false,
@@ -73,21 +73,21 @@ const Course = sequelize.define('Course', {
     validate: {
       min: {
         args: [0.5],
-        msg: 'Credits must be at least 0.5'
+        msg: 'Credits must be at least 0.5',
       },
       max: {
         args: [10.0],
-        msg: 'Credits cannot exceed 10.0'
-      }
-    }
+        msg: 'Credits cannot exceed 10.0',
+      },
+    },
   },
-  
+
   semester: {
     type: DataTypes.ENUM('1', '2', 'Full Year'),
     allowNull: false,
-    defaultValue: 'Full Year'
+    defaultValue: 'Full Year',
   },
-  
+
   school_year: {
     type: DataTypes.STRING(20),
     allowNull: false,
@@ -95,21 +95,21 @@ const Course = sequelize.define('Course', {
     validate: {
       is: {
         args: /^\d{4}-\d{4}$/,
-        msg: 'School year must be in format YYYY-YYYY'
-      }
-    }
+        msg: 'School year must be in format YYYY-YYYY',
+      },
+    },
   },
-  
+
   schedule: {
     type: DataTypes.JSONB,
     allowNull: true,
-    comment: 'Schedule in format: [{day: "Monday", time: "08:00-09:00"}]'
+    comment: 'Schedule in format: [{day: "Monday", time: "08:00-09:00"}]',
   },
-  
+
   is_active: {
     type: DataTypes.BOOLEAN,
-    defaultValue: true
-  }
+    defaultValue: true,
+  },
 }, {
   tableName: 'courses',
   timestamps: true,
@@ -117,25 +117,25 @@ const Course = sequelize.define('Course', {
   indexes: [
     {
       unique: true,
-      fields: ['code']
+      fields: ['code'],
     },
     {
       unique: false,
-      fields: ['class_id']
+      fields: ['class_id'],
     },
     {
       unique: false,
-      fields: ['teacher_id']
+      fields: ['teacher_id'],
     },
     {
       unique: false,
-      fields: ['subject']
+      fields: ['subject'],
     },
     {
       unique: false,
-      fields: ['school_year']
-    }
-  ]
+      fields: ['school_year'],
+    },
+  ],
 });
 
 /**
@@ -145,70 +145,70 @@ const Course = sequelize.define('Course', {
 /**
  * Get student count enrolled in course
  */
-Course.prototype.getEnrollmentCount = async function() {
+Course.prototype.getEnrollmentCount = async function () {
   const Class = require('./Class');
   const Student = require('./Student');
-  
+
   const classData = await Class.findByPk(this.class_id, {
     include: [{
       model: Student,
       as: 'students',
-      attributes: ['id']
-    }]
+      attributes: ['id'],
+    }],
   });
-  
+
   return classData && classData.students ? classData.students.length : 0;
 };
 
 /**
  * Get average grade for course
  */
-Course.prototype.getAverageGrade = async function() {
+Course.prototype.getAverageGrade = async function () {
   const Grade = require('./Grade');
-  
+
   const result = await Grade.findOne({
     where: { course_id: this.id },
     attributes: [
-      [sequelize.fn('AVG', sequelize.col('score')), 'avgScore']
+      [sequelize.fn('AVG', sequelize.col('score')), 'avgScore'],
     ],
-    raw: true
+    raw: true,
   });
-  
+
   return result && result.avgScore ? parseFloat(result.avgScore).toFixed(2) : null;
 };
 
 /**
  * Get course statistics
  */
-Course.prototype.getStatistics = async function() {
+Course.prototype.getStatistics = async function () {
   const Grade = require('./Grade');
-  
+
   const grades = await Grade.findAll({
     where: { course_id: this.id },
     attributes: ['score'],
-    raw: true
+    raw: true,
   });
-  
+
   if (grades.length === 0) {
     return {
       totalGrades: 0,
       average: null,
       highest: null,
       lowest: null,
-      passRate: null
+      passRate: null,
     };
   }
-  
-  const scores = grades.map(g => parseFloat(g.score));
+
+  const scores = grades.map((g) => parseFloat(g.score));
   const average = scores.reduce((a, b) => a + b, 0) / scores.length;
-  const passed = scores.filter(s => s >= 60).length;
-  
+  const passed = scores.filter((s) => s >= 60).length;
+
   return {
     totalGrades: grades.length,
     average: average.toFixed(2),
     highest: Math.max(...scores),
     lowest: Math.min(...scores),
-    passRate: ((passed / grades.length) * 100).toFixed(1)
+    passRate: ((passed / grades.length) * 100).toFixed(1),
   };
 };
 
@@ -219,110 +219,110 @@ Course.prototype.getStatistics = async function() {
 /**
  * Find courses by subject
  */
-Course.findBySubject = function(subject) {
+Course.findBySubject = function (subject) {
   return this.findAll({
-    where: { 
+    where: {
       subject,
-      is_active: true
+      is_active: true,
     },
-    order: [['name', 'ASC']]
+    order: [['name', 'ASC']],
   });
 };
 
 /**
  * Find courses by teacher
  */
-Course.findByTeacher = function(teacherId) {
+Course.findByTeacher = function (teacherId) {
   return this.findAll({
-    where: { 
+    where: {
       teacher_id: teacherId,
-      is_active: true
+      is_active: true,
     },
-    order: [['name', 'ASC']]
+    order: [['name', 'ASC']],
   });
 };
 
 /**
  * Find courses by class
  */
-Course.findByClass = function(classId) {
+Course.findByClass = function (classId) {
   return this.findAll({
-    where: { 
+    where: {
       class_id: classId,
-      is_active: true
+      is_active: true,
     },
-    order: [['subject', 'ASC']]
+    order: [['subject', 'ASC']],
   });
 };
 
 /**
  * Find courses by school year
  */
-Course.findBySchoolYear = function(schoolYear) {
+Course.findBySchoolYear = function (schoolYear) {
   return this.findAll({
-    where: { 
+    where: {
       school_year: schoolYear,
-      is_active: true
+      is_active: true,
     },
-    order: [['subject', 'ASC'], ['name', 'ASC']]
+    order: [['subject', 'ASC'], ['name', 'ASC']],
   });
 };
 
 /**
  * Get all unique subjects
  */
-Course.getAllSubjects = async function() {
+Course.getAllSubjects = async function () {
   const subjects = await this.findAll({
     attributes: [
-      [sequelize.fn('DISTINCT', sequelize.col('subject')), 'subject']
+      [sequelize.fn('DISTINCT', sequelize.col('subject')), 'subject'],
     ],
     where: { is_active: true },
     order: [['subject', 'ASC']],
-    raw: true
+    raw: true,
   });
-  
-  return subjects.map(s => s.subject);
+
+  return subjects.map((s) => s.subject);
 };
 
 /**
  * Get course statistics
  */
-Course.getStats = async function() {
+Course.getStats = async function () {
   const total = await this.count();
   const active = await this.count({ where: { is_active: true } });
-  
+
   const bySubject = await this.findAll({
     attributes: [
       'subject',
-      [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
     ],
     where: { is_active: true },
     group: ['subject'],
     order: [[sequelize.fn('COUNT', sequelize.col('id')), 'DESC']],
-    raw: true
+    raw: true,
   });
-  
+
   const bySemester = await this.findAll({
     attributes: [
       'semester',
-      [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
     ],
     where: { is_active: true },
     group: ['semester'],
-    raw: true
+    raw: true,
   });
-  
+
   return {
     total,
     active,
-    bySubject: bySubject.map(item => ({
+    bySubject: bySubject.map((item) => ({
       subject: item.subject,
-      count: parseInt(item.count)
+      count: parseInt(item.count),
     })),
-    bySemester: bySemester.map(item => ({
+    bySemester: bySemester.map((item) => ({
       semester: item.semester,
-      count: parseInt(item.count)
-    }))
+      count: parseInt(item.count),
+    })),
   };
 };
 

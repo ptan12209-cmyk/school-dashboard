@@ -15,10 +15,10 @@ const config = {
       max: 5,
       min: 0,
       acquire: 30000,
-      idle: 10000
-    }
+      idle: 10000,
+    },
   },
-  
+
   test: {
     username: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
@@ -26,9 +26,9 @@ const config = {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
-    logging: false
-},
-  
+    logging: false,
+  },
+
   production: {
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -41,17 +41,17 @@ const config = {
       max: 20,
       min: 5,
       acquire: 30000,
-      idle: 10000
+      idle: 10000,
     },
     dialectOptions: {
       ssl: {
         require: true,
         rejectUnauthorized: true, // ✅ SECURITY FIX: Enforce SSL validation
         // Provide CA certificate if using self-signed cert
-        ca: process.env.DB_SSL_CA || undefined
-      }
-    }
-  }
+        ca: process.env.DB_SSL_CA || undefined,
+      },
+    },
+  },
 };
 
 /**
@@ -67,7 +67,7 @@ const sequelize = new Sequelize(
   currentConfig.database,
   currentConfig.username,
   currentConfig.password,
-  currentConfig
+  currentConfig,
 );
 
 /**
@@ -75,14 +75,14 @@ const sequelize = new Sequelize(
  */
 sequelize.authenticate()
   .then(() => console.log('✅ Database connected successfully'))
-  .catch(err => console.error('❌ Database connection error:', err.message));
+  .catch((err) => console.error('❌ Database connection error:', err.message));
 
 /**
  * ✅ SECURITY FIX: Validate required production environment variables
  */
 if (process.env.NODE_ENV === 'production') {
   const required = ['DB_USER', 'DB_PASSWORD', 'DB_NAME', 'DB_HOST'];
-  const missing = required.filter(key => !process.env[key]);
+  const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
     throw new Error(`❌ FATAL: Missing required production env vars: ${missing.join(', ')}`);
   }
@@ -91,5 +91,5 @@ if (process.env.NODE_ENV === 'production') {
 module.exports = {
   config: currentConfig,
   sequelize,
-  Sequelize
+  Sequelize,
 };

@@ -18,7 +18,7 @@ exports.getUserNotifications = catchAsync(async (req, res) => {
 
   const options = {
     page: parseInt(page),
-    limit: parseInt(limit)
+    limit: parseInt(limit),
   };
 
   // Apply filters
@@ -37,8 +37,8 @@ exports.getUserNotifications = catchAsync(async (req, res) => {
       total: result.total,
       page: result.page,
       limit: result.limit,
-      totalPages: result.totalPages
-    }
+      totalPages: result.totalPages,
+    },
   });
 });
 
@@ -52,7 +52,7 @@ exports.getUnreadCount = catchAsync(async (req, res) => {
 
   res.json({
     success: true,
-    data: { count }
+    data: { count },
   });
 });
 
@@ -67,20 +67,20 @@ exports.getNotification = catchAsync(async (req, res) => {
   const notification = await Notification.findOne({
     where: {
       id,
-      user_id: userId
-    }
+      user_id: userId,
+    },
   });
 
   if (!notification) {
     return res.status(404).json({
       success: false,
-      message: 'Không tìm thấy thông báo'
+      message: 'Không tìm thấy thông báo',
     });
   }
 
   res.json({
     success: true,
-    data: notification
+    data: notification,
   });
 });
 
@@ -97,7 +97,7 @@ exports.markAsRead = catchAsync(async (req, res) => {
   if (!notification) {
     return res.status(404).json({
       success: false,
-      message: 'Không tìm thấy thông báo'
+      message: 'Không tìm thấy thông báo',
     });
   }
 
@@ -105,7 +105,7 @@ exports.markAsRead = catchAsync(async (req, res) => {
   const count = await Notification.getUnreadCount(userId);
 
   // Emit real-time update
-  const io = req.app.locals.io;
+  const { io } = req.app.locals;
   if (io) {
     io.emitToUser(userId, 'notification_count', count);
   }
@@ -113,7 +113,7 @@ exports.markAsRead = catchAsync(async (req, res) => {
   res.json({
     success: true,
     data: notification,
-    unreadCount: count
+    unreadCount: count,
   });
 });
 
@@ -127,7 +127,7 @@ exports.markAllAsRead = catchAsync(async (req, res) => {
   const count = await notificationService.markAllAsRead(userId);
 
   // Emit real-time update
-  const io = req.app.locals.io;
+  const { io } = req.app.locals;
   if (io) {
     io.emitToUser(userId, 'notification_count', 0);
     io.emitToUser(userId, 'all_notifications_read');
@@ -137,8 +137,8 @@ exports.markAllAsRead = catchAsync(async (req, res) => {
     success: true,
     data: {
       markedCount: count,
-      unreadCount: 0
-    }
+      unreadCount: 0,
+    },
   });
 });
 
@@ -153,14 +153,14 @@ exports.deleteNotification = catchAsync(async (req, res) => {
   const notification = await Notification.findOne({
     where: {
       id,
-      user_id: userId
-    }
+      user_id: userId,
+    },
   });
 
   if (!notification) {
     return res.status(404).json({
       success: false,
-      message: 'Không tìm thấy thông báo'
+      message: 'Không tìm thấy thông báo',
     });
   }
 
@@ -170,7 +170,7 @@ exports.deleteNotification = catchAsync(async (req, res) => {
   const count = await Notification.getUnreadCount(userId);
 
   // Emit real-time update
-  const io = req.app.locals.io;
+  const { io } = req.app.locals;
   if (io) {
     io.emitToUser(userId, 'notification_count', count);
     io.emitToUser(userId, 'notification_deleted', id);
@@ -179,7 +179,7 @@ exports.deleteNotification = catchAsync(async (req, res) => {
   res.json({
     success: true,
     message: 'Đã xóa thông báo',
-    unreadCount: count
+    unreadCount: count,
   });
 });
 
@@ -193,14 +193,14 @@ exports.deleteReadNotifications = catchAsync(async (req, res) => {
   const result = await Notification.destroy({
     where: {
       user_id: userId,
-      is_read: true
-    }
+      is_read: true,
+    },
   });
 
   res.json({
     success: true,
     message: `Đã xóa ${result} thông báo đã đọc`,
-    deletedCount: result
+    deletedCount: result,
   });
 });
 
@@ -210,23 +210,23 @@ exports.deleteReadNotifications = catchAsync(async (req, res) => {
  */
 exports.createTestNotification = catchAsync(async (req, res) => {
   const userId = req.user.id;
-  const io = req.app.locals.io;
+  const { io } = req.app.locals;
 
   const notification = await notificationService.createNotification({
     user_id: userId,
     type: 'system',
     title: 'Thông Báo Test',
     message: 'Đây là thông báo test từ hệ thống',
-    priority: 'medium'
+    priority: 'medium',
   }, {
     io,
     sendEmail: false,
-    sendPush: false
+    sendPush: false,
   });
 
   res.json({
     success: true,
     message: 'Đã tạo thông báo test',
-    data: notification
+    data: notification,
   });
 });

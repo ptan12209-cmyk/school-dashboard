@@ -2,23 +2,23 @@
  * User Model - Authentication
  * ============================
  * Sequelize model for users table
- * 
+ *
  * Features:
  * - Password hashing with bcrypt
  * - JWT token generation
  * - Instance methods (comparePassword, generateToken)
  * - Class methods (findByEmail)
  * - Automatic timestamp updates
- * 
+ *
  * Relations:
  * - hasOne Student (through studentProfile)
  * - hasOne Teacher (through teacherProfile)
  */
 
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { sequelize } = require('../config/database');
 const { jwtConfig, passwordConfig } = require('../config/auth');
 
 const User = sequelize.define('User', {
@@ -27,7 +27,7 @@ const User = sequelize.define('User', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
-    comment: 'Unique user identifier'
+    comment: 'Unique user identifier',
   },
 
   // Authentication fields
@@ -37,19 +37,19 @@ const User = sequelize.define('User', {
     unique: true,
     validate: {
       isEmail: {
-        msg: 'Must be a valid email address'
+        msg: 'Must be a valid email address',
       },
       notEmpty: {
-        msg: 'Email cannot be empty'
-      }
+        msg: 'Email cannot be empty',
+      },
     },
-    comment: 'User email for login'
+    comment: 'User email for login',
   },
 
   password_hash: {
     type: DataTypes.STRING(255),
     allowNull: false,
-    comment: 'Bcrypt hashed password'
+    comment: 'Bcrypt hashed password',
   },
 
   // Authorization
@@ -60,18 +60,18 @@ const User = sequelize.define('User', {
     validate: {
       isIn: {
         args: [['admin', 'teacher', 'parent', 'student']],
-        msg: 'Role must be admin, teacher, parent, or student'
-      }
+        msg: 'Role must be admin, teacher, parent, or student',
+      },
     },
-    comment: 'User role for access control'
+    comment: 'User role for access control',
   },
 
   // Account status
   is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
-    comment: 'Account active status'
-  }
+    comment: 'Account active status',
+  },
 }, {
   // Model options
   tableName: 'users',
@@ -84,14 +84,14 @@ const User = sequelize.define('User', {
   indexes: [
     {
       unique: true,
-      fields: ['email']
+      fields: ['email'],
     },
     {
-      fields: ['role']
+      fields: ['role'],
     },
     {
-      fields: ['is_active']
-    }
+      fields: ['is_active'],
+    },
   ],
 
   // Hooks - Lifecycle events
@@ -110,22 +110,22 @@ const User = sequelize.define('User', {
         const salt = await bcrypt.genSalt(passwordConfig.saltRounds);
         user.password_hash = await bcrypt.hash(user.password_hash, salt);
       }
-    }
+    },
   },
 
   // Exclude password_hash from default JSON output
   defaultScope: {
     attributes: {
-      exclude: ['password_hash']
-    }
+      exclude: ['password_hash'],
+    },
   },
 
   // Scope to include password (for authentication)
   scopes: {
     withPassword: {
-      attributes: {}
-    }
-  }
+      attributes: {},
+    },
+  },
 });
 
 // ============================================
@@ -137,7 +137,7 @@ const User = sequelize.define('User', {
  * @param {string} candidatePassword - Password to verify
  * @returns {Promise<boolean>} True if password matches
  */
-User.prototype.comparePassword = async function(candidatePassword) {
+User.prototype.comparePassword = async function (candidatePassword) {
   const bcrypt = require('bcryptjs');
   return await bcrypt.compare(candidatePassword, this.password_hash);
 };
@@ -145,19 +145,19 @@ User.prototype.comparePassword = async function(candidatePassword) {
  * Generate JWT token for authentication
  * @returns {string} JWT token
  */
-User.prototype.generateToken = function() {
+User.prototype.generateToken = function () {
   return jwt.sign(
-    { 
-      id: this.id, 
-      email: this.email, 
-      role: this.role 
+    {
+      id: this.id,
+      email: this.email,
+      role: this.role,
     },
     jwtConfig.secret,
-    { 
+    {
       expiresIn: jwtConfig.expiresIn,
       issuer: jwtConfig.issuer,
-      audience: jwtConfig.audience
-    }
+      audience: jwtConfig.audience,
+    },
   );
 };
 
@@ -165,7 +165,7 @@ User.prototype.generateToken = function() {
  * Get user profile without sensitive data
  * @returns {Object} User profile object
  */
-User.prototype.getProfile = function() {
+User.prototype.getProfile = function () {
   const { password_hash, ...profile } = this.toJSON();
   return profile;
 };
@@ -175,7 +175,7 @@ User.prototype.getProfile = function() {
  * @param {string|string[]} roles - Role or array of roles to check
  * @returns {boolean} True if user has any of the specified roles
  */
-User.prototype.hasRole = function(roles) {
+User.prototype.hasRole = function (roles) {
   if (Array.isArray(roles)) {
     return roles.includes(this.role);
   }
@@ -191,9 +191,9 @@ User.prototype.hasRole = function(roles) {
  * @param {string} email - Email address
  * @returns {Promise<User|null>} User instance or null
  */
-User.findByEmail = async function(email) {
+User.findByEmail = async function (email) {
   return await this.scope('withPassword').findOne({
-    where: { email: email.toLowerCase() }
+    where: { email: email.toLowerCase() },
   });
 };
 
@@ -202,12 +202,12 @@ User.findByEmail = async function(email) {
  * @param {Object} filters - Additional where conditions
  * @returns {Promise<User[]>} Array of active users
  */
-User.findActive = async function(filters = {}) {
+User.findActive = async function (filters = {}) {
   return await this.findAll({
-    where: { 
+    where: {
       is_active: true,
-      ...filters 
-    }
+      ...filters,
+    },
   });
 };
 
@@ -216,12 +216,12 @@ User.findActive = async function(filters = {}) {
  * @param {string} role - User role
  * @returns {Promise<User[]>} Array of users with specified role
  */
-User.findByRole = async function(role) {
+User.findByRole = async function (role) {
   return await this.findAll({
-    where: { 
-      role, 
-      is_active: true 
-    }
+    where: {
+      role,
+      is_active: true,
+    },
   });
 };
 
@@ -230,32 +230,32 @@ User.findByRole = async function(role) {
  * @param {string} password - Password to validate
  * @returns {Object} Validation result with valid flag and errors array
  */
-User.validatePassword = function(password) {
+User.validatePassword = function (password) {
   const errors = [];
-  
+
   if (!password || password.length < passwordConfig.minLength) {
     errors.push(`Password must be at least ${passwordConfig.minLength} characters`);
   }
-  
+
   if (passwordConfig.requireUppercase && !/[A-Z]/.test(password)) {
     errors.push('Password must contain at least one uppercase letter');
   }
-  
+
   if (passwordConfig.requireLowercase && !/[a-z]/.test(password)) {
     errors.push('Password must contain at least one lowercase letter');
   }
-  
+
   if (passwordConfig.requireNumber && !/\d/.test(password)) {
     errors.push('Password must contain at least one number');
   }
-  
+
   if (passwordConfig.requireSpecialChar && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
     errors.push('Password must contain at least one special character');
   }
-  
+
   return {
     valid: errors.length === 0,
-    errors
+    errors,
   };
 };
 

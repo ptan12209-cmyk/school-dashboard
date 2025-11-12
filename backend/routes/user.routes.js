@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const { body } = require('express-validator');
 const userController = require('../controllers/userController');
@@ -15,9 +16,10 @@ router.use(verifyToken);
  * @desc    Get user statistics
  * @access  Admin only
  */
-router.get('/stats', 
+router.get(
+  '/stats',
   checkRole('admin'),
-  userController.getUserStats
+  userController.getUserStats,
 );
 
 /**
@@ -26,9 +28,10 @@ router.get('/stats',
  * @access  Admin only
  * @query   page, limit, role, is_active, search, sort
  */
-router.get('/', 
+router.get(
+  '/',
   checkRole('admin'),
-  userController.getAllUsers
+  userController.getAllUsers,
 );
 
 /**
@@ -36,9 +39,10 @@ router.get('/',
  * @desc    Activate user account
  * @access  Admin only
  */
-router.patch('/:id/activate',
+router.patch(
+  '/:id/activate',
   checkRole('admin'),
-  userController.activateUser
+  userController.activateUser,
 );
 
 /**
@@ -46,9 +50,10 @@ router.patch('/:id/activate',
  * @desc    Deactivate user account
  * @access  Admin only
  */
-router.patch('/:id/deactivate',
+router.patch(
+  '/:id/deactivate',
   checkRole('admin'),
-  userController.deactivateUser
+  userController.deactivateUser,
 );
 
 /**
@@ -56,8 +61,9 @@ router.patch('/:id/deactivate',
  * @desc    Get user by ID
  * @access  Admin or Self
  */
-router.get('/:id',
-  userController.getUserById
+router.get(
+  '/:id',
+  userController.getUserById,
 );
 
 /**
@@ -65,26 +71,27 @@ router.get('/:id',
  * @desc    Update user
  * @access  Admin or Self (limited fields for self)
  */
-router.put('/:id',
+router.put(
+  '/:id',
   [
     body('email')
       .optional()
       .isEmail()
       .withMessage('Must be a valid email')
       .normalizeEmail(),
-    
+
     body('role')
       .optional()
       .isIn(['admin', 'teacher', 'student'])
       .withMessage('Role must be admin, teacher, or student'),
-    
+
     body('is_active')
       .optional()
       .isBoolean()
-      .withMessage('is_active must be a boolean')
+      .withMessage('is_active must be a boolean'),
   ],
   validate,
-  userController.updateUser
+  userController.updateUser,
 );
 
 /**
@@ -92,9 +99,10 @@ router.put('/:id',
  * @desc    Delete user (soft delete)
  * @access  Admin only
  */
-router.delete('/:id',
+router.delete(
+  '/:id',
   checkRole('admin'),
-  userController.deleteUser
+  userController.deleteUser,
 );
 
 module.exports = router;

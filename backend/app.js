@@ -2,10 +2,10 @@
  * Express Application Configuration - FIXED VERSION
  * ===================================================
  * Main Express app setup and middleware configuration
- * 
+ *
  * ✅ FIXED: Improved CORS configuration with origin validation
  * ✅ FIXED: Rate limiting implemented
- * 
+ *
  * This file sets up the Express application but doesn't start the server.
  * Server startup is handled in server.js
  */
@@ -60,7 +60,7 @@ app.use(helmet());
  * ✅ FIXED: Improved CORS with origin validation
  */
 app.use(cors({
-  origin: function (origin, callback) {
+  origin(origin, callback) {
     // Allow requests with no origin (mobile apps, Postman, curl, server-to-server)
     if (!origin) {
       return callback(null, true);
@@ -80,21 +80,20 @@ app.use(cors({
     }
 
     // ✅ WHITELIST MODE: Check against allowed origins
-    const allowedOrigins = corsOrigin.split(',').map(o => o.trim());
+    const allowedOrigins = corsOrigin.split(',').map((o) => o.trim());
 
     if (allowedOrigins.indexOf(origin) !== -1) {
       console.log(`✅ Allowed origin: ${origin}`);
       return callback(null, true);
-    } else {
-      console.warn(`⚠️  Blocked request from unauthorized origin: ${origin}`);
-      console.warn(`   Allowed origins: ${allowedOrigins.join(', ')}`);
-      return callback(new Error('Not allowed by CORS'), false);
     }
+    console.warn(`⚠️  Blocked request from unauthorized origin: ${origin}`);
+    console.warn(`   Allowed origins: ${allowedOrigins.join(', ')}`);
+    return callback(new Error('Not allowed by CORS'), false);
   },
   credentials: true, // ✅ Required for httpOnly cookies
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 86400 // Cache preflight for 24 hours
+  maxAge: 86400, // Cache preflight for 24 hours
 }));
 
 /**
@@ -154,9 +153,9 @@ const limiter = rateLimit({
     res.status(429).json({
       success: false,
       message: 'Too many requests from this IP. Please try again later.',
-      retryAfter: Math.ceil(rateLimitConfig.windowMs / 1000)
+      retryAfter: Math.ceil(rateLimitConfig.windowMs / 1000),
     });
-  }
+  },
 });
 
 // Apply rate limiter to all API routes (but not health check)
@@ -173,7 +172,7 @@ app.get('/health', (req, res) => {
     message: 'AI School Dashboard API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
@@ -187,8 +186,8 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       health: '/health',
-      api: '/api'
-    }
+      api: '/api',
+    },
   });
 });
 
@@ -260,7 +259,7 @@ app.use((req, res, next) => {
     success: false,
     message: 'Route not found',
     path: req.originalUrl,
-    method: req.method
+    method: req.method,
   });
 });
 
@@ -270,26 +269,26 @@ app.use((err, req, res, next) => {
     message: err.message,
     stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
     path: req.path,
-    method: req.method
+    method: req.method,
   });
-  
+
   // CORS error
   if (err.message === 'Not allowed by CORS') {
     return res.status(403).json({
       success: false,
       message: 'CORS policy: This origin is not allowed to access this resource',
-      origin: req.get('origin')
+      origin: req.get('origin'),
     });
   }
-  
+
   // Default error response
-  res.status(err.statusCode || 500).json({  // ✅ ĐÚNG: err.statusCode là number
+  res.status(err.statusCode || 500).json({ // ✅ ĐÚNG: err.statusCode là number
     success: false,
     message: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV !== 'production' && { 
+    ...(process.env.NODE_ENV !== 'production' && {
       stack: err.stack,
-      details: err 
-    })
+      details: err,
+    }),
   });
 });
 /**
@@ -297,9 +296,3 @@ app.use((err, req, res, next) => {
  * Server will be started in server.js
  */
 module.exports = app;
-
-
-
-
-
-

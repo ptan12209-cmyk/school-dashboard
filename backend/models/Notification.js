@@ -11,7 +11,7 @@ const Notification = sequelize.define('Notification', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
+    primaryKey: true,
   },
 
   // Recipient user ID
@@ -20,24 +20,24 @@ const Notification = sequelize.define('Notification', {
     allowNull: false,
     references: {
       model: 'users',
-      key: 'id'
+      key: 'id',
     },
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   },
 
   // Notification type
   type: {
     type: DataTypes.ENUM(
-      'grade_posted',        // Điểm số mới
-      'attendance_marked',   // Điểm danh
-      'assignment_due',      // Hạn nộp bài
-      'announcement',        // Thông báo chung
-      'message',            // Tin nhắn
-      'alert',              // Cảnh báo
-      'system'              // Hệ thống
+      'grade_posted', // Điểm số mới
+      'attendance_marked', // Điểm danh
+      'assignment_due', // Hạn nộp bài
+      'announcement', // Thông báo chung
+      'message', // Tin nhắn
+      'alert', // Cảnh báo
+      'system', // Hệ thống
     ),
     allowNull: false,
-    defaultValue: 'system'
+    defaultValue: 'system',
   },
 
   // Notification title
@@ -45,8 +45,8 @@ const Notification = sequelize.define('Notification', {
     type: DataTypes.STRING(255),
     allowNull: false,
     validate: {
-      notEmpty: { msg: 'Title cannot be empty' }
-    }
+      notEmpty: { msg: 'Title cannot be empty' },
+    },
   },
 
   // Notification message
@@ -54,75 +54,75 @@ const Notification = sequelize.define('Notification', {
     type: DataTypes.TEXT,
     allowNull: false,
     validate: {
-      notEmpty: { msg: 'Message cannot be empty' }
-    }
+      notEmpty: { msg: 'Message cannot be empty' },
+    },
   },
 
   // Related entity (optional)
   related_type: {
     type: DataTypes.STRING(50),
     allowNull: true,
-    comment: 'Type of related entity: student, grade, attendance, etc.'
+    comment: 'Type of related entity: student, grade, attendance, etc.',
   },
 
   related_id: {
     type: DataTypes.UUID,
     allowNull: true,
-    comment: 'ID of related entity'
+    comment: 'ID of related entity',
   },
 
   // Priority level
   priority: {
     type: DataTypes.ENUM('low', 'medium', 'high', 'urgent'),
-    defaultValue: 'medium'
+    defaultValue: 'medium',
   },
 
   // Read status
   is_read: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false
+    defaultValue: false,
   },
 
   // Read at timestamp
   read_at: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: true,
   },
 
   // Email sent status
   email_sent: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false
+    defaultValue: false,
   },
 
   email_sent_at: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: true,
   },
 
   // Push notification sent
   push_sent: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false
+    defaultValue: false,
   },
 
   push_sent_at: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: true,
   },
 
   // Additional metadata (JSON)
   metadata: {
     type: DataTypes.JSONB,
     allowNull: true,
-    defaultValue: {}
+    defaultValue: {},
   },
 
   // Expiry date (optional)
   expires_at: {
     type: DataTypes.DATE,
-    allowNull: true
-  }
+    allowNull: true,
+  },
 
 }, {
   tableName: 'notifications',
@@ -130,27 +130,27 @@ const Notification = sequelize.define('Notification', {
   underscored: true,
   indexes: [
     {
-      fields: ['user_id']
+      fields: ['user_id'],
     },
     {
-      fields: ['type']
+      fields: ['type'],
     },
     {
-      fields: ['is_read']
+      fields: ['is_read'],
     },
     {
-      fields: ['created_at']
+      fields: ['created_at'],
     },
     {
-      fields: ['user_id', 'is_read']
-    }
-  ]
+      fields: ['user_id', 'is_read'],
+    },
+  ],
 });
 
 /**
  * Mark notification as read
  */
-Notification.prototype.markAsRead = async function() {
+Notification.prototype.markAsRead = async function () {
   this.is_read = true;
   this.read_at = new Date();
   await this.save();
@@ -160,7 +160,7 @@ Notification.prototype.markAsRead = async function() {
 /**
  * Mark notification as sent via email
  */
-Notification.prototype.markEmailSent = async function() {
+Notification.prototype.markEmailSent = async function () {
   this.email_sent = true;
   this.email_sent_at = new Date();
   await this.save();
@@ -170,7 +170,7 @@ Notification.prototype.markEmailSent = async function() {
 /**
  * Mark notification as sent via push
  */
-Notification.prototype.markPushSent = async function() {
+Notification.prototype.markPushSent = async function () {
   this.push_sent = true;
   this.push_sent_at = new Date();
   await this.save();
@@ -180,7 +180,7 @@ Notification.prototype.markPushSent = async function() {
 /**
  * Check if notification is expired
  */
-Notification.prototype.isExpired = function() {
+Notification.prototype.isExpired = function () {
   if (!this.expires_at) return false;
   return new Date() > new Date(this.expires_at);
 };
@@ -188,47 +188,47 @@ Notification.prototype.isExpired = function() {
 /**
  * Static method: Get unread count for user
  */
-Notification.getUnreadCount = async function(userId) {
+Notification.getUnreadCount = async function (userId) {
   return await this.count({
     where: {
       user_id: userId,
-      is_read: false
-    }
+      is_read: false,
+    },
   });
 };
 
 /**
  * Static method: Mark all as read for user
  */
-Notification.markAllAsRead = async function(userId) {
+Notification.markAllAsRead = async function (userId) {
   return await this.update(
     {
       is_read: true,
-      read_at: new Date()
+      read_at: new Date(),
     },
     {
       where: {
         user_id: userId,
-        is_read: false
-      }
-    }
+        is_read: false,
+      },
+    },
   );
 };
 
 /**
  * Static method: Delete old notifications
  */
-Notification.deleteOldNotifications = async function(days = 30) {
+Notification.deleteOldNotifications = async function (days = 30) {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
 
   return await this.destroy({
     where: {
       created_at: {
-        [sequelize.Sequelize.Op.lt]: cutoffDate
+        [sequelize.Sequelize.Op.lt]: cutoffDate,
       },
-      is_read: true
-    }
+      is_read: true,
+    },
   });
 };
 

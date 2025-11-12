@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const { body, param, query } = require('express-validator');
 const attendanceController = require('../controllers/attendanceController');
@@ -24,9 +25,9 @@ router.get(
     query('date').optional().isDate().withMessage('Invalid date'),
     query('start_date').optional().isDate().withMessage('Invalid start date'),
     query('end_date').optional().isDate().withMessage('Invalid end date'),
-    validate
+    validate,
   ],
-  attendanceController.getAllAttendance
+  attendanceController.getAllAttendance,
 );
 
 /**
@@ -41,9 +42,9 @@ router.get(
   [
     query('start_date').optional().isDate().withMessage('Invalid start date'),
     query('end_date').optional().isDate().withMessage('Invalid end date'),
-    validate
+    validate,
   ],
-  attendanceController.getAttendanceStats
+  attendanceController.getAttendanceStats,
 );
 
 /**
@@ -59,9 +60,9 @@ router.get(
     query('course_id').optional().isUUID().withMessage('Invalid course ID'),
     query('start_date').optional().isDate().withMessage('Invalid start date'),
     query('end_date').optional().isDate().withMessage('Invalid end date'),
-    validate
+    validate,
   ],
-  attendanceController.getStudentAttendance
+  attendanceController.getStudentAttendance,
 );
 
 /**
@@ -79,9 +80,9 @@ router.get(
     query('start_date').optional().isDate().withMessage('Invalid start date'),
     query('end_date').optional().isDate().withMessage('Invalid end date'),
     query('status').optional().isIn(['Present', 'Absent', 'Late', 'Excused']).withMessage('Invalid status'),
-    validate
+    validate,
   ],
-  attendanceController.getCourseAttendance
+  attendanceController.getCourseAttendance,
 );
 
 /**
@@ -97,9 +98,9 @@ router.get(
     param('date').isDate().withMessage('Invalid date'),
     query('course_id').optional().isUUID().withMessage('Invalid course ID'),
     query('status').optional().isIn(['Present', 'Absent', 'Late', 'Excused']).withMessage('Invalid status'),
-    validate
+    validate,
   ],
-  attendanceController.getAttendanceByDate
+  attendanceController.getAttendanceByDate,
 );
 
 /**
@@ -113,9 +114,9 @@ router.get(
   checkRole('admin', 'teacher'),
   [
     param('id').isUUID().withMessage('Invalid attendance ID'),
-    validate
+    validate,
   ],
-  attendanceController.getAttendanceById
+  attendanceController.getAttendanceById,
 );
 
 /**
@@ -130,13 +131,16 @@ router.post(
   [
     body('student_id')
       .notEmpty().withMessage('Student ID is required')
-      .isUUID().withMessage('Invalid student ID'),
+      .isUUID()
+      .withMessage('Invalid student ID'),
     body('course_id')
       .notEmpty().withMessage('Course ID is required')
-      .isUUID().withMessage('Invalid course ID'),
+      .isUUID()
+      .withMessage('Invalid course ID'),
     body('date')
       .notEmpty().withMessage('Date is required')
-      .isDate().withMessage('Invalid date')
+      .isDate()
+      .withMessage('Invalid date')
       .custom((value) => {
         if (new Date(value) > new Date()) {
           throw new Error('Date cannot be in the future');
@@ -145,20 +149,22 @@ router.post(
       }),
     body('status')
       .notEmpty().withMessage('Status is required')
-      .isIn(['Present', 'Absent', 'Late', 'Excused']).withMessage('Status must be Present, Absent, Late, or Excused'),
+      .isIn(['Present', 'Absent', 'Late', 'Excused'])
+      .withMessage('Status must be Present, Absent, Late, or Excused'),
     body('notes')
       .optional()
       .trim()
-      .isLength({ max: 500 }).withMessage('Notes must not exceed 500 characters'),
+      .isLength({ max: 500 })
+      .withMessage('Notes must not exceed 500 characters'),
     body('check_in_time')
       .optional()
       .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).withMessage('Invalid time format (HH:MM or HH:MM:SS)'),
     body('check_out_time')
       .optional()
       .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).withMessage('Invalid time format (HH:MM or HH:MM:SS)'),
-    validate
+    validate,
   ],
-  attendanceController.markAttendance
+  attendanceController.markAttendance,
 );
 
 /**
@@ -173,10 +179,12 @@ router.post(
   [
     body('course_id')
       .notEmpty().withMessage('Course ID is required')
-      .isUUID().withMessage('Invalid course ID'),
+      .isUUID()
+      .withMessage('Invalid course ID'),
     body('date')
       .notEmpty().withMessage('Date is required')
-      .isDate().withMessage('Invalid date')
+      .isDate()
+      .withMessage('Invalid date')
       .custom((value) => {
         if (new Date(value) > new Date()) {
           throw new Error('Date cannot be in the future');
@@ -187,23 +195,26 @@ router.post(
       .isArray({ min: 1 }).withMessage('Records array is required and must not be empty'),
     body('records.*.student_id')
       .notEmpty().withMessage('Student ID is required')
-      .isUUID().withMessage('Invalid student ID'),
+      .isUUID()
+      .withMessage('Invalid student ID'),
     body('records.*.status')
       .notEmpty().withMessage('Status is required')
-      .isIn(['Present', 'Absent', 'Late', 'Excused']).withMessage('Status must be Present, Absent, Late, or Excused'),
+      .isIn(['Present', 'Absent', 'Late', 'Excused'])
+      .withMessage('Status must be Present, Absent, Late, or Excused'),
     body('records.*.notes')
       .optional()
       .trim()
-      .isLength({ max: 500 }).withMessage('Notes must not exceed 500 characters'),
+      .isLength({ max: 500 })
+      .withMessage('Notes must not exceed 500 characters'),
     body('records.*.check_in_time')
       .optional()
       .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).withMessage('Invalid time format (HH:MM or HH:MM:SS)'),
     body('records.*.check_out_time')
       .optional()
       .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).withMessage('Invalid time format (HH:MM or HH:MM:SS)'),
-    validate
+    validate,
   ],
-  attendanceController.bulkMarkAttendance
+  attendanceController.bulkMarkAttendance,
 );
 
 /**
@@ -223,16 +234,17 @@ router.put(
     body('notes')
       .optional()
       .trim()
-      .isLength({ max: 500 }).withMessage('Notes must not exceed 500 characters'),
+      .isLength({ max: 500 })
+      .withMessage('Notes must not exceed 500 characters'),
     body('check_in_time')
       .optional()
       .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).withMessage('Invalid time format (HH:MM or HH:MM:SS)'),
     body('check_out_time')
       .optional()
       .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).withMessage('Invalid time format (HH:MM or HH:MM:SS)'),
-    validate
+    validate,
   ],
-  attendanceController.updateAttendance
+  attendanceController.updateAttendance,
 );
 
 /**
@@ -246,9 +258,9 @@ router.delete(
   checkRole('admin', 'teacher'),
   [
     param('id').isUUID().withMessage('Invalid attendance ID'),
-    validate
+    validate,
   ],
-  attendanceController.deleteAttendance
+  attendanceController.deleteAttendance,
 );
 
 module.exports = router;

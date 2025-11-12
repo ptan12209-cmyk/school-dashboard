@@ -19,12 +19,12 @@ const Submission = require('./Submission');
 User.hasOne(Teacher, {
   foreignKey: 'user_id',
   as: 'teacherProfile',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Teacher.belongsTo(User, {
   foreignKey: 'user_id',
-  as: 'user'
+  as: 'user',
 });
 
 // ─────────────────────────────────────────────
@@ -33,12 +33,12 @@ Teacher.belongsTo(User, {
 User.hasOne(Student, {
   foreignKey: 'user_id',
   as: 'studentProfile',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Student.belongsTo(User, {
   foreignKey: 'user_id',
-  as: 'user'
+  as: 'user',
 });
 
 // ─────────────────────────────────────────────
@@ -47,12 +47,12 @@ Student.belongsTo(User, {
 Teacher.hasMany(Class, {
   foreignKey: 'teacher_id',
   as: 'homeroomClasses',
-  onDelete: 'SET NULL'
+  onDelete: 'SET NULL',
 });
 
 Class.belongsTo(Teacher, {
   foreignKey: 'teacher_id',
-  as: 'homeroomTeacher'
+  as: 'homeroomTeacher',
 });
 
 // ─────────────────────────────────────────────
@@ -61,12 +61,12 @@ Class.belongsTo(Teacher, {
 Class.hasMany(Student, {
   foreignKey: 'class_id',
   as: 'students',
-  onDelete: 'SET NULL'
+  onDelete: 'SET NULL',
 });
 
 Student.belongsTo(Class, {
   foreignKey: 'class_id',
-  as: 'class'
+  as: 'class',
 });
 
 // ─────────────────────────────────────────────
@@ -75,12 +75,12 @@ Student.belongsTo(Class, {
 Class.hasMany(Course, {
   foreignKey: 'class_id',
   as: 'courses',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Course.belongsTo(Class, {
   foreignKey: 'class_id',
-  as: 'class'
+  as: 'class',
 });
 
 // ─────────────────────────────────────────────
@@ -89,12 +89,12 @@ Course.belongsTo(Class, {
 Teacher.hasMany(Course, {
   foreignKey: 'teacher_id',
   as: 'courses',
-  onDelete: 'RESTRICT'
+  onDelete: 'RESTRICT',
 });
 
 Course.belongsTo(Teacher, {
   foreignKey: 'teacher_id',
-  as: 'teacher'
+  as: 'teacher',
 });
 
 // ─────────────────────────────────────────────
@@ -103,12 +103,12 @@ Course.belongsTo(Teacher, {
 Student.hasMany(Grade, {
   foreignKey: 'student_id',
   as: 'grades',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Grade.belongsTo(Student, {
   foreignKey: 'student_id',
-  as: 'student'
+  as: 'student',
 });
 
 // ─────────────────────────────────────────────
@@ -117,12 +117,12 @@ Grade.belongsTo(Student, {
 Course.hasMany(Grade, {
   foreignKey: 'course_id',
   as: 'grades',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Grade.belongsTo(Course, {
   foreignKey: 'course_id',
-  as: 'course'
+  as: 'course',
 });
 
 // ─────────────────────────────────────────────
@@ -131,12 +131,12 @@ Grade.belongsTo(Course, {
 Student.hasMany(Attendance, {
   foreignKey: 'student_id',
   as: 'attendance',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Attendance.belongsTo(Student, {
   foreignKey: 'student_id',
-  as: 'student'
+  as: 'student',
 });
 
 // ─────────────────────────────────────────────
@@ -145,12 +145,12 @@ Attendance.belongsTo(Student, {
 Course.hasMany(Attendance, {
   foreignKey: 'course_id',
   as: 'attendance',
-  onDelete: 'SET NULL'
+  onDelete: 'SET NULL',
 });
 
 Attendance.belongsTo(Course, {
   foreignKey: 'course_id',
-  as: 'course'
+  as: 'course',
 });
 
 // ─────────────────────────────────────────────
@@ -159,12 +159,12 @@ Attendance.belongsTo(Course, {
 User.hasMany(Attendance, {
   foreignKey: 'marked_by',
   as: 'markedAttendance',
-  onDelete: 'SET NULL'
+  onDelete: 'SET NULL',
 });
 
 Attendance.belongsTo(User, {
   foreignKey: 'marked_by',
-  as: 'marker'
+  as: 'marker',
 });
 
 // ─────────────────────────────────────────────
@@ -173,12 +173,12 @@ Attendance.belongsTo(User, {
 User.hasMany(Notification, {
   foreignKey: 'user_id',
   as: 'notifications',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Notification.belongsTo(User, {
   foreignKey: 'user_id',
-  as: 'user'
+  as: 'user',
 });
 
 // ─────────────────────────────────────────────
@@ -187,12 +187,12 @@ Notification.belongsTo(User, {
 Course.hasMany(Assignment, {
   foreignKey: 'course_id',
   as: 'assignments',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Assignment.belongsTo(Course, {
   foreignKey: 'course_id',
-  as: 'course'
+  as: 'course',
 });
 
 // ─────────────────────────────────────────────
@@ -201,12 +201,12 @@ Assignment.belongsTo(Course, {
 Teacher.hasMany(Assignment, {
   foreignKey: 'teacher_id',
   as: 'assignments',
-  onDelete: 'RESTRICT'
+  onDelete: 'RESTRICT',
 });
 
 Assignment.belongsTo(Teacher, {
   foreignKey: 'teacher_id',
-  as: 'teacher'
+  as: 'teacher',
 });
 
 // ─────────────────────────────────────────────
@@ -215,12 +215,12 @@ Assignment.belongsTo(Teacher, {
 Assignment.hasMany(Question, {
   foreignKey: 'assignment_id',
   as: 'questions',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Question.belongsTo(Assignment, {
   foreignKey: 'assignment_id',
-  as: 'assignment'
+  as: 'assignment',
 });
 
 // ─────────────────────────────────────────────
@@ -229,12 +229,12 @@ Question.belongsTo(Assignment, {
 Assignment.hasMany(Submission, {
   foreignKey: 'assignment_id',
   as: 'submissions',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Submission.belongsTo(Assignment, {
   foreignKey: 'assignment_id',
-  as: 'assignment'
+  as: 'assignment',
 });
 
 // ─────────────────────────────────────────────
@@ -243,12 +243,12 @@ Submission.belongsTo(Assignment, {
 Student.hasMany(Submission, {
   foreignKey: 'student_id',
   as: 'submissions',
-  onDelete: 'CASCADE'
+  onDelete: 'CASCADE',
 });
 
 Submission.belongsTo(Student, {
   foreignKey: 'student_id',
-  as: 'student'
+  as: 'student',
 });
 
 // ─────────────────────────────────────────────
@@ -257,12 +257,12 @@ Submission.belongsTo(Student, {
 Teacher.hasMany(Submission, {
   foreignKey: 'graded_by',
   as: 'gradedSubmissions',
-  onDelete: 'SET NULL'
+  onDelete: 'SET NULL',
 });
 
 Submission.belongsTo(Teacher, {
   foreignKey: 'graded_by',
-  as: 'grader'
+  as: 'grader',
 });
 
 module.exports = {
@@ -286,5 +286,5 @@ module.exports = {
   Submission,
 
   // Notification Model
-  Notification
+  Notification,
 };

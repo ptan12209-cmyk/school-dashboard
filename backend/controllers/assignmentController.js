@@ -17,16 +17,16 @@ exports.createAssignment = catchAsync(async (req, res) => {
   if (!teacherId) {
     return res.status(403).json({
       success: false,
-      message: 'Chỉ giáo viên mới có thể tạo bài tập'
+      message: 'Chỉ giáo viên mới có thể tạo bài tập',
     });
   }
 
-  const io = req.app.locals.io;
+  const { io } = req.app.locals;
   const assignment = await assignmentService.createAssignment(assignmentData, questions, teacherId, io);
 
   res.status(201).json({
     success: true,
-    data: assignment
+    data: assignment,
   });
 });
 
@@ -39,13 +39,13 @@ exports.getAssignment = catchAsync(async (req, res) => {
   if (!assignment) {
     return res.status(404).json({
       success: false,
-      message: 'Không tìm thấy bài tập'
+      message: 'Không tìm thấy bài tập',
     });
   }
 
   res.json({
     success: true,
-    data: assignment
+    data: assignment,
   });
 });
 
@@ -58,7 +58,7 @@ exports.getAssignmentsByCourse = catchAsync(async (req, res) => {
 
   res.json({
     success: true,
-    data: assignments
+    data: assignments,
   });
 });
 
@@ -71,7 +71,7 @@ exports.getStudentAssignments = catchAsync(async (req, res) => {
   if (!studentId) {
     return res.status(403).json({
       success: false,
-      message: 'Chỉ học sinh mới có thể xem bài tập của mình'
+      message: 'Chỉ học sinh mới có thể xem bài tập của mình',
     });
   }
 
@@ -79,7 +79,7 @@ exports.getStudentAssignments = catchAsync(async (req, res) => {
 
   res.json({
     success: true,
-    data: assignments
+    data: assignments,
   });
 });
 
@@ -95,7 +95,7 @@ exports.updateAssignment = catchAsync(async (req, res) => {
   if (!assignment || assignment.teacher_id !== teacherId) {
     return res.status(404).json({
       success: false,
-      message: 'Không tìm thấy bài tập'
+      message: 'Không tìm thấy bài tập',
     });
   }
 
@@ -103,7 +103,7 @@ exports.updateAssignment = catchAsync(async (req, res) => {
 
   res.json({
     success: true,
-    data: assignment
+    data: assignment,
   });
 });
 
@@ -119,7 +119,7 @@ exports.deleteAssignment = catchAsync(async (req, res) => {
   if (!assignment || assignment.teacher_id !== teacherId) {
     return res.status(404).json({
       success: false,
-      message: 'Không tìm thấy bài tập'
+      message: 'Không tìm thấy bài tập',
     });
   }
 
@@ -127,7 +127,7 @@ exports.deleteAssignment = catchAsync(async (req, res) => {
 
   res.json({
     success: true,
-    message: 'Đã xóa bài tập'
+    message: 'Đã xóa bài tập',
   });
 });
 
@@ -136,14 +136,14 @@ exports.deleteAssignment = catchAsync(async (req, res) => {
  */
 exports.publishAssignment = catchAsync(async (req, res) => {
   const teacherId = req.user.teacherProfile?.id;
-  const io = req.app.locals.io;
+  const { io } = req.app.locals;
 
   const assignment = await assignmentService.publishAssignment(req.params.id, teacherId, io);
 
   res.json({
     success: true,
     data: assignment,
-    message: 'Đã phát hành bài tập'
+    message: 'Đã phát hành bài tập',
   });
 });
 
@@ -156,7 +156,7 @@ exports.startAssignment = catchAsync(async (req, res) => {
   if (!studentId) {
     return res.status(403).json({
       success: false,
-      message: 'Chỉ học sinh mới có thể làm bài'
+      message: 'Chỉ học sinh mới có thể làm bài',
     });
   }
 
@@ -164,7 +164,7 @@ exports.startAssignment = catchAsync(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    data: submission
+    data: submission,
   });
 });
 
@@ -174,12 +174,12 @@ exports.startAssignment = catchAsync(async (req, res) => {
 exports.submitAssignment = catchAsync(async (req, res) => {
   const studentId = req.user.studentProfile?.id;
   const { submissionId, answers } = req.body;
-  const io = req.app.locals.io;
+  const { io } = req.app.locals;
 
   if (!studentId) {
     return res.status(403).json({
       success: false,
-      message: 'Chỉ học sinh mới có thể nộp bài'
+      message: 'Chỉ học sinh mới có thể nộp bài',
     });
   }
 
@@ -188,7 +188,7 @@ exports.submitAssignment = catchAsync(async (req, res) => {
   res.json({
     success: true,
     data: submission,
-    message: 'Đã nộp bài thành công'
+    message: 'Đã nộp bài thành công',
   });
 });
 
@@ -198,12 +198,12 @@ exports.submitAssignment = catchAsync(async (req, res) => {
 exports.gradeSubmission = catchAsync(async (req, res) => {
   const teacherId = req.user.teacherProfile?.id;
   const { gradedAnswers, feedback } = req.body;
-  const io = req.app.locals.io;
+  const { io } = req.app.locals;
 
   if (!teacherId) {
     return res.status(403).json({
       success: false,
-      message: 'Chỉ giáo viên mới có thể chấm bài'
+      message: 'Chỉ giáo viên mới có thể chấm bài',
     });
   }
 
@@ -212,13 +212,13 @@ exports.gradeSubmission = catchAsync(async (req, res) => {
     gradedAnswers,
     feedback,
     teacherId,
-    io
+    io,
   );
 
   res.json({
     success: true,
     data: submission,
-    message: 'Đã chấm bài thành công'
+    message: 'Đã chấm bài thành công',
   });
 });
 
@@ -231,7 +231,7 @@ exports.getSubmissionsForGrading = catchAsync(async (req, res) => {
   if (!teacherId) {
     return res.status(403).json({
       success: false,
-      message: 'Chỉ giáo viên mới có quyền truy cập'
+      message: 'Chỉ giáo viên mới có quyền truy cập',
     });
   }
 
@@ -239,7 +239,7 @@ exports.getSubmissionsForGrading = catchAsync(async (req, res) => {
 
   res.json({
     success: true,
-    data: submissions
+    data: submissions,
   });
 });
 
@@ -251,6 +251,6 @@ exports.getAssignmentStatistics = catchAsync(async (req, res) => {
 
   res.json({
     success: true,
-    data: stats
+    data: stats,
   });
 });

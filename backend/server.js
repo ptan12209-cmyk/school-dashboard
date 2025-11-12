@@ -1,5 +1,5 @@
-const app = require('./app');
 const http = require('http');
+const app = require('./app');
 require('dotenv').config();
 require('./config/validate-env');
 // Database connection
@@ -72,13 +72,13 @@ async function startServer() {
       console.log('💡 Press Ctrl+C to stop the server');
       console.log('');
     });
-    
+
     /**
      * Graceful Shutdown Handlers
      * ==========================
      * Handle server shutdown gracefully
      */
-    
+
     // Handle SIGTERM signal (e.g., from Heroku)
     process.on('SIGTERM', () => {
       console.log('');
@@ -98,7 +98,7 @@ async function startServer() {
           });
       });
     });
-    
+
     // Handle SIGINT signal (e.g., Ctrl+C)
     process.on('SIGINT', () => {
       console.log('');
@@ -118,7 +118,7 @@ async function startServer() {
           });
       });
     });
-    
+
     // Handle uncaught exceptions
     process.on('uncaughtException', (err) => {
       console.error('');
@@ -127,19 +127,19 @@ async function startServer() {
       console.error('Error message:', err.message);
       console.error('Stack trace:', err.stack);
       console.error('');
-      
+
       // Close server and exit
       server.close(() => {
         process.exit(1);
       });
-      
+
       // Force exit if server doesn't close in 1 second
       setTimeout(() => {
         console.error('❌ Forcing shutdown...');
         process.exit(1);
       }, 1000);
     });
-    
+
     // Handle unhandled promise rejections
     process.on('unhandledRejection', (reason, promise) => {
       console.error('');
@@ -147,26 +147,25 @@ async function startServer() {
       console.error('Reason:', reason);
       console.error('Promise:', promise);
       console.error('');
-      
+
       // Close server and exit
       server.close(() => {
         process.exit(1);
       });
-      
+
       // Force exit if server doesn't close in 1 second
       setTimeout(() => {
         console.error('❌ Forcing shutdown...');
         process.exit(1);
       }, 1000);
     });
-    
   } catch (error) {
     console.error('');
     console.error('❌ Failed to start server:');
     console.error('Error:', error.message);
     console.error('Stack:', error.stack);
     console.error('');
-    
+
     // Exit with failure code
     process.exit(1);
   }

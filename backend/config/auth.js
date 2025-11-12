@@ -40,7 +40,7 @@ const jwtConfig = {
   issuer: 'ai-school-dashboard',
 
   // Audience (optional)
-  audience: 'school-users'
+  audience: 'school-users',
 };
 
 /**
@@ -50,13 +50,13 @@ const passwordConfig = {
   // Salt rounds for bcrypt (higher = more secure but slower)
   // Recommended: 10-12 for production
   saltRounds: parseInt(process.env.BCRYPT_ROUNDS) || 12,
-  
+
   // Minimum password requirements
   minLength: 8,
   requireUppercase: true,
   requireLowercase: true,
   requireNumber: true,
-  requireSpecialChar: false
+  requireSpecialChar: false,
 };
 
 /**
@@ -87,8 +87,8 @@ const sessionConfig = {
   cookie: {
     secure: process.env.NODE_ENV === 'production', // HTTPS only in production
     httpOnly: true, // Prevent XSS attacks
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  },
 };
 
 /**
@@ -96,21 +96,21 @@ const sessionConfig = {
  */
 const corsConfig = {
   // Allowed origins (frontend URLs)
-  origin: process.env.CORS_ORIGIN 
-    ? process.env.CORS_ORIGIN.split(',') 
+  origin: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',')
     : ['http://localhost:3000', 'http://localhost:3001'],
-  
+
   // Allow credentials (cookies, authorization headers)
   credentials: true,
-  
+
   // Allowed HTTP methods
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  
+
   // Allowed headers
   allowedHeaders: ['Content-Type', 'Authorization'],
-  
+
   // How long to cache preflight requests (in seconds)
-  maxAge: 86400 // 24 hours
+  maxAge: 86400, // 24 hours
 };
 
 /**
@@ -119,16 +119,16 @@ const corsConfig = {
 const rateLimitConfig = {
   // Time window in milliseconds
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  
+
   // Maximum requests per window
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-  
+
   // Error message
   message: 'Too many requests from this IP, please try again later.',
-  
+
   // Return rate limit info in headers
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 };
 
 /**
@@ -138,7 +138,7 @@ const roles = {
   ADMIN: 'admin',
   TEACHER: 'teacher',
   PARENT: 'parent',
-  STUDENT: 'student'
+  STUDENT: 'student',
 };
 
 /**
@@ -149,7 +149,7 @@ const roleHierarchy = {
   admin: ['admin', 'teacher', 'parent', 'student'],
   teacher: ['teacher', 'student'],
   parent: ['parent'],
-  student: ['student']
+  student: ['student'],
 };
 
 module.exports = {
@@ -159,5 +159,5 @@ module.exports = {
   corsConfig,
   rateLimitConfig,
   roles,
-  roleHierarchy
+  roleHierarchy,
 };

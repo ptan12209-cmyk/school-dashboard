@@ -16,14 +16,14 @@ function initializeSocket(httpServer) {
     cors: {
       origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000', 'http://localhost:5001'],
       methods: ['GET', 'POST'],
-      credentials: true
-    }
+      credentials: true,
+    },
   });
 
   // Authentication middleware
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth.token;
+      const { token } = socket.handshake.auth;
 
       if (!token) {
         return next(new Error('Authentication token required'));
@@ -43,7 +43,7 @@ function initializeSocket(httpServer) {
       socket.user = {
         id: user.id,
         email: user.email,
-        role: user.role
+        role: user.role,
       };
 
       next();
@@ -80,7 +80,7 @@ function initializeSocket(httpServer) {
       try {
         const { Notification } = require('../models');
         const notification = await Notification.findOne({
-          where: { id: notificationId, user_id: userId }
+          where: { id: notificationId, user_id: userId },
         });
 
         if (notification) {

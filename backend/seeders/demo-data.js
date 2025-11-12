@@ -6,7 +6,9 @@
  * Run with: node backend/seeders/demo-data.js
  */
 
-const { sequelize, User, Student, Teacher, Course, Grade, Attendance, Class } = require('../models');
+const {
+  sequelize, User, Student, Teacher, Course, Grade, Attendance, Class,
+} = require('../models');
 
 async function seed() {
   try {
@@ -19,11 +21,21 @@ async function seed() {
 
     const students = [];
     const studentData = [
-      { email: 'student1@school.edu.vn', firstName: 'Nguyễn', lastName: 'Văn An', dateOfBirth: '2005-03-15', gender: 'male', targetGPA: 8.5 },
-      { email: 'student2@school.edu.vn', firstName: 'Trần', lastName: 'Thị Bình', dateOfBirth: '2005-07-22', gender: 'female', targetGPA: 9.0 },
-      { email: 'student3@school.edu.vn', firstName: 'Lê', lastName: 'Hoàng Cường', dateOfBirth: '2005-11-08', gender: 'male', targetGPA: 7.5 },
-      { email: 'student4@school.edu.vn', firstName: 'Phạm', lastName: 'Thu Dung', dateOfBirth: '2005-01-30', gender: 'female', targetGPA: 8.0 },
-      { email: 'student5@school.edu.vn', firstName: 'Hoàng', lastName: 'Minh Đức', dateOfBirth: '2005-09-12', gender: 'male', targetGPA: 6.5 },
+      {
+        email: 'student1@school.edu.vn', firstName: 'Nguyễn', lastName: 'Văn An', dateOfBirth: '2005-03-15', gender: 'male', targetGPA: 8.5,
+      },
+      {
+        email: 'student2@school.edu.vn', firstName: 'Trần', lastName: 'Thị Bình', dateOfBirth: '2005-07-22', gender: 'female', targetGPA: 9.0,
+      },
+      {
+        email: 'student3@school.edu.vn', firstName: 'Lê', lastName: 'Hoàng Cường', dateOfBirth: '2005-11-08', gender: 'male', targetGPA: 7.5,
+      },
+      {
+        email: 'student4@school.edu.vn', firstName: 'Phạm', lastName: 'Thu Dung', dateOfBirth: '2005-01-30', gender: 'female', targetGPA: 8.0,
+      },
+      {
+        email: 'student5@school.edu.vn', firstName: 'Hoàng', lastName: 'Minh Đức', dateOfBirth: '2005-09-12', gender: 'male', targetGPA: 6.5,
+      },
     ];
 
     for (const data of studentData) {
@@ -32,7 +44,7 @@ async function seed() {
         email: data.email,
         password_hash: 'Password123!', // Will be hashed by hook
         role: 'student',
-        is_active: true
+        is_active: true,
       });
 
       // Create student profile
@@ -45,7 +57,7 @@ async function seed() {
         phone: '0901234567',
         parent_name: `Phụ huynh ${data.lastName}`,
         parent_phone: '0987654321',
-        parent_email: `parent_${data.email}`
+        parent_email: `parent_${data.email}`,
       });
 
       students.push({ student, targetGPA: data.targetGPA });
@@ -59,9 +71,15 @@ async function seed() {
 
     const teachers = [];
     const teacherData = [
-      { email: 'teacher1@school.edu.vn', firstName: 'Nguyễn', lastName: 'Thị Hoa', department: 'Toán' },
-      { email: 'teacher2@school.edu.vn', firstName: 'Trần', lastName: 'Văn Khoa', department: 'Lý' },
-      { email: 'teacher3@school.edu.vn', firstName: 'Lê', lastName: 'Thị Lan', department: 'Hóa' }
+      {
+        email: 'teacher1@school.edu.vn', firstName: 'Nguyễn', lastName: 'Thị Hoa', department: 'Toán',
+      },
+      {
+        email: 'teacher2@school.edu.vn', firstName: 'Trần', lastName: 'Văn Khoa', department: 'Lý',
+      },
+      {
+        email: 'teacher3@school.edu.vn', firstName: 'Lê', lastName: 'Thị Lan', department: 'Hóa',
+      },
     ];
 
     for (const data of teacherData) {
@@ -69,7 +87,7 @@ async function seed() {
         email: data.email,
         password_hash: 'Password123!',
         role: 'teacher',
-        is_active: true
+        is_active: true,
       });
 
       const teacher = await Teacher.create({
@@ -78,7 +96,7 @@ async function seed() {
         last_name: data.lastName,
         department: data.department,
         phone: '0911234567',
-        hire_date: new Date('2020-09-01')
+        hire_date: new Date('2020-09-01'),
       });
 
       teachers.push(teacher);
@@ -92,11 +110,21 @@ async function seed() {
 
     const courses = [];
     const courseData = [
-      { name: 'Toán học 10', code: 'MATH10', description: 'Đại số và Hình học', credits: 4, teacher_id: teachers[0].id },
-      { name: 'Vật lý 10', code: 'PHY10', description: 'Cơ học và Nhiệt học', credits: 3, teacher_id: teachers[1].id },
-      { name: 'Hóa học 10', code: 'CHEM10', description: 'Hóa học cơ bản', credits: 3, teacher_id: teachers[2].id },
-      { name: 'Văn học 10', code: 'LIT10', description: 'Ngữ văn Việt Nam', credits: 4, teacher_id: teachers[0].id },
-      { name: 'Tiếng Anh 10', code: 'ENG10', description: 'English Communication', credits: 3, teacher_id: teachers[1].id }
+      {
+        name: 'Toán học 10', code: 'MATH10', description: 'Đại số và Hình học', credits: 4, teacher_id: teachers[0].id,
+      },
+      {
+        name: 'Vật lý 10', code: 'PHY10', description: 'Cơ học và Nhiệt học', credits: 3, teacher_id: teachers[1].id,
+      },
+      {
+        name: 'Hóa học 10', code: 'CHEM10', description: 'Hóa học cơ bản', credits: 3, teacher_id: teachers[2].id,
+      },
+      {
+        name: 'Văn học 10', code: 'LIT10', description: 'Ngữ văn Việt Nam', credits: 4, teacher_id: teachers[0].id,
+      },
+      {
+        name: 'Tiếng Anh 10', code: 'ENG10', description: 'English Communication', credits: 3, teacher_id: teachers[1].id,
+      },
     ];
 
     for (const data of courseData) {
@@ -124,7 +152,7 @@ async function seed() {
           score: score.toFixed(1),
           grade_type: 'midterm',
           semester: 'HK1',
-          academic_year: '2024-2025'
+          academic_year: '2024-2025',
         });
 
         // Add final exam grade too
@@ -137,7 +165,7 @@ async function seed() {
           score: finalScore.toFixed(1),
           grade_type: 'final',
           semester: 'HK1',
-          academic_year: '2024-2025'
+          academic_year: '2024-2025',
         });
 
         gradeCount += 2;
@@ -179,9 +207,9 @@ async function seed() {
           await Attendance.create({
             student_id: student.id,
             course_id: course.id,
-            date: date,
-            status: status,
-            notes: status === 'absent' ? 'Không phép' : null
+            date,
+            status,
+            notes: status === 'absent' ? 'Không phép' : null,
           });
 
           attendanceCount++;
@@ -201,7 +229,7 @@ async function seed() {
       grade_level: 10,
       teacher_id: teachers[0].id,
       academic_year: '2024-2025',
-      room_number: 'A101'
+      room_number: 'A101',
     });
 
     console.log(`  ✅ Created: ${demoClass.name}`);
@@ -209,21 +237,20 @@ async function seed() {
     // ============================================
     // SUMMARY
     // ============================================
-    console.log('\n' + '='.repeat(50));
+    console.log(`\n${'='.repeat(50)}`);
     console.log('✅ SEEDING COMPLETED SUCCESSFULLY!');
     console.log('='.repeat(50));
-    console.log(`📊 Summary:`);
+    console.log('📊 Summary:');
     console.log(`   - Students: ${students.length}`);
     console.log(`   - Teachers: ${teachers.length}`);
     console.log(`   - Courses: ${courses.length}`);
     console.log(`   - Grades: ${gradeCount}`);
     console.log(`   - Attendance: ${attendanceCount}`);
-    console.log(`   - Classes: 1`);
+    console.log('   - Classes: 1');
     console.log('\n📝 Demo accounts:');
     console.log('   Student: student1@school.edu.vn / Password123!');
     console.log('   Teacher: teacher1@school.edu.vn / Password123!');
     console.log('='.repeat(50));
-
   } catch (error) {
     console.error('❌ Seeding failed:', error);
     throw error;

@@ -1,6 +1,8 @@
-const { Student, Teacher, Course, Grade, Attendance, Class, User } = require('../models');
-const { catchAsync } = require('../middleware/errorHandler');
 const { Op } = require('sequelize');
+const {
+  Student, Teacher, Course, Grade, Attendance, Class, User,
+} = require('../models');
+const { catchAsync } = require('../middleware/errorHandler');
 
 exports.getDashboardStats = catchAsync(async (req, res) => {
   // ✅ FIXED: Filter dashboard stats based on user role
@@ -14,9 +16,9 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
       // Get teacher's courses
       const teacherCourses = await Course.findAll({
         where: { teacher_id: teacher.id },
-        attributes: ['id']
+        attributes: ['id'],
       });
-      const courseIds = teacherCourses.map(c => c.id);
+      const courseIds = teacherCourses.map((c) => c.id);
 
       if (courseIds.length === 0) {
         // Teacher has no courses, return empty stats
@@ -30,15 +32,15 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
               totalClasses: 0,
               averageGrade: 0,
               topStudents: [],
-              topTeachers: []
+              topTeachers: [],
             },
             charts: {
               performanceData: [],
               subjectData: [],
-              gradeDistribution: []
+              gradeDistribution: [],
             },
-            recentActivities: []
-          }
+            recentActivities: [],
+          },
         });
       }
 
@@ -48,9 +50,9 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
       const enrolledStudents = await Grade.findAll({
         where: { course_id: { [Op.in]: courseIds } },
         attributes: ['student_id'],
-        group: ['student_id']
+        group: ['student_id'],
       });
-      const studentIds = [...new Set(enrolledStudents.map(g => g.student_id))];
+      const studentIds = [...new Set(enrolledStudents.map((g) => g.student_id))];
       studentFilter = { id: { [Op.in]: studentIds } };
     }
   }
@@ -63,7 +65,7 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
   const gradesWhere = courseFilter.id ? { course_id: courseFilter.id } : {};
   const grades = await Grade.findAll({
     where: gradesWhere,
-    attributes: ['score']
+    attributes: ['score'],
   });
 
   const averageGrade = grades.length > 0
@@ -77,19 +79,19 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
       as: 'grades',
       attributes: ['score'],
       where: courseFilter.id ? { course_id: courseFilter.id } : {},
-      required: true
+      required: true,
     }],
     limit: 5,
-    order: [[{ model: Grade, as: 'grades' }, 'score', 'DESC']]
+    order: [[{ model: Grade, as: 'grades' }, 'score', 'DESC']],
   });
 
   const topTeachers = await Teacher.findAll({
     include: [{
       model: Course,
       as: 'courses',
-      attributes: ['id', 'name']
+      attributes: ['id', 'name'],
     }],
-    limit: 5
+    limit: 5,
   });
 
   res.json({
@@ -101,26 +103,26 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
         totalCourses,
         totalClasses,
         averageGrade,
-        topStudents: topStudents.map(s => ({
+        topStudents: topStudents.map((s) => ({
           id: s.id,
           name: `${s.first_name} ${s.last_name}`,
           averageGrade: s.grades && s.grades.length > 0
             ? parseFloat((s.grades.reduce((sum, g) => sum + parseFloat(g.score || 0), 0) / s.grades.length / 10).toFixed(1))
-            : 0
+            : 0,
         })),
-        topTeachers: topTeachers.map(t => ({
+        topTeachers: topTeachers.map((t) => ({
           id: t.id,
           name: `${t.first_name} ${t.last_name}`,
-          coursesCount: t.courses ? t.courses.length : 0
-        }))
+          coursesCount: t.courses ? t.courses.length : 0,
+        })),
       },
       charts: {
         performanceData: await getPerformanceData(courseFilter),
         subjectData: await getSubjectData(courseFilter),
-        gradeDistribution: await getGradeDistribution(courseFilter)
+        gradeDistribution: await getGradeDistribution(courseFilter),
       },
-      recentActivities: await getRecentActivities(courseFilter)
-    }
+      recentActivities: await getRecentActivities(courseFilter),
+    },
   });
 });
 
@@ -135,8 +137,8 @@ const getPerformanceData = async (courseFilter = {}) => {
     const where = {
       created_at: {
         [Op.gte]: month,
-        [Op.lt]: nextMonth
-      }
+        [Op.lt]: nextMonth,
+      },
     };
 
     // Apply course filter if provided
@@ -152,7 +154,7 @@ const getPerformanceData = async (courseFilter = {}) => {
 
     last6Months.push({
       month: month.toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' }),
-      value: avg
+      value: avg,
     });
   }
 
@@ -167,16 +169,16 @@ const getSubjectData = async (courseFilter = {}) => {
     include: [{
       model: Grade,
       as: 'grades',
-      attributes: ['score']
+      attributes: ['score'],
     }],
-    limit: 6
+    limit: 6,
   });
 
-  return courses.map(course => ({
+  return courses.map((course) => ({
     subject: course.name,
     value: course.grades && course.grades.length > 0
       ? parseFloat((course.grades.reduce((sum, g) => sum + parseFloat(g.score || 0), 0) / course.grades.length / 10).toFixed(1))
-      : 0
+      : 0,
   }));
 };
 
@@ -185,17 +187,17 @@ const getGradeDistribution = async (courseFilter = {}) => {
 
   const grades = await Grade.findAll({
     where,
-    attributes: ['score']
+    attributes: ['score'],
   });
 
   const distribution = {
     excellent: 0,
     good: 0,
     average: 0,
-    poor: 0
+    poor: 0,
   };
 
-  grades.forEach(grade => {
+  grades.forEach((grade) => {
     const score = parseFloat(grade.score || 0) / 10;
     if (score >= 8.5) distribution.excellent++;
     else if (score >= 7) distribution.good++;
@@ -207,7 +209,7 @@ const getGradeDistribution = async (courseFilter = {}) => {
     { name: 'Xuất Sắc (≥8.5)', value: distribution.excellent },
     { name: 'Giỏi (7-8.5)', value: distribution.good },
     { name: 'Khá (5.5-7)', value: distribution.average },
-    { name: 'Yếu (<5.5)', value: distribution.poor }
+    { name: 'Yếu (<5.5)', value: distribution.poor },
   ];
 };
 
@@ -218,37 +220,37 @@ const getRecentActivities = async (courseFilter = {}) => {
     where,
     include: [
       { model: Student, as: 'student', attributes: ['first_name', 'last_name'] },
-      { model: Course, as: 'course', attributes: ['name'] }
+      { model: Course, as: 'course', attributes: ['name'] },
     ],
     order: [['created_at', 'DESC']],
-    limit: 5
+    limit: 5,
   });
 
   const recentAttendance = await Attendance.findAll({
     where,
     include: [
       { model: Student, as: 'student', attributes: ['first_name', 'last_name'] },
-      { model: Course, as: 'course', attributes: ['name'] }
+      { model: Course, as: 'course', attributes: ['name'] },
     ],
     order: [['created_at', 'DESC']],
-    limit: 5
+    limit: 5,
   });
 
   const activities = [];
 
-  recentGrades.forEach(grade => {
+  recentGrades.forEach((grade) => {
     activities.push({
       type: 'grade',
       description: `Điểm ${grade.course?.name || 'N/A'} cho ${grade.student?.first_name || ''} ${grade.student?.last_name || ''}: ${parseFloat(grade.score || 0) / 10}/10`,
-      timestamp: grade.created_at
+      timestamp: grade.created_at,
     });
   });
 
-  recentAttendance.forEach(att => {
+  recentAttendance.forEach((att) => {
     activities.push({
       type: 'attendance',
       description: `Điểm danh ${att.course?.name || 'N/A'} - ${att.student?.first_name || ''} ${att.student?.last_name || ''}: ${att.status}`,
-      timestamp: att.created_at
+      timestamp: att.created_at,
     });
   });
 

@@ -15,7 +15,7 @@ const geminiConfig = {
   // Alternative models
   models: {
     geminiPro: 'gemini-pro',
-    geminiProVision: 'gemini-pro-vision'
+    geminiProVision: 'gemini-pro-vision',
   },
 
   // API endpoint
@@ -33,7 +33,7 @@ const geminiConfig = {
 
   // Retry configuration
   retries: 3,
-  retryDelay: 2000 // 2 seconds between retries (was 1s)
+  retryDelay: 2000, // 2 seconds between retries (was 1s)
 };
 
 /**
@@ -43,24 +43,24 @@ const geminiConfig = {
 const mlServiceConfig = {
   // ML service URL (Python Flask/FastAPI service)
   baseUrl: process.env.AI_SERVICE_URL || 'http://localhost:8000',
-  
+
   // API endpoints
   endpoints: {
     predict: '/api/predict',
     train: '/api/train',
     evaluate: '/api/evaluate',
-    health: '/health'
+    health: '/health',
   },
-  
+
   // Request timeout (ms)
   timeout: 60000, // 60 seconds for ML operations
-  
+
   // Feature flags
   enabled: process.env.ML_SERVICE_ENABLED === 'true',
-  
+
   // Retry configuration
   retries: 2,
-  retryDelay: 2000
+  retryDelay: 2000,
 };
 
 /**
@@ -72,35 +72,35 @@ const aiFeatures = {
   chatbot: {
     enabled: process.env.AI_CHATBOT_ENABLED !== 'false', // Default enabled
     maxHistoryLength: 10, // Number of previous messages to include
-    systemPrompt: 'You are a helpful AI assistant for a school management system.'
+    systemPrompt: 'You are a helpful AI assistant for a school management system.',
   },
-  
+
   // Grade Prediction (ML)
   gradePrediction: {
     enabled: process.env.AI_GRADE_PREDICTION_ENABLED === 'true',
     confidenceThreshold: 0.7, // Minimum confidence to show prediction
-    lookAheadWeeks: 4 // Predict grades N weeks ahead
+    lookAheadWeeks: 4, // Predict grades N weeks ahead
   },
-  
+
   // Student Risk Detection (ML)
   riskDetection: {
     enabled: process.env.AI_RISK_DETECTION_ENABLED === 'true',
     riskThreshold: 0.6, // 0-1, higher = more students flagged
-    checkFrequency: 'weekly' // daily, weekly, monthly
+    checkFrequency: 'weekly', // daily, weekly, monthly
   },
-  
+
   // Report Generation (OpenAI)
   reportGeneration: {
     enabled: process.env.AI_REPORT_GENERATION_ENABLED === 'true',
     maxReportLength: 1000, // tokens
-    templates: ['summary', 'detailed', 'parent-friendly']
+    templates: ['summary', 'detailed', 'parent-friendly'],
   },
-  
+
   // Course Recommendations (ML)
   courseRecommendation: {
     enabled: false, // Phase 2 feature
-    topN: 5 // Number of recommendations to return
-  }
+    topN: 5, // Number of recommendations to return
+  },
 };
 
 /**
@@ -116,11 +116,11 @@ const modelConfigs = {
       'previous_grades_avg',
       'quiz_scores_avg',
       'assignment_completion_rate',
-      'study_time_hours'
+      'study_time_hours',
     ],
-    targetVariable: 'final_grade'
+    targetVariable: 'final_grade',
   },
-  
+
   // Student risk classifier
   riskClassifier: {
     modelPath: process.env.RISK_CLASSIFIER_MODEL || './ai-service/models/risk_classifier.pkl',
@@ -129,10 +129,10 @@ const modelConfigs = {
       'grade_trend',
       'missing_assignments',
       'participation_score',
-      'previous_failures'
+      'previous_failures',
     ],
-    classes: ['low_risk', 'medium_risk', 'high_risk']
-  }
+    classes: ['low_risk', 'medium_risk', 'high_risk'],
+  },
 };
 
 /**
@@ -142,7 +142,7 @@ const modelConfigs = {
 const cachingConfig = {
   enabled: process.env.AI_CACHING_ENABLED === 'true',
   ttl: 3600, // Time to live (seconds) - 1 hour
-  maxSize: 1000 // Maximum cached items
+  maxSize: 1000, // Maximum cached items
 };
 
 /**
@@ -151,15 +151,15 @@ const cachingConfig = {
 const monitoringConfig = {
   // Log all AI requests
   logRequests: process.env.NODE_ENV !== 'production',
-  
+
   // Track token usage
   trackTokenUsage: true,
-  
+
   // Alert thresholds
   alerts: {
     dailyTokenLimit: 100000,
-    errorRateThreshold: 0.05 // 5% error rate triggers alert
-  }
+    errorRateThreshold: 0.05, // 5% error rate triggers alert
+  },
 };
 
 module.exports = {
@@ -168,5 +168,5 @@ module.exports = {
   aiFeatures,
   modelConfigs,
   cachingConfig,
-  monitoringConfig
+  monitoringConfig,
 };
