@@ -37,8 +37,8 @@ const Grade = sequelize.define('Grade', {
         msg: 'Score cannot be negative'
       },
       max: {
-        args: [100],
-        msg: 'Score cannot exceed 100'
+        args: [10],
+        msg: 'Score cannot exceed 10'
       }
     }
   },
