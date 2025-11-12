@@ -19,7 +19,7 @@ const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser'); // ✅ SECURITY FIX: For httpOnly cookies
 require('dotenv').config();
 
-const { corsConfig, rateLimitConfig } = require('./config/auth');
+const { rateLimitConfig } = require('./config/auth');
 
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
@@ -33,8 +33,6 @@ const notificationRoutes = require('./routes/notification.routes');
 const assignmentRoutes = require('./routes/assignment.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const aiRoutes = require('./routes/ai.routes');
-
-const errorHandler = require('./middleware/errorHandler');
 
 /**
  * Initialize Express Application
@@ -263,7 +261,7 @@ app.use((req, res, next) => {
   });
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   // Log error for debugging
   console.error('Error occurred:', {
     message: err.message,

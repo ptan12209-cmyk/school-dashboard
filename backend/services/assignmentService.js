@@ -193,7 +193,7 @@ class AssignmentService {
   /**
    * Submit assignment with auto-grading
    */
-  async submitAssignment(submissionId, answers, studentId) {
+  async submitAssignment(submissionId, answers, studentId, io = null) {
     const submission = await Submission.findByPk(submissionId);
 
     if (!submission || submission.student_id !== studentId) {
