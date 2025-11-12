@@ -28,11 +28,12 @@ const geminiConfig = {
   temperature: 0.7,
 
   // Timeout for requests (ms)
-  timeout: 30000, // 30 seconds
+  // ✅ IMPROVED: Increased timeout for Gemini thinking time
+  timeout: parseInt(process.env.GEMINI_TIMEOUT) || 120000, // 2 minutes (was 30s)
 
   // Retry configuration
   retries: 3,
-  retryDelay: 1000 // ms
+  retryDelay: 2000 // 2 seconds between retries (was 1s)
 };
 
 /**

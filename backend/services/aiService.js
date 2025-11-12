@@ -84,20 +84,29 @@ class AIService {
     } catch (error) {
       console.error('Gemini API Error:', error.response?.data || error.message);
 
-      // ✅ FIX: Retry on timeout or network errors
-      if (retries > 0 && (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT')) {
-        console.log(`⚠️  Timeout, retrying... (${retries} retries left)`);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+      // ✅ FIX: Retry on timeout, network errors, or 503 overload
+      const shouldRetry = retries > 0 && (
+        error.code === 'ECONNABORTED' ||
+        error.code === 'ETIMEDOUT' ||
+        error.response?.status === 503 ||
+        error.response?.data?.error?.code === 503
+      );
+
+      if (shouldRetry) {
+        const retryDelay = geminiConfig.retryDelay * (3 - retries); // Exponential backoff: 2s, 4s, 6s
+        console.log(`⚠️  ${error.code || 'Service overloaded'}, retrying in ${retryDelay/1000}s... (${retries} retries left)`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
         return this.callGemini(prompt, history, retries - 1);
       }
 
-      // Handle specific HTTP error codes
+      // Handle non-retryable error codes
       if (error.response?.status === 429) {
-        return 'Xin lỗi, hệ thống AI đang quá tải. Vui lòng thử lại sau vài phút. 🙏';
+        return 'Xin lỗi, bạn đã vượt quá giới hạn số lần sử dụng AI. Vui lòng thử lại sau vài phút. 🙏';
       }
 
       if (error.response?.status === 503 || error.response?.data?.error?.code === 503) {
-        return 'Xin lỗi, dịch vụ AI của Google hiện đang quá tải. Vui lòng thử lại sau ít phút. 🔄\n\nBạn có thể tiếp tục sử dụng các tính năng khác của hệ thống.';
+        // All retries exhausted for 503
+        return 'Xin lỗi, dịch vụ AI của Google hiện đang quá tải sau nhiều lần thử. Vui lòng thử lại sau 5-10 phút. 🔄\n\nBạn có thể tiếp tục sử dụng các tính năng khác của hệ thống.';
       }
 
       if (error.response?.status === 400) {
