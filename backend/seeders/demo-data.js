@@ -113,10 +113,10 @@ async function seed() {
     let gradeCount = 0;
     for (const { student, targetGPA } of students) {
       for (const course of courses) {
-        // Generate realistic grades around target GPA with some variance
+        // Generate realistic grades around target GPA with some variance (0-10 scale)
         const variance = Math.random() * 2 - 1; // -1 to +1
         const baseScore = targetGPA + variance;
-        const score = Math.max(0, Math.min(100, baseScore * 10)); // 0-100 scale
+        const score = Math.max(0, Math.min(10, baseScore * 2.5)); // Convert GPA (0-4) to 0-10 scale
 
         await Grade.create({
           student_id: student.id,
@@ -129,7 +129,7 @@ async function seed() {
 
         // Add final exam grade too
         const finalVariance = Math.random() * 2 - 1;
-        const finalScore = Math.max(0, Math.min(100, (targetGPA + finalVariance) * 10));
+        const finalScore = Math.max(0, Math.min(10, (targetGPA + finalVariance) * 2.5)); // 0-10 scale
 
         await Grade.create({
           student_id: student.id,

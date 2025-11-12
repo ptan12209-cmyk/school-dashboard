@@ -30,12 +30,13 @@ const ReportCard = ({ student = {}, grades = [], semester = 'Fall 2024' }) => {
     photo: null
   };
 
+  // Mock grades using 0-10 scale
   const mockGrades = [
-    { subject: 'Mathematics', grade: 95.5, maxGrade: 100, credits: 4, gradePoint: 4.0 },
-    { subject: 'Science', grade: 87.0, maxGrade: 100, credits: 4, gradePoint: 3.5 },
-    { subject: 'English', grade: 92.5, maxGrade: 100, credits: 3, gradePoint: 3.8 },
-    { subject: 'History', grade: 89.0, maxGrade: 100, credits: 3, gradePoint: 3.6 },
-    { subject: 'Art', grade: 96.0, maxGrade: 100, credits: 2, gradePoint: 4.0 }
+    { subject: 'Mathematics', grade: 9.5, maxGrade: 10, credits: 4, gradePoint: 4.0 },
+    { subject: 'Science', grade: 8.7, maxGrade: 10, credits: 4, gradePoint: 3.5 },
+    { subject: 'English', grade: 9.2, maxGrade: 10, credits: 3, gradePoint: 3.8 },
+    { subject: 'History', grade: 8.9, maxGrade: 10, credits: 3, gradePoint: 3.6 },
+    { subject: 'Art', grade: 9.6, maxGrade: 10, credits: 2, gradePoint: 4.0 }
   ];
 
   const studentData = Object.keys(student).length > 0 ? student : mockStudent;

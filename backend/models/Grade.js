@@ -134,22 +134,22 @@ const Grade = sequelize.define('Grade', {
  */
 
 /**
- * Check if grade is passing
+ * Check if grade is passing (0-10 scale)
  */
 Grade.prototype.isPassing = function() {
-  return parseFloat(this.score) >= 60;
+  return parseFloat(this.score) >= 6;  // 6/10 = 60%
 };
 
 /**
- * Get grade status
+ * Get grade status (0-10 scale)
  */
 Grade.prototype.getStatus = function() {
   const score = parseFloat(this.score);
-  
-  if (score >= 90) return 'Excellent';
-  if (score >= 80) return 'Good';
-  if (score >= 70) return 'Satisfactory';
-  if (score >= 60) return 'Passing';
+
+  if (score >= 9) return 'Excellent';      // 9/10 = 90%
+  if (score >= 8) return 'Good';           // 8/10 = 80%
+  if (score >= 7) return 'Satisfactory';   // 7/10 = 70%
+  if (score >= 6) return 'Passing';        // 6/10 = 60%
   return 'Failing';
 };
 
@@ -158,15 +158,15 @@ Grade.prototype.getStatus = function() {
  */
 
 /**
- * Calculate letter grade from score
+ * Calculate letter grade from score (0-10 scale)
  */
 Grade.calculateLetterGrade = function(score) {
   const numScore = parseFloat(score);
-  
-  if (numScore >= 90) return 'A';
-  if (numScore >= 80) return 'B';
-  if (numScore >= 70) return 'C';
-  if (numScore >= 60) return 'D';
+
+  if (numScore >= 9) return 'A';   // 9/10 = 90%
+  if (numScore >= 8) return 'B';   // 8/10 = 80%
+  if (numScore >= 7) return 'C';   // 7/10 = 70%
+  if (numScore >= 6) return 'D';   // 6/10 = 60%
   return 'F';
 };
 
