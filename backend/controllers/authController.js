@@ -102,7 +102,7 @@ exports.register = async (req, res, next) => {
     res.cookie('accessToken', token, {
       httpOnly: true,      // Cannot be accessed by JavaScript
       secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
-      sameSite: 'strict',  // CSRF protection
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',  // lax for dev, strict for prod
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 
@@ -216,7 +216,7 @@ exports.login = async (req, res, next) => {
     res.cookie('accessToken', token, {
       httpOnly: true,      // Cannot be accessed by JavaScript
       secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
-      sameSite: 'strict',  // CSRF protection
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',  // lax for dev, strict for prod
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 
@@ -316,7 +316,7 @@ exports.logout = async (req, res, next) => {
     res.clearCookie('accessToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
     });
 
     res.json({
@@ -365,7 +365,7 @@ exports.refreshToken = async (req, res, next) => {
     res.cookie('accessToken', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 24 * 60 * 60 * 1000
     });
 
