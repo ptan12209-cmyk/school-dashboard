@@ -98,7 +98,7 @@ export const getCourseGrades = async (courseId, params = {}) => {
   return response.data;
 };
 
-export default {
+const courseService = {
   getAllCourses,
   getCourseById,
   createCourse,
@@ -109,3 +109,5 @@ export default {
   getCourseStudents,
   getCourseGrades
 };
+
+export default courseService;

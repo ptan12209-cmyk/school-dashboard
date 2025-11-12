@@ -12,13 +12,14 @@ const initialState = {
 export const fetchAttendance = createAsyncThunk(
   'attendance/fetchAttendance',
   async (params, { rejectWithValue }) => {
-    try {
-      // const response = await attendanceService.getAttendance(params);
-      // return response.data;
-      return []; // Returning mock data for now
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch attendance');
-    }
+    // TODO: Implement when attendanceService is ready
+    // try {
+    //   const response = await attendanceService.getAttendance(params);
+    //   return response.data;
+    // } catch (error) {
+    //   return rejectWithValue(error.response?.data?.message || 'Failed to fetch attendance');
+    // }
+    return []; // Returning mock data for now
   }
 );
 
