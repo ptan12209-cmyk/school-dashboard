@@ -16,6 +16,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser'); // ✅ SECURITY FIX: For httpOnly cookies
 require('dotenv').config();
 
 const { corsConfig, rateLimitConfig } = require('./config/auth');
@@ -65,15 +66,12 @@ app.use(cors({
       ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
       : ['http://localhost:3000', 'http://localhost:3001'];
 
-    // Allow requests with no origin (mobile apps, Postman, curl)
+    // Allow requests with no origin (mobile apps, Postman, curl, server-to-server)
     if (!origin) {
       return callback(null, true);
     }
 
-    // Check if wildcard is allowed
-    if (allowedOrigins.includes('*')) {
-      return callback(null, true);
-    }
+    // ✅ SECURITY FIX: Removed wildcard bypass - enforce strict origin whitelist
 
     // Check if origin is allowed
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -83,7 +81,7 @@ app.use(cors({
       return callback(new Error('Not allowed by CORS'), false);
     }
   },
-  credentials: true, // Allow cookies
+  credentials: true, // ✅ Required for httpOnly cookies
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   maxAge: 86400 // Cache preflight for 24 hours
@@ -96,6 +94,13 @@ app.use(cors({
  */
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+/**
+ * 3.5. Cookie Parser
+ * ------------------
+ * ✅ SECURITY FIX: Parse cookies for httpOnly JWT tokens
+ */
+app.use(cookieParser());
 
 /**
  * 4. Compression

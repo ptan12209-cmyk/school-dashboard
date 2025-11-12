@@ -13,6 +13,13 @@ class AIService {
     this.apiUrl = geminiConfig.apiUrl;
     this.model = geminiConfig.model;
     this.conversationHistory = new Map(); // Store per-user conversation history
+
+    // ✅ SECURITY FIX: Add TTL and max size to prevent memory leak
+    this.MAX_HISTORY_SIZE = 1000; // Maximum number of users to store
+    this.HISTORY_TTL = 3600000; // 1 hour in milliseconds
+
+    // Cleanup old history every 10 minutes
+    this.cleanupInterval = setInterval(() => this.cleanupHistory(), 600000);
   }
 
   /**
@@ -91,11 +98,19 @@ class AIService {
    */
   async chat(userId, message, context = {}) {
     try {
-      // Get or create conversation history
-      if (!this.conversationHistory.has(userId)) {
-        this.conversationHistory.set(userId, []);
+      // ✅ SECURITY FIX: Check if history exists and is not expired
+      const historyEntry = this.conversationHistory.get(userId);
+      let history = [];
+
+      if (historyEntry) {
+        const age = Date.now() - historyEntry.lastAccess;
+        if (age < this.HISTORY_TTL) {
+          history = historyEntry.messages;
+        } else {
+          // Expired, remove
+          this.conversationHistory.delete(userId);
+        }
       }
-      const history = this.conversationHistory.get(userId);
 
       // Build system prompt based on context
       const systemPrompt = this.buildSystemPrompt(context);
@@ -115,6 +130,17 @@ class AIService {
         history.splice(0, history.length - 20);
       }
 
+      // ✅ Store with timestamp
+      this.conversationHistory.set(userId, {
+        messages: history,
+        lastAccess: Date.now()
+      });
+
+      // ✅ Enforce max size to prevent unbounded growth
+      if (this.conversationHistory.size > this.MAX_HISTORY_SIZE) {
+        this.evictOldest();
+      }
+
       return aiResponse;
     } catch (error) {
       console.error('AI Chat Error:', error.message);
@@ -127,6 +153,46 @@ class AIService {
    */
   clearHistory(userId) {
     this.conversationHistory.delete(userId);
+  }
+
+  /**
+   * ✅ SECURITY FIX: Cleanup expired history entries
+   */
+  cleanupHistory() {
+    const now = Date.now();
+    let cleaned = 0;
+
+    for (const [userId, entry] of this.conversationHistory.entries()) {
+      if (now - entry.lastAccess > this.HISTORY_TTL) {
+        this.conversationHistory.delete(userId);
+        cleaned++;
+      }
+    }
+
+    if (cleaned > 0) {
+      console.log(`🧹 Cleaned up ${cleaned} expired chat history entries`);
+    }
+  }
+
+  /**
+   * ✅ SECURITY FIX: Evict oldest entry when max size is reached
+   */
+  evictOldest() {
+    // Find and remove the oldest entry
+    let oldestUserId = null;
+    let oldestTime = Infinity;
+
+    for (const [userId, entry] of this.conversationHistory.entries()) {
+      if (entry.lastAccess < oldestTime) {
+        oldestTime = entry.lastAccess;
+        oldestUserId = userId;
+      }
+    }
+
+    if (oldestUserId) {
+      this.conversationHistory.delete(oldestUserId);
+      console.log(`🧹 Evicted oldest chat history for user: ${oldestUserId}`);
+    }
   }
 
   /**

@@ -61,9 +61,27 @@ const passwordConfig = {
 
 /**
  * Session Configuration (if using sessions)
+ * ✅ SECURITY FIX: Require strong session secret in production
  */
+const getSessionSecret = () => {
+  if (process.env.SESSION_SECRET) {
+    return process.env.SESSION_SECRET;
+  }
+
+  // Only allow fallback in development
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('SESSION_SECRET must be defined in production');
+  }
+
+  // Generate a random secret for development (warning logged)
+  const crypto = require('crypto');
+  const randomSecret = crypto.randomBytes(64).toString('hex');
+  console.warn('⚠️  WARNING: Using auto-generated SESSION_SECRET for development. Set SESSION_SECRET in .env for production!');
+  return randomSecret;
+};
+
 const sessionConfig = {
-  secret: process.env.SESSION_SECRET || 'session-secret-key',
+  secret: getSessionSecret(),
   resave: false,
   saveUninitialized: false,
   cookie: {

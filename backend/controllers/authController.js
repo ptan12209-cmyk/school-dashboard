@@ -97,7 +97,15 @@ exports.register = async (req, res, next) => {
     
     // Generate token
     const token = user.generateToken();
-    
+
+    // ✅ SECURITY FIX: Set token as httpOnly cookie (prevents XSS)
+    res.cookie('accessToken', token, {
+      httpOnly: true,      // Cannot be accessed by JavaScript
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+      sameSite: 'strict',  // CSRF protection
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -107,8 +115,8 @@ exports.register = async (req, res, next) => {
           email: user.email,
           role: user.role
         },
-        profile,
-        token
+        profile
+        // ✅ Token is now in httpOnly cookie, not in response body
       }
     });
     
@@ -203,7 +211,15 @@ exports.login = async (req, res, next) => {
     
     // Generate token
     const token = user.generateToken();
-    
+
+    // ✅ SECURITY FIX: Set token as httpOnly cookie (prevents XSS)
+    res.cookie('accessToken', token, {
+      httpOnly: true,      // Cannot be accessed by JavaScript
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+      sameSite: 'strict',  // CSRF protection
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -219,8 +235,8 @@ exports.login = async (req, res, next) => {
           firstName: profile.first_name,
           lastName: profile.last_name,
           fullName: profile.getFullName ? profile.getFullName() : `${profile.first_name} ${profile.last_name}`
-        } : null,
-        token
+        } : null
+        // ✅ Token is now in httpOnly cookie, not in response body
       }
     });
     
@@ -296,9 +312,13 @@ exports.getCurrentUser = async (req, res, next) => {
  */
 exports.logout = async (req, res, next) => {
   try {
-    // With JWT, logout is handled client-side by deleting the token
-    // This endpoint is mainly for logging/tracking purposes
-    
+    // ✅ SECURITY FIX: Clear httpOnly cookie on logout
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
+
     res.json({
       success: true,
       message: 'Logout successful',
@@ -340,10 +360,19 @@ exports.refreshToken = async (req, res, next) => {
     
     // Generate new token
     const token = user.generateToken();
-    
+
+    // ✅ SECURITY FIX: Set refreshed token as httpOnly cookie
+    res.cookie('accessToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000
+    });
+
     res.json({
       success: true,
-      data: { token }
+      message: 'Token refreshed successfully'
+      // ✅ Token is now in httpOnly cookie
     });
     
   } catch (error) {

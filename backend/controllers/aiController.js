@@ -17,11 +17,40 @@ exports.chat = catchAsync(async (req, res) => {
   const { message } = req.body;
   const userId = req.user.id;
 
-  if (!message || message.trim() === '') {
+  // ✅ SECURITY FIX: Enhanced input validation and sanitization
+  if (!message || typeof message !== 'string' || message.trim() === '') {
     return res.status(400).json({
       success: false,
-      message: 'Vui lòng nhập tin nhắn'
+      message: 'Vui lòng nhập tin nhắn hợp lệ'
     });
+  }
+
+  // Limit message length to prevent abuse
+  const MAX_MESSAGE_LENGTH = 2000;
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    return res.status(400).json({
+      success: false,
+      message: `Tin nhắn quá dài. Tối đa ${MAX_MESSAGE_LENGTH} ký tự`
+    });
+  }
+
+  // Basic prompt injection detection
+  const suspiciousPatterns = [
+    /ignore\s+(previous|above|all)\s+instructions?/i,
+    /you\s+are\s+now/i,
+    /system\s*:/i,
+    /\[SYSTEM\]/i,
+    /<\|im_start\|>/i
+  ];
+
+  for (const pattern of suspiciousPatterns) {
+    if (pattern.test(message)) {
+      console.warn(`⚠️  Potential prompt injection detected from user ${userId}: ${message.substring(0, 100)}`);
+      return res.status(400).json({
+        success: false,
+        message: 'Tin nhắn chứa nội dung không được phép'
+      });
+    }
   }
 
   // Build context from user profile

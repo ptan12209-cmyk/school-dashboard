@@ -4,39 +4,61 @@ const { User, Teacher, Student } = require('../models');
 
 const verifyToken = async (req, res, next) => {
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    let token;
+
+    // ✅ SECURITY FIX: Try to get token from httpOnly cookie first
+    if (req.cookies && req.cookies.accessToken) {
+      token = req.cookies.accessToken;
+    } else {
+      // Fallback to Authorization header for backward compatibility
+      const authHeader = req.headers.authorization;
+
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+          success: false,
+          message: 'No token provided. Access denied.'
+        });
+      }
+
+      // Extract token (format: "Bearer <token>")
+      token = authHeader.split(' ')[1];
+    }
+
+    if (!token) {
       return res.status(401).json({
         success: false,
         message: 'No token provided. Access denied.'
       });
     }
     
-    // Extract token (format: "Bearer <token>")
-    const token = authHeader.split(' ')[1];
-    
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid token format'
-      });
-    }
-    
     // Verify token
     const decoded = jwt.verify(token, jwtConfig.secret);
-    
-    // Find user
-    const user = await User.findByPk(decoded.id);
-    
+
+    // ✅ PERFORMANCE FIX: Use JOIN to load user with profile in one query (fixes N+1 problem)
+    const user = await User.findByPk(decoded.id, {
+      include: [
+        {
+          model: Teacher,
+          as: 'teacherProfile',
+          attributes: ['id', 'first_name', 'last_name', 'department'], // Only load essential fields
+          required: false // LEFT JOIN, not INNER JOIN
+        },
+        {
+          model: Student,
+          as: 'studentProfile',
+          attributes: ['id', 'first_name', 'last_name', 'date_of_birth'],
+          required: false
+        }
+      ]
+    });
+
     if (!user) {
       return res.status(401).json({
         success: false,
         message: 'User not found. Token invalid.'
       });
     }
-    
+
     if (!user.is_active) {
       return res.status(403).json({
         success: false,
@@ -51,17 +73,12 @@ const verifyToken = async (req, res, next) => {
       role: user.role
     };
 
-    // Load role-specific profile
-    if (user.role === 'teacher') {
-      const teacherProfile = await Teacher.findOne({ where: { user_id: user.id } });
-      if (teacherProfile) {
-        req.user.teacherProfile = teacherProfile;
-      }
-    } else if (user.role === 'student') {
-      const studentProfile = await Student.findOne({ where: { user_id: user.id } });
-      if (studentProfile) {
-        req.user.studentProfile = studentProfile;
-      }
+    // ✅ Profile is already loaded via JOIN - no additional queries needed
+    if (user.teacherProfile) {
+      req.user.teacherProfile = user.teacherProfile;
+    }
+    if (user.studentProfile) {
+      req.user.studentProfile = user.studentProfile;
     }
 
     next();

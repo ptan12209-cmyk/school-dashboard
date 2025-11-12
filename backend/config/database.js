@@ -46,7 +46,9 @@ const config = {
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false // For services like Heroku
+        rejectUnauthorized: true, // ✅ SECURITY FIX: Enforce SSL validation
+        // Provide CA certificate if using self-signed cert
+        ca: process.env.DB_SSL_CA || undefined
       }
     }
   }
@@ -74,6 +76,17 @@ const sequelize = new Sequelize(
 sequelize.authenticate()
   .then(() => console.log('✅ Database connected successfully'))
   .catch(err => console.error('❌ Database connection error:', err.message));
+
+/**
+ * ✅ SECURITY FIX: Validate required production environment variables
+ */
+if (process.env.NODE_ENV === 'production') {
+  const required = ['DB_USER', 'DB_PASSWORD', 'DB_NAME', 'DB_HOST'];
+  const missing = required.filter(key => !process.env[key]);
+  if (missing.length > 0) {
+    throw new Error(`❌ FATAL: Missing required production env vars: ${missing.join(', ')}`);
+  }
+}
 
 module.exports = {
   config: currentConfig,

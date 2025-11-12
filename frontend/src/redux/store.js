@@ -49,9 +49,12 @@ const store = configureStore({
   devTools: process.env.NODE_ENV !== 'production',
 });
 
-// Expose store to window for debugging (development only)
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+// ✅ SECURITY FIX: Only expose store in development with strict check
+if (typeof window !== 'undefined' &&
+    process.env.NODE_ENV === 'development' &&
+    process.env.REACT_APP_EXPOSE_STORE === 'true') {
   window.store = store;
+  console.warn('⚠️  Redux store exposed on window.store - FOR DEVELOPMENT ONLY');
 }
 
 // Export store as default
