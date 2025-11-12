@@ -17,7 +17,7 @@ router.get(
   // Controller will filter grades based on role
   [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+    query('limit').optional().isInt({ min: 1, max: 50000 }).withMessage('Limit must be between 1 and 50000'),
     query('student_id').optional().isUUID().withMessage('Invalid student ID'),
     query('course_id').optional().isUUID().withMessage('Invalid course ID'),
     query('semester').optional().isIn(['1', '2', 'Final']).withMessage('Semester must be 1, 2, or Final'),
