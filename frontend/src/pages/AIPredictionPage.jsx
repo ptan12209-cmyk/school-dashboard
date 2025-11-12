@@ -64,8 +64,9 @@ const AIPredictionPage = () => {
       const studentPredictions = students.map(student => {
         // Get student's grades
         const studentGrades = grades.filter(g => g.student_id === student.id);
+        // ✅ FIX: Database grades are already 0-10 scale, don't divide by 10!
         const avgGrade = studentGrades.length > 0
-          ? studentGrades.reduce((sum, g) => sum + parseFloat(g.score || 0), 0) / studentGrades.length / 10
+          ? studentGrades.reduce((sum, g) => sum + parseFloat(g.score || 0), 0) / studentGrades.length
           : 0;
 
         // Get student's attendance (case-insensitive check)
