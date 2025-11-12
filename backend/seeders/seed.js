@@ -266,7 +266,7 @@ async function seed() {
             student_id: student.id,
             course_id: course.id,
             grade_type: gradeTypes[i % gradeTypes.length],
-            score: (Math.random() * 30 + 65).toFixed(1), // Score from 65-95
+            score: (Math.random() * 3 + 6.5).toFixed(1), // Score from 6.5-9.5 (0-10 scale)
             weight: weights[i % weights.length],
             semester: course.semester,
             graded_date: randomDate(new Date(2024, 8, 15), new Date()),

@@ -187,8 +187,8 @@ const GradesPage = () => {
       return;
     }
 
-    if (parseFloat(formData.score) < 0 || parseFloat(formData.score) > 100) {
-      setError('Score must be between 0 and 100');
+    if (parseFloat(formData.score) < 0 || parseFloat(formData.score) > 10) {
+      setError('Score must be between 0 and 10');
       return;
     }
 
@@ -451,8 +451,8 @@ const GradesPage = () => {
                   value={formData.score}
                   onChange={handleInputChange}
                   required
-                  inputProps={{ min: 0, max: 100, step: 0.1 }}
-                  helperText="Score between 0 and 100"
+                  inputProps={{ min: 0, max: 10, step: 0.1 }}
+                  helperText="Score between 0 and 10"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>

@@ -37,6 +37,7 @@ const GradeTable = ({
   const [selectedGradeType, setSelectedGradeType] = useState('');
 
   // Mock data if none provided
+  // Mock grades using 0-10 scale
   const mockGrades = [
     {
       id: 1,
@@ -44,8 +45,8 @@ const GradeTable = ({
       studentId: 'ST001',
       subject: 'Mathematics',
       gradeType: 'midterm',
-      grade: 95.5,
-      maxGrade: 100,
+      grade: 9.5,
+      maxGrade: 10,
       date: '2024-01-15',
       comments: 'Excellent work'
     },
@@ -55,8 +56,8 @@ const GradeTable = ({
       studentId: 'ST002',
       subject: 'Science',
       gradeType: 'quiz',
-      grade: 87.0,
-      maxGrade: 100,
+      grade: 8.7,
+      maxGrade: 10,
       date: '2024-01-14',
       comments: 'Good understanding'
     },
@@ -66,8 +67,8 @@ const GradeTable = ({
       studentId: 'ST003',
       subject: 'English',
       gradeType: 'assignment',
-      grade: 92.5,
-      maxGrade: 100,
+      grade: 9.2,
+      maxGrade: 10,
       date: '2024-01-13',
       comments: 'Well written'
     }
@@ -75,7 +76,7 @@ const GradeTable = ({
 
   const gradeData = grades.length > 0 ? grades : mockGrades;
 
-  const getGradeColor = (grade, maxGrade = 100) => {
+  const getGradeColor = (grade, maxGrade = 10) => {
     const percentage = (grade / maxGrade) * 100;
     if (percentage >= 90) return 'green';
     if (percentage >= 80) return 'blue';

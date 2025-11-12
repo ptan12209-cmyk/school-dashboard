@@ -97,7 +97,8 @@ const ReportPage = () => {
           subjectStats[course.subject].students++;
           subjectStats[course.subject].totalGrade += parseFloat(grade.score) || 0;
           subjectStats[course.subject].gradeCount++;
-          if (parseFloat(grade.score) >= 60) {
+          // Check passing grade (0-10 scale: 6 = 60%)
+          if (parseFloat(grade.score) >= 6) {
             subjectStats[course.subject].passCount++;
           }
         });
@@ -106,7 +107,8 @@ const ReportPage = () => {
       const academicResults = Object.values(subjectStats).map(stat => ({
         subject: stat.subject,
         students: stat.gradeCount > 0 ? stat.gradeCount : stat.students,
-        avgGrade: stat.gradeCount > 0 ? parseFloat((stat.totalGrade / stat.gradeCount / 10).toFixed(1)) : 0,
+        // avgGrade: Grades are already 0-10 scale, no need to divide by 10
+        avgGrade: stat.gradeCount > 0 ? parseFloat((stat.totalGrade / stat.gradeCount).toFixed(1)) : 0,
         passRate: stat.gradeCount > 0 ? Math.round((stat.passCount / stat.gradeCount) * 100) : 0
       }));
 

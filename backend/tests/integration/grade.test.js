@@ -91,11 +91,12 @@ describe('Grade Management API', () => {
     });
 
     test('should support pagination', async () => {
+      // Create test grades using 0-10 scale
       for (let i = 0; i < 5; i++) {
         await TestHelpers.createGrade(adminToken, {
           student_id: studentData.student.id,
           course_id: course.id,
-          score: 80 + i,
+          score: 8.0 + (i * 0.2),  // 8.0, 8.2, 8.4, 8.6, 8.8
           grade_type: i < 2 ? (i % 2 === 0 ? 'Test' : 'Quiz') : (i === 2 ? 'Final' : i === 3 ? 'Midterm' : 'Assignment'),
           semester: i < 2 ? `${i + 1}` : 'Final' // Use valid semester values: 1, 2, Final
         });
@@ -162,7 +163,7 @@ describe('Grade Management API', () => {
       await TestHelpers.createGrade(adminToken, {
         student_id: studentData.student.id,
         course_id: course.id,
-        score: 85,
+        score: 8.5,  // 0-10 scale
         is_published: true
       });
 
@@ -196,7 +197,7 @@ describe('Grade Management API', () => {
       const gradeData = {
         student_id: studentData.student.id,
         course_id: course.id,
-        score: 92.5,
+        score: 9.2,  // 0-10 scale
         grade_type: 'Test',
         semester: '1',
         graded_date: '2024-10-01',
