@@ -61,6 +61,23 @@ exports.getAllGrades = catchAsync(async (req, res) => {
     };
   }
   
+  // ✅ FIXED: For students, only show their own grades
+  if (req.user.role === 'student') {
+    const student = await Student.findOne({ where: { user_id: req.user.id } });
+    if (student) {
+      where.student_id = student.id;
+    } else {
+      // Student profile not found, return empty
+      return res.json({
+        success: true,
+        data: {
+          grades: [],
+          pagination: { total: 0, page: 1, pages: 0, limit }
+        }
+      });
+    }
+  }
+
   // For teachers, only show grades for their courses
   if (req.user.role === 'teacher') {
     const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });

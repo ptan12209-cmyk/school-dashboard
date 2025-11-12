@@ -8,12 +8,13 @@ const { validate } = require('../middleware/validation');
 /**
  * @route   GET /api/attendance
  * @desc    Get all attendance records with pagination and filtering
- * @access  Teacher, Admin
+ * @access  Teacher, Admin, Student (own records only)
  */
 router.get(
   '/',
   verifyToken,
-  checkRole('admin', 'teacher'),
+  // ✅ FIXED: Removed checkRole to allow students to access their own attendance
+  // Controller will filter attendance based on role
   [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),

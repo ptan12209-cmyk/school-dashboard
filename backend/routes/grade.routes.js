@@ -8,12 +8,13 @@ const { validate } = require('../middleware/validation');
 /**
  * @route   GET /api/grades
  * @desc    Get all grades with pagination and filtering
- * @access  Admin, Teacher (own courses)
+ * @access  Admin, Teacher (own courses), Student (own grades only)
  */
 router.get(
   '/',
   verifyToken,
-  checkRole('admin', 'teacher'),
+  // ✅ FIXED: Removed checkRole to allow students to access their own grades
+  // Controller will filter grades based on role
   [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),

@@ -36,7 +36,24 @@ exports.getAllAttendance = catchAsync(async (req, res) => {
       [Op.between]: [req.query.start_date, req.query.end_date]
     };
   }
-  
+
+  // ✅ FIXED: For students, only show their own attendance
+  if (req.user.role === 'student') {
+    const student = await Student.findOne({ where: { user_id: req.user.id } });
+    if (student) {
+      where.student_id = student.id;
+    } else {
+      // Student profile not found, return empty
+      return res.json({
+        success: true,
+        data: {
+          attendance: [],
+          pagination: { total: 0, page: 1, pages: 0, limit }
+        }
+      });
+    }
+  }
+
   // For teachers, only show attendance for their courses
   if (req.user.role === 'teacher') {
     const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });
