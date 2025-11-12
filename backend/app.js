@@ -66,6 +66,14 @@ app.use(cors({
       ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
       : ['http://localhost:3000', 'http://localhost:3001'];
 
+    // 🔍 DEBUG: Log CORS check details
+    console.log('🔍 CORS Debug:', {
+      incoming_origin: origin,
+      allowedOrigins: allowedOrigins,
+      env_CORS_ORIGIN: process.env.CORS_ORIGIN,
+      indexOf_result: allowedOrigins.indexOf(origin)
+    });
+
     // Allow requests with no origin (mobile apps, Postman, curl, server-to-server)
     if (!origin) {
       return callback(null, true);
@@ -75,6 +83,7 @@ app.use(cors({
 
     // Check if origin is allowed
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log(`✅ Allowed origin: ${origin}`);
       return callback(null, true);
     } else {
       console.warn(`⚠️  Blocked request from unauthorized origin: ${origin}`);
