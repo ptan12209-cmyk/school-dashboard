@@ -14,7 +14,7 @@ console.log(`   Host:     ${process.env.DB_HOST || 'localhost'}`);
 console.log(`   Port:     ${process.env.DB_PORT || '5432'}`);
 console.log(`   Database: ${process.env.DB_NAME || 'school_dashboard'}`);
 console.log(`   User:     ${process.env.DB_USER || 'postgres'}`);
-console.log(`   Password: ${process.env.DB_PASSWORD ? '***' + process.env.DB_PASSWORD.slice(-3) : 'NOT SET'}\n`);
+console.log(`   Password: ${process.env.DB_PASSWORD ? `***${process.env.DB_PASSWORD.slice(-3)}` : 'NOT SET'}\n`);
 
 const sequelize = new Sequelize({
   dialect: 'postgres',
@@ -23,7 +23,7 @@ const sequelize = new Sequelize({
   database: process.env.DB_NAME || 'school_dashboard',
   username: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
-  logging: false
+  logging: false,
 });
 
 async function testConnection() {

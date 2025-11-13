@@ -28,7 +28,7 @@ class NotificationService {
         relatedId,
         priority = 'medium',
         metadata = {},
-        expiresAt
+        expiresAt,
       } = data;
 
       // Create notification in database
@@ -41,7 +41,7 @@ class NotificationService {
         related_id: relatedId,
         priority,
         metadata,
-        expires_at: expiresAt
+        expires_at: expiresAt,
       });
 
       // Send email if requested
@@ -70,7 +70,7 @@ class NotificationService {
     for (const userId of userIds) {
       const notification = await this.createNotification(
         { ...data, userId },
-        options
+        options,
       );
       notifications.push(notification);
     }
@@ -85,7 +85,7 @@ class NotificationService {
     try {
       if (!user || !user.email) {
         console.warn('Cannot send email: user or email not provided');
-        return;
+        return false;
       }
 
       const emailData = {
@@ -97,8 +97,8 @@ class NotificationService {
           message: notification.message,
           userName: `${user.firstName} ${user.lastName}`,
           priority: notification.priority,
-          createdAt: notification.created_at
-        }
+          createdAt: notification.created_at,
+        },
       };
 
       await emailService.sendNotificationEmail(emailData);
@@ -123,7 +123,7 @@ class NotificationService {
         message: notification.message,
         priority: notification.priority,
         createdAt: notification.created_at,
-        metadata: notification.metadata
+        metadata: notification.metadata,
       });
 
       console.log(`✅ Real-time notification sent to user ${userId}`);
@@ -140,7 +140,7 @@ class NotificationService {
       page = 1,
       limit = 20,
       unreadOnly = false,
-      type = null
+      type = null,
     } = options;
 
     const where = { user_id: userId };
@@ -159,7 +159,7 @@ class NotificationService {
       where,
       order: [['created_at', 'DESC']],
       limit,
-      offset
+      offset,
     });
 
     return {
@@ -167,7 +167,7 @@ class NotificationService {
       total: count,
       page,
       totalPages: Math.ceil(count / limit),
-      hasMore: offset + rows.length < count
+      hasMore: offset + rows.length < count,
     };
   }
 
@@ -178,8 +178,8 @@ class NotificationService {
     const notification = await Notification.findOne({
       where: {
         id: notificationId,
-        user_id: userId
-      }
+        user_id: userId,
+      },
     });
 
     if (!notification) {
@@ -203,8 +203,8 @@ class NotificationService {
     const result = await Notification.destroy({
       where: {
         id: notificationId,
-        user_id: userId
-      }
+        user_id: userId,
+      },
     });
 
     return result > 0;
@@ -231,7 +231,7 @@ class NotificationService {
       relatedType: 'grade',
       relatedId: gradeData.gradeId,
       priority: 'medium',
-      metadata: { grade: gradeData.score, subject: gradeData.subject }
+      metadata: { grade: gradeData.score, subject: gradeData.subject },
     }, options);
   }
 
@@ -249,7 +249,7 @@ class NotificationService {
       relatedType: 'attendance',
       relatedId: attendanceData.attendanceId,
       priority: isAbsent ? 'high' : 'low',
-      metadata: attendanceData
+      metadata: attendanceData,
     }, options);
   }
 
@@ -263,7 +263,7 @@ class NotificationService {
       relatedType: 'assignment',
       relatedId: assignmentData.assignmentId,
       priority: 'high',
-      metadata: assignmentData
+      metadata: assignmentData,
     }, options);
   }
 
@@ -276,9 +276,9 @@ class NotificationService {
         title: announcementData.title,
         message: announcementData.message,
         priority: announcementData.priority || 'medium',
-        metadata: announcementData
+        metadata: announcementData,
       },
-      options
+      options,
     );
   }
 
@@ -290,7 +290,7 @@ class NotificationService {
       title: alertData.title,
       message: alertData.message,
       priority: 'urgent',
-      metadata: alertData
+      metadata: alertData,
     }, { ...options, sendEmail: true });
   }
 }

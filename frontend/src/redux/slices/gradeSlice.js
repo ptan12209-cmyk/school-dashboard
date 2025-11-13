@@ -12,13 +12,14 @@ const initialState = {
 export const fetchGrades = createAsyncThunk(
   'grades/fetchGrades',
   async (params, { rejectWithValue }) => {
-    try {
-      // const response = await gradeService.getGrades(params);
-      // return response.data;
-      return []; // Returning mock data for now
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch grades');
-    }
+    // TODO: Implement when gradeService is ready
+    // try {
+    //   const response = await gradeService.getGrades(params);
+    //   return response.data;
+    // } catch (error) {
+    //   return rejectWithValue(error.response?.data?.message || 'Failed to fetch grades');
+    // }
+    return []; // Returning mock data for now
   }
 );
 

@@ -119,15 +119,16 @@ const GradeEntry = ({ onSubmit, initialValues = {}, students = [], subjects = []
               label="Grade"
               rules={[
                 { required: true, message: 'Please enter a grade' },
-                { type: 'number', min: 0, max: 100, message: 'Grade must be between 0 and 100' }
+                { type: 'number', min: 0, max: 10, message: 'Grade must be between 0 and 10' }
               ]}
             >
               <InputNumber
                 min={0}
-                max={100}
+                max={10}
                 precision={1}
+                step={0.1}
                 style={{ width: '100%' }}
-                placeholder="Enter grade (0-100)"
+                placeholder="Enter grade (0-10)"
               />
             </Form.Item>
           </Col>

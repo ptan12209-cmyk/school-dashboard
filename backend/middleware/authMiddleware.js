@@ -4,43 +4,65 @@ const { User, Teacher, Student } = require('../models');
 
 const verifyToken = async (req, res, next) => {
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        message: 'No token provided. Access denied.'
-      });
+    let token;
+
+    // ✅ SECURITY FIX: Try to get token from httpOnly cookie first
+    if (req.cookies && req.cookies.accessToken) {
+      token = req.cookies.accessToken;
+    } else {
+      // Fallback to Authorization header for backward compatibility
+      const authHeader = req.headers.authorization;
+
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+          success: false,
+          message: 'No token provided. Access denied.',
+        });
+      }
+
+      // Extract token (format: "Bearer <token>")
+      [, token] = authHeader.split(' ');
     }
-    
-    // Extract token (format: "Bearer <token>")
-    const token = authHeader.split(' ')[1];
-    
+
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token format'
+        message: 'No token provided. Access denied.',
       });
     }
-    
+
     // Verify token
     const decoded = jwt.verify(token, jwtConfig.secret);
-    
-    // Find user
-    const user = await User.findByPk(decoded.id);
-    
+
+    // ✅ PERFORMANCE FIX: Use JOIN to load user with profile in one query (fixes N+1 problem)
+    const user = await User.findByPk(decoded.id, {
+      include: [
+        {
+          model: Teacher,
+          as: 'teacherProfile',
+          attributes: ['id', 'first_name', 'last_name', 'department'], // Only load essential fields
+          required: false, // LEFT JOIN, not INNER JOIN
+        },
+        {
+          model: Student,
+          as: 'studentProfile',
+          attributes: ['id', 'first_name', 'last_name', 'date_of_birth'],
+          required: false,
+        },
+      ],
+    });
+
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'User not found. Token invalid.'
+        message: 'User not found. Token invalid.',
       });
     }
-    
+
     if (!user.is_active) {
       return res.status(403).json({
         success: false,
-        message: 'Account is inactive'
+        message: 'Account is inactive',
       });
     }
 
@@ -48,101 +70,173 @@ const verifyToken = async (req, res, next) => {
     req.user = {
       id: user.id,
       email: user.email,
-      role: user.role
+      role: user.role,
     };
 
-    // Load role-specific profile
-    if (user.role === 'teacher') {
-      const teacherProfile = await Teacher.findOne({ where: { user_id: user.id } });
-      if (teacherProfile) {
-        req.user.teacherProfile = teacherProfile;
-      }
-    } else if (user.role === 'student') {
-      const studentProfile = await Student.findOne({ where: { user_id: user.id } });
-      if (studentProfile) {
-        req.user.studentProfile = studentProfile;
-      }
+    // ✅ Profile is already loaded via JOIN - no additional queries needed
+    if (user.teacherProfile) {
+      req.user.teacherProfile = user.teacherProfile;
+    }
+    if (user.studentProfile) {
+      req.user.studentProfile = user.studentProfile;
     }
 
-    next();
-    
+    return next();
   } catch (error) {
     console.error('Auth middleware error:', error);
-    
+
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token'
+        message: 'Invalid token',
       });
     }
-    
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
-        message: 'Token expired'
+        message: 'Token expired',
       });
     }
-    
+
     return res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
 
-const checkRole = (...allowedRoles) => {
-  return (req, res, next) => {
-    if (!req.user) {
+/**
+ * Special middleware for refresh token endpoint
+ * Accepts expired tokens but still validates signature
+ * This prevents the chicken-and-egg problem where expired tokens
+ * cannot be refreshed because verifyToken rejects them
+ */
+const verifyTokenForRefresh = async (req, res, next) => {
+  try {
+    let token;
+
+    // Try to get token from httpOnly cookie first
+    if (req.cookies && req.cookies.accessToken) {
+      token = req.cookies.accessToken;
+    } else {
+      // Fallback to Authorization header
+      const authHeader = req.headers.authorization;
+
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+          success: false,
+          message: 'No token provided. Access denied.',
+        });
+      }
+
+      [, token] = authHeader.split(' ');
+    }
+
+    if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'No token provided. Access denied.',
       });
     }
-    
-    if (!allowedRoles.includes(req.user.role)) {
+
+    // ✅ FIX: Verify token with ignoreExpiration option for refresh endpoint
+    const decoded = jwt.verify(token, jwtConfig.secret, { ignoreExpiration: true });
+
+    // Load user
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found. Token invalid.',
+      });
+    }
+
+    if (!user.is_active) {
       return res.status(403).json({
         success: false,
-        message: 'Insufficient permissions. Access denied.',
-        required: allowedRoles,
-        current: req.user.role
+        message: 'Account is inactive',
       });
     }
-    
-    next();
-  };
+
+    // Attach user to request object
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    return next();
+  } catch (error) {
+    console.error('Refresh token middleware error:', error);
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token',
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+const checkRole = (...allowedRoles) => (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required',
+    });
+  }
+
+  if (!allowedRoles.includes(req.user.role)) {
+    return res.status(403).json({
+      success: false,
+      message: 'Insufficient permissions. Access denied.',
+      required: allowedRoles,
+      current: req.user.role,
+    });
+  }
+
+  return next();
 };
 
 const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
-      
+
       if (token) {
         const decoded = jwt.verify(token, jwtConfig.secret);
         const user = await User.findByPk(decoded.id);
-        
+
         if (user && user.is_active) {
           req.user = {
             id: user.id,
             email: user.email,
-            role: user.role
+            role: user.role,
           };
         }
       }
     }
-    
+
     // Continue regardless of whether user was found
-    next();
+    return next();
   } catch (error) {
     // If token is invalid, continue without user
-    next();
+    return next();
   }
 };
 
 module.exports = {
   verifyToken,
+  verifyTokenForRefresh,
   checkRole,
-  optionalAuth
+  optionalAuth,
 };

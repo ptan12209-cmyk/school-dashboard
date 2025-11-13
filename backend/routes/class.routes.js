@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const { body, param, query } = require('express-validator');
 const classController = require('../controllers/classController');
@@ -18,9 +19,9 @@ router.get(
     query('grade_level').optional().isInt({ min: 1, max: 12 }).withMessage('Grade level must be between 1 and 12'),
     query('school_year').optional().matches(/^\d{4}-\d{4}$/).withMessage('School year must be in format YYYY-YYYY'),
     query('is_active').optional().isBoolean().withMessage('is_active must be boolean'),
-    validate
+    validate,
   ],
-  classController.getAllClasses
+  classController.getAllClasses,
 );
 
 /**
@@ -34,9 +35,9 @@ router.get(
   checkRole('admin'),
   [
     query('school_year').optional().matches(/^\d{4}-\d{4}$/).withMessage('School year must be in format YYYY-YYYY'),
-    validate
+    validate,
   ],
-  classController.getClassStats
+  classController.getClassStats,
 );
 
 /**
@@ -51,9 +52,9 @@ router.get(
   [
     query('grade_level').optional().isInt({ min: 1, max: 12 }).withMessage('Grade level must be between 1 and 12'),
     query('school_year').optional().matches(/^\d{4}-\d{4}$/).withMessage('School year must be in format YYYY-YYYY'),
-    validate
+    validate,
   ],
-  classController.getAvailableClasses
+  classController.getAvailableClasses,
 );
 
 /**
@@ -65,9 +66,9 @@ router.get(
   '/:id',
   [
     param('id').isUUID().withMessage('Invalid class ID'),
-    validate
+    validate,
   ],
-  classController.getClassById
+  classController.getClassById,
 );
 
 /**
@@ -83,10 +84,12 @@ router.post(
     body('name')
       .trim()
       .notEmpty().withMessage('Class name is required')
-      .isLength({ max: 100 }).withMessage('Class name must not exceed 100 characters'),
+      .isLength({ max: 100 })
+      .withMessage('Class name must not exceed 100 characters'),
     body('grade_level')
       .notEmpty().withMessage('Grade level is required')
-      .isInt({ min: 1, max: 12 }).withMessage('Grade level must be between 1 and 12'),
+      .isInt({ min: 1, max: 12 })
+      .withMessage('Grade level must be between 1 and 12'),
     body('teacher_id')
       .optional()
       .custom((value) => {
@@ -101,13 +104,14 @@ router.post(
     body('room_number')
       .optional()
       .trim()
-      .isLength({ max: 20 }).withMessage('Room number must not exceed 20 characters'),
+      .isLength({ max: 20 })
+      .withMessage('Room number must not exceed 20 characters'),
     body('school_year')
       .optional()
       .matches(/^\d{4}-\d{4}$/).withMessage('School year must be in format YYYY-YYYY'),
-    validate
+    validate,
   ],
-  classController.createClass
+  classController.createClass,
 );
 
 /**
@@ -124,8 +128,10 @@ router.put(
     body('name')
       .optional()
       .trim()
-      .notEmpty().withMessage('Class name cannot be empty')
-      .isLength({ max: 100 }).withMessage('Class name must not exceed 100 characters'),
+      .notEmpty()
+      .withMessage('Class name cannot be empty')
+      .isLength({ max: 100 })
+      .withMessage('Class name must not exceed 100 characters'),
     body('grade_level')
       .optional()
       .isInt({ min: 1, max: 12 }).withMessage('Grade level must be between 1 and 12'),
@@ -143,16 +149,17 @@ router.put(
     body('room_number')
       .optional()
       .trim()
-      .isLength({ max: 20 }).withMessage('Room number must not exceed 20 characters'),
+      .isLength({ max: 20 })
+      .withMessage('Room number must not exceed 20 characters'),
     body('school_year')
       .optional()
       .matches(/^\d{4}-\d{4}$/).withMessage('School year must be in format YYYY-YYYY'),
     body('is_active')
       .optional()
       .isBoolean().withMessage('is_active must be boolean'),
-    validate
+    validate,
   ],
-  classController.updateClass
+  classController.updateClass,
 );
 
 /**
@@ -166,9 +173,9 @@ router.delete(
   checkRole('admin'),
   [
     param('id').isUUID().withMessage('Invalid class ID'),
-    validate
+    validate,
   ],
-  classController.deleteClass
+  classController.deleteClass,
 );
 
 /**
@@ -184,9 +191,9 @@ router.get(
     param('id').isUUID().withMessage('Invalid class ID'),
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-    validate
+    validate,
   ],
-  classController.getClassStudents
+  classController.getClassStudents,
 );
 
 /**
@@ -200,9 +207,9 @@ router.get(
   checkRole('admin', 'teacher'),
   [
     param('id').isUUID().withMessage('Invalid class ID'),
-    validate
+    validate,
   ],
-  classController.getClassCourses
+  classController.getClassCourses,
 );
 
 module.exports = router;

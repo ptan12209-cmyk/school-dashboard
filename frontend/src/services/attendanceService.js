@@ -116,7 +116,7 @@ export const getAttendanceStats = async (params = {}) => {
   return response.data;
 };
 
-export default {
+const attendanceService = {
   getAllAttendance,
   getAttendanceById,
   markAttendance,
@@ -128,3 +128,5 @@ export default {
   getAttendanceByDate,
   getAttendanceStats
 };
+
+export default attendanceService;

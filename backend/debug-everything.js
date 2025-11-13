@@ -2,7 +2,7 @@
  * ULTIMATE DEBUG SCRIPT
  * =====================
  * Kiểm tra MỌI THỨ có thể gây lỗi password authentication
- * 
+ *
  * Chạy: node debug-everything.js
  */
 
@@ -31,18 +31,17 @@ console.log('Working dir:', process.cwd());
 console.log('\n📄 3. Environment Files:');
 console.log('-'.repeat(60));
 const fs = require('fs');
-const path = require('path');
 
 const envFiles = ['.env', '.env.test', '_env'];
-envFiles.forEach(file => {
+envFiles.forEach((file) => {
   const exists = fs.existsSync(file);
   console.log(`${file}: ${exists ? '✅ EXISTS' : '❌ NOT FOUND'}`);
-  
+
   if (exists) {
     const content = fs.readFileSync(file, 'utf8');
     const hasPassword = content.includes('DB_PASSWORD');
     console.log(`  Has DB_PASSWORD: ${hasPassword ? '✅' : '❌'}`);
-    
+
     if (hasPassword) {
       const match = content.match(/DB_PASSWORD=(.+)/);
       if (match) {
@@ -66,6 +65,7 @@ delete process.env.DB_USER;
 delete process.env.DB_NAME;
 
 // Try loading .env.test first
+/* eslint-disable global-require */
 if (fs.existsSync('.env.test')) {
   console.log('Loading .env.test...');
   require('dotenv').config({ path: '.env.test' });
@@ -81,6 +81,7 @@ if (fs.existsSync('.env.test')) {
 } else {
   console.log('❌ No environment file found!');
 }
+/* eslint-enable global-require */
 
 // ============================================
 // 5. CHECK ENVIRONMENT VARIABLES
@@ -89,12 +90,12 @@ console.log('\n🔐 5. Environment Variables After Loading:');
 console.log('-'.repeat(60));
 
 const envVars = {
-  'NODE_ENV': process.env.NODE_ENV,
-  'DB_HOST': process.env.DB_HOST,
-  'DB_PORT': process.env.DB_PORT,
-  'DB_NAME': process.env.DB_NAME,
-  'DB_USER': process.env.DB_USER,
-  'DB_PASSWORD': process.env.DB_PASSWORD
+  NODE_ENV: process.env.NODE_ENV,
+  DB_HOST: process.env.DB_HOST,
+  DB_PORT: process.env.DB_PORT,
+  DB_NAME: process.env.DB_NAME,
+  DB_USER: process.env.DB_USER,
+  DB_PASSWORD: process.env.DB_PASSWORD,
 };
 
 Object.entries(envVars).forEach(([key, value]) => {
@@ -123,7 +124,7 @@ const testConnection = async () => {
     port: process.env.DB_PORT || 5432,
     database: process.env.DB_NAME || 'school_dashboard',
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD
+    password: process.env.DB_PASSWORD,
   });
 
   console.log('Attempting connection with:');
@@ -137,10 +138,10 @@ const testConnection = async () => {
   try {
     await client.connect();
     console.log('✅ PostgreSQL connection SUCCESSFUL!');
-    
+
     const res = await client.query('SELECT version()');
     console.log('PostgreSQL version:', res.rows[0].version.split(' ')[0], res.rows[0].version.split(' ')[1]);
-    
+
     await client.end();
   } catch (error) {
     console.log('❌ PostgreSQL connection FAILED!');
@@ -162,11 +163,12 @@ console.log('-'.repeat(60));
 
 if (fs.existsSync('config/database.js')) {
   console.log('✅ config/database.js exists');
-  
+
   try {
     // Clear cache
     delete require.cache[require.resolve('./config/database')];
-    
+
+    // eslint-disable-next-line global-require
     const dbConfig = require('./config/database');
     console.log('Config loaded successfully');
     console.log('Current config:', JSON.stringify(dbConfig.config || dbConfig, null, 2));
@@ -193,17 +195,17 @@ if (fs.existsSync('jest.setup.js')) {
 
 if (fs.existsSync('package.json')) {
   const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  
+
   if (pkg.jest) {
     console.log('✅ Jest config found in package.json');
-    
+
     if (pkg.jest.setupFiles) {
       console.log('✅ setupFiles:', pkg.jest.setupFiles);
     } else {
       console.log('❌ setupFiles NOT configured!');
       console.log('   Add: "setupFiles": ["<rootDir>/jest.setup.js"]');
     }
-    
+
     if (pkg.jest.setupFilesAfterEnv) {
       console.log('✅ setupFilesAfterEnv:', pkg.jest.setupFilesAfterEnv);
     }
@@ -250,19 +252,19 @@ if (issues.length === 0) {
 // ============================================
 // RUN TEST CONNECTION
 // ============================================
-console.log('\n' + '='.repeat(60));
+console.log(`\n${'='.repeat(60)}`);
 console.log('🔌 TESTING CONNECTION NOW...');
-console.log('='.repeat(60) + '\n');
+console.log(`${'='.repeat(60)}\n`);
 
 testConnection().then(() => {
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   console.log('✅ DEBUG COMPLETE!');
   console.log('='.repeat(60));
   console.log('\nNext steps:');
   console.log('1. Fix any issues listed above');
   console.log('2. Run: npm test');
   console.log('3. If still failing, send this output for help\n');
-}).catch(err => {
+}).catch((err) => {
   console.error('\n❌ Error running test connection:', err.message);
   process.exit(1);
 });

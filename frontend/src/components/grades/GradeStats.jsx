@@ -51,13 +51,13 @@ const GradeStats = ({ grades = [], subject = 'All Subjects' }) => {
     ? (sortedGrades[sortedGrades.length / 2 - 1] + sortedGrades[sortedGrades.length / 2]) / 2
     : sortedGrades[Math.floor(sortedGrades.length / 2)];
 
-  // Grade distribution
+  // Grade distribution (0-10 scale)
   const gradeRanges = {
-    'A (90-100)': gradeValues.filter(g => g >= 90).length,
-    'B (80-89)': gradeValues.filter(g => g >= 80 && g < 90).length,
-    'C (70-79)': gradeValues.filter(g => g >= 70 && g < 80).length,
-    'D (60-69)': gradeValues.filter(g => g >= 60 && g < 70).length,
-    'F (0-59)': gradeValues.filter(g => g < 60).length,
+    'A (9-10)': gradeValues.filter(g => g >= 9).length,
+    'B (8-8.9)': gradeValues.filter(g => g >= 8 && g < 9).length,
+    'C (7-7.9)': gradeValues.filter(g => g >= 7 && g < 8).length,
+    'D (6-6.9)': gradeValues.filter(g => g >= 6 && g < 7).length,
+    'F (0-5.9)': gradeValues.filter(g => g < 6).length,
   };
 
   const distributionData = Object.entries(gradeRanges).map(([range, count]) => ({

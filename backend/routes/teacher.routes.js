@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const { body } = require('express-validator');
 const teacherController = require('../controllers/teacherController');
@@ -44,9 +45,10 @@ router.use(verifyToken);
  * @access  Admin only
  * @note    MUST be before /:id route to avoid treating 'stats' as an ID
  */
-router.get('/stats',
+router.get(
+  '/stats',
   checkRole('admin'),
-  teacherController.getTeacherStats
+  teacherController.getTeacherStats,
 );
 
 /**
@@ -62,14 +64,15 @@ router.get('/', teacherController.getAllTeachers);
  * @desc    Create new teacher
  * @access  Admin only
  */
-router.post('/',
+router.post(
+  '/',
   checkRole('admin'),
   [
     body('email')
       .isEmail()
       .withMessage('Must be a valid email')
       .normalizeEmail(),
-    
+
     body('password')
       .isLength({ min: 8 })
       .withMessage('Password must be at least 8 characters')
@@ -79,39 +82,39 @@ router.post('/',
       .withMessage('Password must contain at least one lowercase letter')
       .matches(/[0-9]/)
       .withMessage('Password must contain at least one number'),
-    
+
     body('firstName')
       .trim()
       .notEmpty()
       .withMessage('First name is required')
       .isLength({ min: 1, max: 100 })
       .withMessage('First name must be 1-100 characters'),
-    
+
     body('lastName')
       .trim()
       .notEmpty()
       .withMessage('Last name is required')
       .isLength({ min: 1, max: 100 })
       .withMessage('Last name must be 1-100 characters'),
-    
+
     body('department')
       .optional()
       .trim()
       .isLength({ min: 1, max: 100 })
       .withMessage('Department must be 1-100 characters'),
-    
+
     body('phone')
       .optional()
-      .matches(/^[0-9\s\-\+\(\)]*$/)
+      .matches(/^[0-9\s\-+()]*$/)
       .withMessage('Phone number contains invalid characters'),
-    
+
     body('hireDate')
       .optional()
       .isISO8601()
-      .withMessage('Hire date must be a valid date')
+      .withMessage('Hire date must be a valid date'),
   ],
   validate,
-  teacherController.createTeacher
+  teacherController.createTeacher,
 );
 
 /**
@@ -126,38 +129,39 @@ router.get('/:id', teacherController.getTeacherById);
  * @desc    Update teacher
  * @access  Admin or Self
  */
-router.put('/:id',
+router.put(
+  '/:id',
   [
     body('firstName')
       .optional()
       .trim()
       .isLength({ min: 1, max: 100 })
       .withMessage('First name must be 1-100 characters'),
-    
+
     body('lastName')
       .optional()
       .trim()
       .isLength({ min: 1, max: 100 })
       .withMessage('Last name must be 1-100 characters'),
-    
+
     body('department')
       .optional()
       .trim()
       .isLength({ min: 1, max: 100 })
       .withMessage('Department must be 1-100 characters'),
-    
+
     body('phone')
       .optional()
-      .matches(/^[0-9\s\-\+\(\)]*$/)
+      .matches(/^[0-9\s\-+()]*$/)
       .withMessage('Phone number contains invalid characters'),
-    
+
     body('hireDate')
       .optional()
       .isISO8601()
-      .withMessage('Hire date must be a valid date')
+      .withMessage('Hire date must be a valid date'),
   ],
   validate,
-  teacherController.updateTeacher
+  teacherController.updateTeacher,
 );
 
 /**
@@ -165,9 +169,10 @@ router.put('/:id',
  * @desc    Delete teacher (soft delete by deactivating user)
  * @access  Admin only
  */
-router.delete('/:id',
+router.delete(
+  '/:id',
   checkRole('admin'),
-  teacherController.deleteTeacher
+  teacherController.deleteTeacher,
 );
 
 /**

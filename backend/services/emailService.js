@@ -19,12 +19,12 @@ class EmailService {
     try {
       this.transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
+        port: parseInt(process.env.SMTP_PORT || '587', 10),
         secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
         auth: {
           user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD
-        }
+          pass: process.env.SMTP_PASSWORD,
+        },
       });
 
       console.log('✅ Email transporter initialized');
@@ -48,7 +48,7 @@ class EmailService {
         to: options.to,
         subject: options.subject,
         html: options.html,
-        text: options.text
+        text: options.text,
       };
 
       const info = await this.transporter.sendMail(mailOptions);
@@ -64,7 +64,9 @@ class EmailService {
    * Send notification email with template
    */
   async sendNotificationEmail(data) {
-    const { to, subject, type, data: notificationData } = data;
+    const {
+      to, subject, type, data: notificationData,
+    } = data;
 
     const html = this.generateNotificationTemplate(type, notificationData);
     const text = this.generateTextVersion(notificationData);
@@ -73,7 +75,7 @@ class EmailService {
       to,
       subject,
       html,
-      text
+      text,
     });
   }
 
@@ -85,7 +87,7 @@ class EmailService {
       low: '#52c41a',
       medium: '#1890ff',
       high: '#faad14',
-      urgent: '#f5222d'
+      urgent: '#f5222d',
     };
 
     const priorityColor = priorityColors[data.priority] || '#1890ff';
@@ -199,7 +201,7 @@ AI School Dashboard © ${new Date().getFullYear()}
       low: 'Thấp',
       medium: 'Trung Bình',
       high: 'Cao',
-      urgent: 'Khẩn Cấp'
+      urgent: 'Khẩn Cấp',
     };
     return labels[priority] || 'Trung Bình';
   }
@@ -217,8 +219,8 @@ AI School Dashboard © ${new Date().getFullYear()}
         message: `Học sinh ${studentName} nhận được điểm ${gradeData.score} cho môn ${gradeData.subject}.`,
         userName: studentName,
         priority: 'medium',
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     });
   }
 
@@ -239,8 +241,8 @@ AI School Dashboard © ${new Date().getFullYear()}
           : `Học sinh ${studentName} đã có mặt buổi học ${attendanceData.subject} ngày ${attendanceData.date}.`,
         userName: studentName,
         priority: isAbsent ? 'high' : 'low',
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     });
   }
 
@@ -301,7 +303,7 @@ AI School Dashboard © ${new Date().getFullYear()}
       to,
       subject: 'Chào Mừng Đến AI School Dashboard',
       html,
-      text: `Chào mừng ${userName} đến với AI School Dashboard!`
+      text: `Chào mừng ${userName} đến với AI School Dashboard!`,
     });
   }
 }

@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const { body, param, query } = require('express-validator');
 const gradeController = require('../controllers/gradeController');
@@ -8,15 +9,16 @@ const { validate } = require('../middleware/validation');
 /**
  * @route   GET /api/grades
  * @desc    Get all grades with pagination and filtering
- * @access  Admin, Teacher (own courses)
+ * @access  Admin, Teacher (own courses), Student (own grades only)
  */
 router.get(
   '/',
   verifyToken,
-  checkRole('admin', 'teacher'),
+  // ✅ FIXED: Removed checkRole to allow students to access their own grades
+  // Controller will filter grades based on role
   [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+    query('limit').optional().isInt({ min: 1, max: 50000 }).withMessage('Limit must be between 1 and 50000'),
     query('student_id').optional().isUUID().withMessage('Invalid student ID'),
     query('course_id').optional().isUUID().withMessage('Invalid course ID'),
     query('semester').optional().isIn(['1', '2', 'Final']).withMessage('Semester must be 1, 2, or Final'),
@@ -24,9 +26,9 @@ router.get(
     query('is_published').optional().isBoolean().withMessage('is_published must be boolean'),
     query('start_date').optional().isDate().withMessage('Invalid start date'),
     query('end_date').optional().isDate().withMessage('Invalid end date'),
-    validate
+    validate,
   ],
-  gradeController.getAllGrades
+  gradeController.getAllGrades,
 );
 
 /**
@@ -40,9 +42,9 @@ router.get(
   checkRole('admin'),
   [
     query('semester').optional().isIn(['1', '2', 'Final']).withMessage('Semester must be 1, 2, or Final'),
-    validate
+    validate,
   ],
-  gradeController.getGradeStats
+  gradeController.getGradeStats,
 );
 
 /**
@@ -57,9 +59,9 @@ router.get(
     param('studentId').isUUID().withMessage('Invalid student ID'),
     query('semester').optional().isIn(['1', '2', 'Final']).withMessage('Semester must be 1, 2, or Final'),
     query('course_id').optional().isUUID().withMessage('Invalid course ID'),
-    validate
+    validate,
   ],
-  gradeController.getStudentGrades
+  gradeController.getStudentGrades,
 );
 
 /**
@@ -75,9 +77,9 @@ router.get(
     param('courseId').isUUID().withMessage('Invalid course ID'),
     query('semester').optional().isIn(['1', '2', 'Final']).withMessage('Semester must be 1, 2, or Final'),
     query('grade_type').optional().isIn(['Quiz', 'Test', 'Assignment', 'Project', 'Midterm', 'Final', 'Participation']).withMessage('Invalid grade type'),
-    validate
+    validate,
   ],
-  gradeController.getCourseGrades
+  gradeController.getCourseGrades,
 );
 
 /**
@@ -90,9 +92,9 @@ router.get(
   verifyToken,
   [
     param('id').isUUID().withMessage('Invalid grade ID'),
-    validate
+    validate,
   ],
-  gradeController.getGradeById
+  gradeController.getGradeById,
 );
 
 /**
@@ -107,19 +109,24 @@ router.post(
   [
     body('student_id')
       .notEmpty().withMessage('Student ID is required')
-      .isUUID().withMessage('Invalid student ID'),
+      .isUUID()
+      .withMessage('Invalid student ID'),
     body('course_id')
       .notEmpty().withMessage('Course ID is required')
-      .isUUID().withMessage('Invalid course ID'),
+      .isUUID()
+      .withMessage('Invalid course ID'),
     body('score')
       .notEmpty().withMessage('Score is required')
-      .isFloat({ min: 0, max: 100 }).withMessage('Score must be between 0 and 100'),
+      .isFloat({ min: 0, max: 100 })
+      .withMessage('Score must be between 0 and 100'),
     body('grade_type')
       .notEmpty().withMessage('Grade type is required')
-      .isIn(['Quiz', 'Test', 'Assignment', 'Project', 'Midterm', 'Final', 'Participation']).withMessage('Invalid grade type'),
+      .isIn(['Quiz', 'Test', 'Assignment', 'Project', 'Midterm', 'Final', 'Participation'])
+      .withMessage('Invalid grade type'),
     body('semester')
       .notEmpty().withMessage('Semester is required')
-      .isIn(['1', '2', 'Final']).withMessage('Semester must be 1, 2, or Final'),
+      .isIn(['1', '2', 'Final'])
+      .withMessage('Semester must be 1, 2, or Final'),
     body('graded_date')
       .optional()
       .isDate().withMessage('Invalid graded date')
@@ -132,13 +139,14 @@ router.post(
     body('notes')
       .optional()
       .trim()
-      .isLength({ max: 1000 }).withMessage('Notes must not exceed 1000 characters'),
+      .isLength({ max: 1000 })
+      .withMessage('Notes must not exceed 1000 characters'),
     body('is_published')
       .optional()
       .isBoolean().withMessage('is_published must be boolean'),
-    validate
+    validate,
   ],
-  gradeController.createGrade
+  gradeController.createGrade,
 );
 
 /**
@@ -155,32 +163,38 @@ router.post(
       .isArray({ min: 1 }).withMessage('Grades array is required and must not be empty'),
     body('grades.*.student_id')
       .notEmpty().withMessage('Student ID is required')
-      .isUUID().withMessage('Invalid student ID'),
+      .isUUID()
+      .withMessage('Invalid student ID'),
     body('grades.*.course_id')
       .notEmpty().withMessage('Course ID is required')
-      .isUUID().withMessage('Invalid course ID'),
+      .isUUID()
+      .withMessage('Invalid course ID'),
     body('grades.*.score')
       .notEmpty().withMessage('Score is required')
-      .isFloat({ min: 0, max: 100 }).withMessage('Score must be between 0 and 100'),
+      .isFloat({ min: 0, max: 100 })
+      .withMessage('Score must be between 0 and 100'),
     body('grades.*.grade_type')
       .notEmpty().withMessage('Grade type is required')
-      .isIn(['Quiz', 'Test', 'Assignment', 'Project', 'Midterm', 'Final', 'Participation']).withMessage('Invalid grade type'),
+      .isIn(['Quiz', 'Test', 'Assignment', 'Project', 'Midterm', 'Final', 'Participation'])
+      .withMessage('Invalid grade type'),
     body('grades.*.semester')
       .notEmpty().withMessage('Semester is required')
-      .isIn(['1', '2', 'Final']).withMessage('Semester must be 1, 2, or Final'),
+      .isIn(['1', '2', 'Final'])
+      .withMessage('Semester must be 1, 2, or Final'),
     body('grades.*.graded_date')
       .optional()
       .isDate().withMessage('Invalid graded date'),
     body('grades.*.notes')
       .optional()
       .trim()
-      .isLength({ max: 1000 }).withMessage('Notes must not exceed 1000 characters'),
+      .isLength({ max: 1000 })
+      .withMessage('Notes must not exceed 1000 characters'),
     body('grades.*.is_published')
       .optional()
       .isBoolean().withMessage('is_published must be boolean'),
-    validate
+    validate,
   ],
-  gradeController.bulkCreateGrades
+  gradeController.bulkCreateGrades,
 );
 
 /**
@@ -215,13 +229,14 @@ router.put(
     body('notes')
       .optional()
       .trim()
-      .isLength({ max: 1000 }).withMessage('Notes must not exceed 1000 characters'),
+      .isLength({ max: 1000 })
+      .withMessage('Notes must not exceed 1000 characters'),
     body('is_published')
       .optional()
       .isBoolean().withMessage('is_published must be boolean'),
-    validate
+    validate,
   ],
-  gradeController.updateGrade
+  gradeController.updateGrade,
 );
 
 /**
@@ -235,9 +250,9 @@ router.delete(
   checkRole('admin', 'teacher'),
   [
     param('id').isUUID().withMessage('Invalid grade ID'),
-    validate
+    validate,
   ],
-  gradeController.deleteGrade
+  gradeController.deleteGrade,
 );
 
 module.exports = router;

@@ -3,7 +3,7 @@
  * ==================================
  * Validates that all required environment variables are set
  * and meets minimum security requirements
- * 
+ *
  * Usage: require('./config/validate-env') at the top of server.js
  */
 
@@ -22,13 +22,13 @@ const requiredEnvVars = [
   'DB_USER',
   'DB_PASSWORD',
   'JWT_SECRET',
-  'NODE_ENV'
+  'NODE_ENV',
 ];
 
 let hasErrors = false;
 
 // Check each required variable
-requiredEnvVars.forEach(varName => {
+requiredEnvVars.forEach((varName) => {
   if (!process.env[varName]) {
     console.error(`❌ Missing required environment variable: ${varName}`);
     hasErrors = true;
@@ -57,7 +57,7 @@ if (process.env.JWT_SECRET) {
     console.error('   node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
     hasErrors = true;
   } else {
-    console.log('✅ JWT_SECRET: Strong (length:', process.env.JWT_SECRET.length + ')');
+    console.log('✅ JWT_SECRET: Strong (length:', `${process.env.JWT_SECRET.length})`);
   }
 }
 
@@ -87,8 +87,8 @@ if (process.env.NODE_ENV) {
 
 // 4. Port check
 if (process.env.PORT) {
-  const port = parseInt(process.env.PORT);
-  if (isNaN(port) || port < 1 || port > 65535) {
+  const port = parseInt(process.env.PORT, 10);
+  if (Number.isNaN(port) || port < 1 || port > 65535) {
     console.error('❌ PORT must be a valid number between 1-65535');
     hasErrors = true;
   } else {
@@ -103,11 +103,11 @@ if (process.env.PORT) {
 console.log('\n📋 Checking optional variables...\n');
 
 const optionalVars = {
-  'CORS_ORIGIN': 'CORS configuration',
-  'JWT_EXPIRATION': 'JWT token expiration time',
-  'BCRYPT_ROUNDS': 'Password hashing rounds',
-  'RATE_LIMIT_WINDOW_MS': 'Rate limiting window',
-  'RATE_LIMIT_MAX_REQUESTS': 'Rate limiting max requests'
+  CORS_ORIGIN: 'CORS configuration',
+  JWT_EXPIRATION: 'JWT token expiration time',
+  BCRYPT_ROUNDS: 'Password hashing rounds',
+  RATE_LIMIT_WINDOW_MS: 'Rate limiting window',
+  RATE_LIMIT_MAX_REQUESTS: 'Rate limiting max requests',
 };
 
 Object.entries(optionalVars).forEach(([varName, description]) => {
@@ -122,7 +122,7 @@ Object.entries(optionalVars).forEach(([varName, description]) => {
 // FINAL RESULT
 // ============================================
 
-console.log('\n' + '='.repeat(50));
+console.log(`\n${'='.repeat(50)}`);
 
 if (hasErrors) {
   console.error('❌ ENVIRONMENT VALIDATION FAILED!');
@@ -138,5 +138,5 @@ if (hasErrors) {
 }
 
 module.exports = {
-  validated: true
+  validated: true,
 };

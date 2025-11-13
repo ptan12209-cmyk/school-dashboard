@@ -11,7 +11,7 @@ const Submission = sequelize.define('Submission', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
+    primaryKey: true,
   },
 
   // Relationships
@@ -20,9 +20,9 @@ const Submission = sequelize.define('Submission', {
     allowNull: false,
     references: {
       model: 'assignments',
-      key: 'id'
+      key: 'id',
     },
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   },
 
   student_id: {
@@ -30,9 +30,9 @@ const Submission = sequelize.define('Submission', {
     allowNull: false,
     references: {
       model: 'students',
-      key: 'id'
+      key: 'id',
     },
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   },
 
   // Attempt tracking
@@ -40,85 +40,85 @@ const Submission = sequelize.define('Submission', {
     type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 1,
-    comment: 'Lần làm bài thứ mấy'
+    comment: 'Lần làm bài thứ mấy',
   },
 
   // Answers
   answers: {
     type: DataTypes.JSONB,
     defaultValue: {},
-    comment: 'Object mapping question_id to answer: {question_id: {answer, is_correct, points_earned}}'
+    comment: 'Object mapping question_id to answer: {question_id: {answer, is_correct, points_earned}}',
   },
 
   // Grading
   score: {
     type: DataTypes.DECIMAL(5, 2),
     allowNull: true,
-    comment: 'Điểm đạt được'
+    comment: 'Điểm đạt được',
   },
 
   max_score: {
     type: DataTypes.DECIMAL(5, 2),
     allowNull: false,
-    comment: 'Điểm tối đa'
+    comment: 'Điểm tối đa',
   },
 
   percentage: {
     type: DataTypes.DECIMAL(5, 2),
     allowNull: true,
-    comment: 'Phần trăm điểm (%)'
+    comment: 'Phần trăm điểm (%)',
   },
 
   // Status
   status: {
     type: DataTypes.ENUM('draft', 'submitted', 'grading', 'graded', 'returned'),
     defaultValue: 'draft',
-    allowNull: false
+    allowNull: false,
   },
 
   // Timing
   started_at: {
     type: DataTypes.DATE,
     allowNull: true,
-    comment: 'Thời gian bắt đầu làm bài'
+    comment: 'Thời gian bắt đầu làm bài',
   },
 
   submitted_at: {
     type: DataTypes.DATE,
     allowNull: true,
-    comment: 'Thời gian nộp bài'
+    comment: 'Thời gian nộp bài',
   },
 
   graded_at: {
     type: DataTypes.DATE,
     allowNull: true,
-    comment: 'Thời gian chấm xong'
+    comment: 'Thời gian chấm xong',
   },
 
   time_spent: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    comment: 'Thời gian làm bài (giây)'
+    comment: 'Thời gian làm bài (giây)',
   },
 
   // Late submission
   is_late: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
-    comment: 'Nộp muộn hay không'
+    comment: 'Nộp muộn hay không',
   },
 
   late_penalty: {
     type: DataTypes.DECIMAL(5, 2),
     defaultValue: 0,
-    comment: 'Phần trăm trừ điểm do nộp muộn'
+    comment: 'Phần trăm trừ điểm do nộp muộn',
   },
 
   // Feedback
   teacher_feedback: {
     type: DataTypes.TEXT,
     allowNull: true,
-    comment: 'Nhận xét của giáo viên'
+    comment: 'Nhận xét của giáo viên',
   },
 
   graded_by: {
@@ -126,30 +126,30 @@ const Submission = sequelize.define('Submission', {
     allowNull: true,
     references: {
       model: 'teachers',
-      key: 'id'
+      key: 'id',
     },
-    comment: 'Giáo viên chấm bài'
+    comment: 'Giáo viên chấm bài',
   },
 
   // Auto-grade flag
   auto_graded: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
-    comment: 'Được chấm tự động hay không'
+    comment: 'Được chấm tự động hay không',
   },
 
   needs_manual_grading: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
-    comment: 'Cần chấm tay (có câu essay/short answer)'
+    comment: 'Cần chấm tay (có câu essay/short answer)',
   },
 
   // Metadata
   metadata: {
     type: DataTypes.JSONB,
     defaultValue: {},
-    comment: 'File đính kèm, ghi chú, etc.'
-  }
+    comment: 'File đính kèm, ghi chú, etc.',
+  },
 }, {
   tableName: 'submissions',
   timestamps: true,
@@ -159,8 +159,8 @@ const Submission = sequelize.define('Submission', {
     { fields: ['student_id'] },
     { fields: ['status'] },
     { fields: ['submitted_at'] },
-    { unique: true, fields: ['assignment_id', 'student_id', 'attempt_number'] }
-  ]
+    { unique: true, fields: ['assignment_id', 'student_id', 'attempt_number'] },
+  ],
 });
 
 /**
@@ -168,7 +168,7 @@ const Submission = sequelize.define('Submission', {
  */
 
 // Calculate score
-Submission.prototype.calculateScore = function() {
+Submission.prototype.calculateScore = function () {
   if (!this.answers || Object.keys(this.answers).length === 0) {
     this.score = 0;
     this.percentage = 0;
@@ -177,7 +177,7 @@ Submission.prototype.calculateScore = function() {
 
   let totalEarned = 0;
 
-  Object.values(this.answers).forEach(answer => {
+  Object.values(this.answers).forEach((answer) => {
     if (answer.points_earned !== undefined) {
       totalEarned += parseFloat(answer.points_earned);
     }
@@ -194,7 +194,7 @@ Submission.prototype.calculateScore = function() {
 };
 
 // Mark as submitted
-Submission.prototype.submit = async function() {
+Submission.prototype.submit = async function () {
   this.status = 'submitted';
   this.submitted_at = new Date();
 
@@ -205,7 +205,7 @@ Submission.prototype.submit = async function() {
 
   // Check if needs manual grading
   const hasManualQuestions = Object.values(this.answers).some(
-    answer => answer.needs_manual_grading
+    (answer) => answer.needs_manual_grading,
   );
 
   if (hasManualQuestions) {
@@ -222,7 +222,7 @@ Submission.prototype.submit = async function() {
 };
 
 // Complete grading
-Submission.prototype.completeGrading = async function(gradedBy) {
+Submission.prototype.completeGrading = async function (gradedBy) {
   this.status = 'graded';
   this.graded_at = new Date();
   this.graded_by = gradedBy;
@@ -233,9 +233,9 @@ Submission.prototype.completeGrading = async function(gradedBy) {
 };
 
 // Get attempt summary
-Submission.prototype.getSummary = function() {
+Submission.prototype.getSummary = function () {
   const totalQuestions = Object.keys(this.answers).length;
-  const correctAnswers = Object.values(this.answers).filter(a => a.is_correct).length;
+  const correctAnswers = Object.values(this.answers).filter((a) => a.is_correct).length;
 
   return {
     totalQuestions,
@@ -246,7 +246,7 @@ Submission.prototype.getSummary = function() {
     percentage: this.percentage,
     status: this.status,
     timeSpent: this.time_spent,
-    isLate: this.is_late
+    isLate: this.is_late,
   };
 };
 
@@ -255,54 +255,55 @@ Submission.prototype.getSummary = function() {
  */
 
 // Get student's best attempt
-Submission.getBestAttempt = async function(assignmentId, studentId) {
+Submission.getBestAttempt = async function (assignmentId, studentId) {
   return await Submission.findOne({
     where: {
       assignment_id: assignmentId,
       student_id: studentId,
-      status: 'graded'
+      status: 'graded',
     },
-    order: [['score', 'DESC']]
+    order: [['score', 'DESC']],
   });
 };
 
 // Get student's attempts count
-Submission.getAttemptsCount = async function(assignmentId, studentId) {
+Submission.getAttemptsCount = async function (assignmentId, studentId) {
   return await Submission.count({
     where: {
       assignment_id: assignmentId,
-      student_id: studentId
-    }
+      student_id: studentId,
+    },
   });
 };
 
 // Get submissions needing grading
-Submission.getNeedingGrading = async function(teacherId) {
+Submission.getNeedingGrading = async function (teacherId) {
+  // eslint-disable-next-line global-require
   const { Assignment } = require('./index');
 
   return await Submission.findAll({
     where: {
       status: 'grading',
-      needs_manual_grading: true
+      needs_manual_grading: true,
     },
     include: [
       {
         model: Assignment,
         as: 'assignment',
-        where: { teacher_id: teacherId }
-      }
+        where: { teacher_id: teacherId },
+      },
     ],
-    order: [['submitted_at', 'ASC']]
+    order: [['submitted_at', 'ASC']],
   });
 };
 
 // Get assignment statistics
-Submission.getAssignmentStats = async function(assignmentId) {
+Submission.getAssignmentStats = async function (assignmentId) {
   const submissions = await Submission.findAll({
     where: {
       assignment_id: assignmentId,
-      status: 'graded'
-    }
+      status: 'graded',
+    },
   });
 
   if (submissions.length === 0) {
@@ -311,19 +312,19 @@ Submission.getAssignmentStats = async function(assignmentId) {
       avgScore: 0,
       maxScore: 0,
       minScore: 0,
-      avgPercentage: 0
+      avgPercentage: 0,
     };
   }
 
-  const scores = submissions.map(s => parseFloat(s.score));
-  const percentages = submissions.map(s => parseFloat(s.percentage));
+  const scores = submissions.map((s) => parseFloat(s.score));
+  const percentages = submissions.map((s) => parseFloat(s.percentage));
 
   return {
     total: submissions.length,
     avgScore: (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2),
     maxScore: Math.max(...scores).toFixed(2),
     minScore: Math.min(...scores).toFixed(2),
-    avgPercentage: (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(2)
+    avgPercentage: (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(2),
   };
 };
 

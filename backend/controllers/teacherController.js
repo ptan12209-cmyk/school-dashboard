@@ -1,6 +1,8 @@
-const { Teacher, User, sequelize } = require('../models');
-const { catchAsync, NotFoundError, ConflictError, ValidationError, AuthorizationError } = require('../middleware/errorHandler');
 const { Op } = require('sequelize');
+const { Teacher, User } = require('../models');
+const {
+  catchAsync, NotFoundError, ConflictError, ValidationError, AuthorizationError,
+} = require('../middleware/errorHandler');
 
 /**
  * @route   GET /api/teachers
@@ -9,25 +11,25 @@ const { Op } = require('sequelize');
  */
 exports.getAllTeachers = catchAsync(async (req, res) => {
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
   const offset = (page - 1) * limit;
-  
+
   // Filtering
   const where = {};
-  
+
   if (req.query.department) {
     where.department = req.query.department;
   }
-  
+
   // Search by name
   if (req.query.search) {
     where[Op.or] = [
       { first_name: { [Op.iLike]: `%${req.query.search}%` } },
-      { last_name: { [Op.iLike]: `%${req.query.search}%` } }
+      { last_name: { [Op.iLike]: `%${req.query.search}%` } },
     ];
   }
-  
+
   // Sorting with whitelist validation to prevent SQL injection
   const order = [];
   if (req.query.sort) {
@@ -48,28 +50,28 @@ exports.getAllTeachers = catchAsync(async (req, res) => {
   } else {
     order.push(['last_name', 'ASC']);
   }
-  
+
   // Include user data
   const include = [
     {
       model: User,
       as: 'user',
       attributes: ['id', 'email', 'is_active'],
-      where: req.user?.role === 'admin' 
-        ? {} 
-        : { is_active: true } // Non-admins only see active teachers
-    }
+      where: req.user?.role === 'admin'
+        ? {}
+        : { is_active: true }, // Non-admins only see active teachers
+    },
   ];
-  
+
   // Query
   const { count, rows } = await Teacher.findAndCountAll({
     where,
     include,
     limit,
     offset,
-    order
+    order,
   });
-  
+
   res.json({
     success: true,
     data: {
@@ -78,9 +80,9 @@ exports.getAllTeachers = catchAsync(async (req, res) => {
         total: count,
         page,
         pages: Math.ceil(count / limit),
-        limit
-      }
-    }
+        limit,
+      },
+    },
   });
 });
 
@@ -91,24 +93,24 @@ exports.getAllTeachers = catchAsync(async (req, res) => {
  */
 exports.getTeacherById = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   const teacher = await Teacher.findByPk(id, {
     include: [
       {
         model: User,
         as: 'user',
-        attributes: ['id', 'email', 'is_active']
-      }
-    ]
+        attributes: ['id', 'email', 'is_active'],
+      },
+    ],
   });
-  
+
   if (!teacher) {
     throw new NotFoundError('Teacher not found');
   }
-  
+
   res.json({
     success: true,
-    data: { teacher }
+    data: { teacher },
   });
 });
 
@@ -125,21 +127,21 @@ exports.createTeacher = catchAsync(async (req, res) => {
     lastName,
     department,
     phone,
-    hireDate
+    hireDate,
   } = req.body;
 
   // Validate required fields
   if (!firstName || !lastName) {
     return res.status(400).json({
       success: false,
-      message: 'First name and last name are required'
+      message: 'First name and last name are required',
     });
   }
 
   if (!department) {
     return res.status(400).json({
       success: false,
-      message: 'Department is required'
+      message: 'Department is required',
     });
   }
 
@@ -154,29 +156,29 @@ exports.createTeacher = catchAsync(async (req, res) => {
   if (!passwordValidation.valid) {
     throw new ValidationError('Password does not meet requirements');
   }
-  
+
   // Create user account
   const user = await User.create({
     email,
     password_hash: password,
     role: 'teacher',
-    is_active: true
+    is_active: true,
   });
-  
+
   // Create teacher profile
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const teacher = await Teacher.create({
     user_id: user.id,
     first_name: firstName,
     last_name: lastName,
     department: department || null,
     phone: phone || null,
-    hire_date: hireDate || today  // ← FIXED
+    hire_date: hireDate || today, // ← FIXED
   });
-  
-  res.status(201).json({
+
+  return res.status(201).json({
     success: true,
     message: 'Teacher created successfully',
     data: {
@@ -189,10 +191,10 @@ exports.createTeacher = catchAsync(async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          role: user.role
-        }
-      }
-    }
+          role: user.role,
+        },
+      },
+    },
   });
 });
 
@@ -204,24 +206,24 @@ exports.createTeacher = catchAsync(async (req, res) => {
 exports.updateTeacher = catchAsync(async (req, res) => {
   const { id } = req.params;
   const isAdmin = req.user.role === 'admin';
-  
+
   const teacher = await Teacher.findByPk(id, {
-    include: [{ model: User, as: 'user' }]
+    include: [{ model: User, as: 'user' }],
   });
-  
+
   if (!teacher) {
     throw new NotFoundError('Teacher not found');
   }
-  
+
   // Check permissions
   const isSelf = teacher.user_id === req.user.id;
   if (!isAdmin && !isSelf) {
     throw new AuthorizationError('You can only update your own profile');
   }
-  
+
   // Fields that can be updated
   const updates = {};
-  
+
   // Handle both camelCase and snake_case
   if (req.body.firstName !== undefined) updates.first_name = req.body.firstName;
   if (req.body.first_name !== undefined) updates.first_name = req.body.first_name;
@@ -229,7 +231,7 @@ exports.updateTeacher = catchAsync(async (req, res) => {
   if (req.body.last_name !== undefined) updates.last_name = req.body.last_name;
   if (req.body.department !== undefined) updates.department = req.body.department;
   if (req.body.phone !== undefined) updates.phone = req.body.phone;
-  
+
   // Admin can update hire_date
   if (isAdmin && req.body.hireDate !== undefined) {
     updates.hire_date = req.body.hireDate;
@@ -237,13 +239,13 @@ exports.updateTeacher = catchAsync(async (req, res) => {
   if (isAdmin && req.body.hire_date !== undefined) {
     updates.hire_date = req.body.hire_date;
   }
-  
+
   await teacher.update(updates);
-  
+
   res.json({
     success: true,
     message: 'Teacher updated successfully',
-    data: { teacher }
+    data: { teacher },
   });
 });
 
@@ -254,23 +256,23 @@ exports.updateTeacher = catchAsync(async (req, res) => {
  */
 exports.deleteTeacher = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   const teacher = await Teacher.findByPk(id, {
-    include: [{ model: User, as: 'user' }]
+    include: [{ model: User, as: 'user' }],
   });
-  
+
   if (!teacher) {
     throw new NotFoundError('Teacher not found');
   }
-  
+
   // Prevent deleting yourself
   if (teacher.user_id === req.user.id) {
     throw new ValidationError('You cannot delete your own account');
   }
-  
+
   // Soft delete by deactivating user account
   await teacher.user.update({ is_active: false });
-  
+
   res.json({
     success: true,
     message: 'Teacher deleted successfully',
@@ -278,9 +280,9 @@ exports.deleteTeacher = catchAsync(async (req, res) => {
       teacher: {
         id: teacher.id,
         first_name: teacher.first_name,
-        last_name: teacher.last_name
-      }
-    }
+        last_name: teacher.last_name,
+      },
+    },
   });
 });
 
@@ -290,28 +292,29 @@ exports.deleteTeacher = catchAsync(async (req, res) => {
  * @access  Public (no auth required)
  */
 exports.getDepartmentsList = catchAsync(async (req, res) => {
+  // eslint-disable-next-line global-require
   const { sequelize } = require('../models');
 
   // Get distinct departments
   const departments = await Teacher.findAll({
     attributes: [
-      [sequelize.fn('DISTINCT', sequelize.col('department')), 'department']
+      [sequelize.fn('DISTINCT', sequelize.col('department')), 'department'],
     ],
     where: {
-      department: { [Op.ne]: null }
+      department: { [Op.ne]: null },
     },
     order: [['department', 'ASC']],
-    raw: true
+    raw: true,
   });
 
   // Extract department names into array
-  const departmentList = departments.map(d => d.department);
+  const departmentList = departments.map((d) => d.department);
 
   res.json({
     success: true,
     data: {
-      departments: departmentList
-    }
+      departments: departmentList,
+    },
   });
 });
 
@@ -321,32 +324,33 @@ exports.getDepartmentsList = catchAsync(async (req, res) => {
  * @access  Public (no auth required)
  */
 exports.getSubjectsList = catchAsync(async (req, res) => {
+  // eslint-disable-next-line global-require
   const { sequelize } = require('../models');
+  // eslint-disable-next-line global-require
   const Course = require('../models/Course');
 
   // Get distinct subjects from courses
   const subjects = await Course.findAll({
     attributes: [
-      [sequelize.fn('DISTINCT', sequelize.col('subject')), 'subject']
+      [sequelize.fn('DISTINCT', sequelize.col('subject')), 'subject'],
     ],
     where: {
-      subject: { [Op.ne]: null }
+      subject: { [Op.ne]: null },
     },
     order: [['subject', 'ASC']],
-    raw: true
+    raw: true,
   });
 
   // Extract subject names into array
-  const subjectList = subjects.map(s => s.subject);
+  const subjectList = subjects.map((s) => s.subject);
 
   res.json({
     success: true,
     data: {
-      subjects: subjectList
-    }
+      subjects: subjectList,
+    },
   });
 });
-
 
 /**
  * @route   GET /api/teachers/:id/courses
@@ -356,9 +360,9 @@ exports.getSubjectsList = catchAsync(async (req, res) => {
  */
 exports.getTeacherCourses = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   const teacher = await Teacher.findByPk(id);
-  
+
   if (!teacher) {
     throw new NotFoundError('Teacher not found');
   }
@@ -367,8 +371,8 @@ exports.getTeacherCourses = catchAsync(async (req, res) => {
     success: true,
     message: 'Course feature will be implemented in Day 5',
     data: {
-      courses: []
-    }
+      courses: [],
+    },
   });
 });
 
@@ -384,31 +388,31 @@ exports.getTeacherStats = catchAsync(async (req, res) => {
       include: [{
         model: User,
         as: 'user',
-        where: { is_active: true }
-      }]
+        where: { is_active: true },
+      }],
     }),
     Teacher.findAll({
       attributes: [
         'department',
-        [Teacher.sequelize.fn('COUNT', Teacher.sequelize.col('id')), 'count']
+        [Teacher.sequelize.fn('COUNT', Teacher.sequelize.col('id')), 'count'],
       ],
       where: {
-        department: { [Op.ne]: null }
+        department: { [Op.ne]: null },
       },
       group: ['department'],
-      order: [[Teacher.sequelize.fn('COUNT', Teacher.sequelize.col('id')), 'DESC']]
-    })
+      order: [[Teacher.sequelize.fn('COUNT', Teacher.sequelize.col('id')), 'DESC']],
+    }),
   ]);
-  
+
   res.json({
     success: true,
     data: {
       total,
       active,
-      byDepartment: byDepartment.map(d => ({
+      byDepartment: byDepartment.map((d) => ({
         department: d.department,
-        count: parseInt(d.dataValues.count)
-      }))
-    }
+        count: parseInt(d.dataValues.count, 10),
+      })),
+    },
   });
 });

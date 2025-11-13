@@ -2,10 +2,10 @@
  * Express Application Configuration - FIXED VERSION
  * ===================================================
  * Main Express app setup and middleware configuration
- * 
+ *
  * ✅ FIXED: Improved CORS configuration with origin validation
  * ✅ FIXED: Rate limiting implemented
- * 
+ *
  * This file sets up the Express application but doesn't start the server.
  * Server startup is handled in server.js
  */
@@ -16,9 +16,19 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser'); // ✅ SECURITY FIX: For httpOnly cookies
 require('dotenv').config();
 
-const { corsConfig, rateLimitConfig } = require('./config/auth');
+const { rateLimitConfig } = require('./config/auth');
+
+// ✅ Phase 3: Security & Performance Middleware
+const {
+  sanitizeInput,
+  xssProtection,
+  sqlInjectionPrevention,
+  enhancedSecurityHeaders,
+} = require('./middleware/security');
+const { performanceMonitoring } = require('./middleware/performance');
 
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
@@ -32,8 +42,6 @@ const notificationRoutes = require('./routes/notification.routes');
 const assignmentRoutes = require('./routes/assignment.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const aiRoutes = require('./routes/ai.routes');
-
-const errorHandler = require('./middleware/errorHandler');
 
 /**
  * Initialize Express Application
@@ -54,39 +62,52 @@ const app = express();
 app.use(helmet());
 
 /**
+ * 1.5. Enhanced Security Headers
+ * -------------------------------
+ * ✅ Phase 3: Additional security headers
+ */
+app.use(enhancedSecurityHeaders);
+
+/**
  * 2. CORS (Cross-Origin Resource Sharing)
  * ----------------------------------------
  * ✅ FIXED: Improved CORS with origin validation
  */
 app.use(cors({
-  origin: function (origin, callback) {
-    // Get allowed origins from environment or use defaults
-    const allowedOrigins = process.env.CORS_ORIGIN
-      ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-      : ['http://localhost:3000', 'http://localhost:3001'];
-
-    // Allow requests with no origin (mobile apps, Postman, curl)
+  origin(origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, curl, server-to-server)
     if (!origin) {
       return callback(null, true);
     }
 
-    // Check if wildcard is allowed
-    if (allowedOrigins.includes('*')) {
+    // Get CORS configuration from environment
+    const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3001';
+
+    // ✅ DEVELOPMENT MODE: Allow wildcard for LAN access
+    if (corsOrigin === '*') {
+      if (process.env.NODE_ENV === 'production') {
+        console.error('❌ SECURITY ERROR: Wildcard CORS (*) is NOT allowed in production!');
+        return callback(new Error('Wildcard CORS not allowed in production'), false);
+      }
+      console.log(`✅ [DEV MODE] Allowed origin (wildcard): ${origin}`);
       return callback(null, true);
     }
 
-    // Check if origin is allowed
+    // ✅ WHITELIST MODE: Check against allowed origins
+    const allowedOrigins = corsOrigin.split(',').map((o) => o.trim());
+
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log(`✅ Allowed origin: ${origin}`);
       return callback(null, true);
-    } else {
-      console.warn(`⚠️  Blocked request from unauthorized origin: ${origin}`);
-      return callback(new Error('Not allowed by CORS'), false);
     }
+    console.warn(`⚠️  Blocked request from unauthorized origin: ${origin}`);
+    console.warn(`   Allowed origins: ${allowedOrigins.join(', ')}`);
+    return callback(new Error('Not allowed by CORS'), false);
   },
-  credentials: true, // Allow cookies
+  credentials: true, // ✅ Required for httpOnly cookies
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 86400 // Cache preflight for 24 hours
+  maxAge: 86400, // Cache preflight for 24 hours
 }));
 
 /**
@@ -96,6 +117,32 @@ app.use(cors({
  */
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+/**
+ * 3.5. Cookie Parser
+ * ------------------
+ * ✅ SECURITY FIX: Parse cookies for httpOnly JWT tokens
+ */
+app.use(cookieParser());
+
+/**
+ * 3.6. Input Sanitization & Attack Prevention
+ * --------------------------------------------
+ * ✅ Phase 3: Security middleware
+ */
+app.use(sanitizeInput); // NoSQL injection prevention
+app.use(xssProtection); // XSS attack prevention
+app.use(sqlInjectionPrevention); // SQL injection detection
+
+/**
+ * 3.7. Performance Monitoring
+ * ---------------------------
+ * ✅ Phase 3: Track response times and performance metrics
+ */
+app.use(performanceMonitoring({
+  slowThreshold: 1000, // Log requests slower than 1s
+  logAll: false, // Only log slow requests in production
+}));
 
 /**
  * 4. Compression
@@ -139,9 +186,9 @@ const limiter = rateLimit({
     res.status(429).json({
       success: false,
       message: 'Too many requests from this IP. Please try again later.',
-      retryAfter: Math.ceil(rateLimitConfig.windowMs / 1000)
+      retryAfter: Math.ceil(rateLimitConfig.windowMs / 1000),
     });
-  }
+  },
 });
 
 // Apply rate limiter to all API routes (but not health check)
@@ -158,7 +205,7 @@ app.get('/health', (req, res) => {
     message: 'AI School Dashboard API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
@@ -172,8 +219,8 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       health: '/health',
-      api: '/api'
-    }
+      api: '/api',
+    },
   });
 });
 
@@ -233,6 +280,39 @@ app.use(`${API_PREFIX}/ai`, aiRoutes);
 
 /**
  * ============================================
+ * MONITORING & ADMIN ENDPOINTS
+ * ============================================
+ */
+const { performanceReportHandler, healthCheckHandler } = require('./middleware/performance');
+const { verifyToken, checkRole } = require('./middleware/authMiddleware');
+
+// Performance metrics (admin only)
+app.get(
+  `${API_PREFIX}/admin/performance`,
+  verifyToken,
+  checkRole('admin'),
+  performanceReportHandler
+);
+
+// Enhanced health check
+app.get(`${API_PREFIX}/health`, healthCheckHandler);
+
+/**
+ * ============================================
+ * API DOCUMENTATION (Swagger)
+ * ============================================
+ */
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./config/swagger');
+
+// Swagger UI available at /api-docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'AI School Dashboard API Documentation',
+}));
+
+/**
+ * ============================================
  * ERROR HANDLING
  * ============================================
  */
@@ -240,41 +320,39 @@ app.use(`${API_PREFIX}/ai`, aiRoutes);
 /**
  * 404 Handler - Route not found
  */
-app.use((req, res, next) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-    path: req.originalUrl,
-    method: req.method
-  });
-});
+app.use((req, res) => res.status(404).json({
+  success: false,
+  message: 'Route not found',
+  path: req.originalUrl,
+  method: req.method,
+}));
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   // Log error for debugging
   console.error('Error occurred:', {
     message: err.message,
     stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
     path: req.path,
-    method: req.method
+    method: req.method,
   });
-  
+
   // CORS error
   if (err.message === 'Not allowed by CORS') {
     return res.status(403).json({
       success: false,
       message: 'CORS policy: This origin is not allowed to access this resource',
-      origin: req.get('origin')
+      origin: req.get('origin'),
     });
   }
-  
+
   // Default error response
-  res.status(err.statusCode || 500).json({  // ✅ ĐÚNG: err.statusCode là number
+  return res.status(err.statusCode || 500).json({ // ✅ ĐÚNG: err.statusCode là number
     success: false,
     message: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV !== 'production' && { 
+    ...(process.env.NODE_ENV !== 'production' && {
       stack: err.stack,
-      details: err 
-    })
+      details: err,
+    }),
   });
 });
 /**
@@ -282,9 +360,3 @@ app.use((err, req, res, next) => {
  * Server will be started in server.js
  */
 module.exports = app;
-
-
-
-
-
-

@@ -1,6 +1,10 @@
-const { Grade, Student, Course, Teacher, User, Class } = require('../models');
-const { catchAsync, NotFoundError, ValidationError, AuthorizationError } = require('../middleware/errorHandler');
 const { Op } = require('sequelize');
+const {
+  Grade, Student, Course, Teacher, User,
+} = require('../models');
+const {
+  catchAsync, NotFoundError, ValidationError, AuthorizationError,
+} = require('../middleware/errorHandler');
 
 /**
  * @route   GET /api/grades
@@ -9,70 +13,89 @@ const { Op } = require('sequelize');
  */
 exports.getAllGrades = catchAsync(async (req, res) => {
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 50;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 50;
   const offset = (page - 1) * limit;
-  
+
   // Filtering
   const where = {};
-  
+
   if (req.query.student_id) {
     where.student_id = req.query.student_id;
   }
-  
+
   if (req.query.course_id) {
     where.course_id = req.query.course_id;
   }
-  
+
   if (req.query.semester) {
     where.semester = req.query.semester;
   }
-  
+
   if (req.query.grade_type) {
     where.grade_type = req.query.grade_type;
   }
-  
+
   if (req.query.is_published !== undefined) {
     where.is_published = req.query.is_published === 'true';
   }
-  
+
   // Date range filter with validation
   if (req.query.start_date && req.query.end_date) {
     const startDate = new Date(req.query.start_date);
     const endDate = new Date(req.query.end_date);
 
     // Validate date range
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid date format. Please use valid dates.'
+        message: 'Invalid date format. Please use valid dates.',
       });
     }
 
     if (startDate > endDate) {
       return res.status(400).json({
         success: false,
-        message: 'Start date must be before or equal to end date'
+        message: 'Start date must be before or equal to end date',
       });
     }
 
     where.graded_date = {
-      [Op.between]: [req.query.start_date, req.query.end_date]
+      [Op.between]: [req.query.start_date, req.query.end_date],
     };
   }
-  
+
+  // ✅ FIXED: For students, only show their own grades
+  if (req.user.role === 'student') {
+    const student = await Student.findOne({ where: { user_id: req.user.id } });
+    if (student) {
+      where.student_id = student.id;
+    } else {
+      // Student profile not found, return empty
+      return res.json({
+        success: true,
+        data: {
+          grades: [],
+          pagination: {
+            total: 0, page: 1, pages: 0, limit,
+          },
+        },
+      });
+    }
+  }
+
   // For teachers, only show grades for their courses
   if (req.user.role === 'teacher') {
     const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });
     if (teacher) {
       const teacherCourses = await Course.findAll({
         where: { teacher_id: teacher.id },
-        attributes: ['id']
+        attributes: ['id'],
       });
-      where.course_id = { [Op.in]: teacherCourses.map(c => c.id) };
+      where.course_id = { [Op.in]: teacherCourses.map((c) => c.id) };
     }
   }
-  
+
   // Sorting with whitelist validation to prevent SQL injection
   const order = [];
   if (req.query.sort) {
@@ -93,7 +116,7 @@ exports.getAllGrades = catchAsync(async (req, res) => {
   } else {
     order.push(['graded_date', 'DESC']);
   }
-  
+
   // Include related data
   const include = [
     {
@@ -103,26 +126,26 @@ exports.getAllGrades = catchAsync(async (req, res) => {
       include: [{
         model: User,
         as: 'user',
-        attributes: ['email']
-      }]
+        attributes: ['email'],
+      }],
     },
     {
       model: Course,
       as: 'course',
-      attributes: ['id', 'name', 'code', 'subject']
-    }
+      attributes: ['id', 'name', 'code', 'subject'],
+    },
   ];
-  
+
   const { rows: grades, count } = await Grade.findAndCountAll({
     where,
     include,
     limit,
     offset,
     order,
-    distinct: true
+    distinct: true,
   });
-  
-  res.json({
+
+  return res.json({
     success: true,
     data: {
       grades,
@@ -130,9 +153,9 @@ exports.getAllGrades = catchAsync(async (req, res) => {
         total: count,
         page,
         pages: Math.ceil(count / limit),
-        limit
-      }
-    }
+        limit,
+      },
+    },
   });
 });
 
@@ -143,7 +166,7 @@ exports.getAllGrades = catchAsync(async (req, res) => {
  */
 exports.getGradeById = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   const grade = await Grade.findByPk(id, {
     include: [
       {
@@ -153,33 +176,32 @@ exports.getGradeById = catchAsync(async (req, res) => {
         include: [{
           model: User,
           as: 'user',
-          attributes: ['email']
-        }]
+          attributes: ['email'],
+        }],
       },
       {
         model: Course,
         as: 'course',
-        attributes: ['id', 'name', 'code', 'subject', 'teacher_id']
-      }
-    ]
+        attributes: ['id', 'name', 'code', 'subject', 'teacher_id'],
+      },
+    ],
   });
-  
+
   if (!grade) {
     throw new NotFoundError('Grade not found');
   }
-  
+
   // Check permissions
-  const isAdmin = req.user.role === 'admin';
   const isStudent = req.user.role === 'student';
   const isTeacher = req.user.role === 'teacher';
-  
+
   if (isStudent) {
     // Students can only view their own grades
     const student = await Student.findOne({ where: { user_id: req.user.id } });
     if (!student || grade.student_id !== student.id) {
       throw new AuthorizationError('You can only view your own grades');
     }
-    
+
     // Students can only see published grades
     if (!grade.is_published) {
       throw new AuthorizationError('This grade has not been published yet');
@@ -191,10 +213,10 @@ exports.getGradeById = catchAsync(async (req, res) => {
       throw new AuthorizationError('You can only view grades for your courses');
     }
   }
-  
+
   res.json({
     success: true,
-    data: { grade }
+    data: { grade },
   });
 });
 
@@ -212,26 +234,26 @@ exports.createGrade = catchAsync(async (req, res) => {
     semester,
     graded_date,
     notes,
-    is_published
+    is_published,
   } = req.body;
-  
+
   // Validate required fields
   if (!student_id || !course_id || score === undefined || !grade_type || !semester) {
     throw new ValidationError('Student, course, score, grade type, and semester are required');
   }
-  
+
   // Verify student exists
   const student = await Student.findByPk(student_id);
   if (!student) {
     throw new NotFoundError('Student not found');
   }
-  
+
   // Verify course exists
   const course = await Course.findByPk(course_id);
   if (!course) {
     throw new NotFoundError('Course not found');
   }
-  
+
   // Check permissions - teachers can only create grades for their courses
   if (req.user.role === 'teacher') {
     const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });
@@ -239,24 +261,24 @@ exports.createGrade = catchAsync(async (req, res) => {
       throw new AuthorizationError('You can only create grades for your own courses');
     }
   }
-  
+
   // Check for duplicate grade (same student, course, grade_type, semester)
   const existingGrade = await Grade.findOne({
     where: {
       student_id,
       course_id,
       grade_type,
-      semester
-    }
+      semester,
+    },
   });
-  
+
   if (existingGrade) {
     throw new ValidationError(
-      `A ${grade_type} grade for this student in semester ${semester} already exists. ` +
-      'Please update the existing grade instead.'
+      `A ${grade_type} grade for this student in semester ${semester} already exists. `
+      + 'Please update the existing grade instead.',
     );
   }
-  
+
   // Create grade
   const newGrade = await Grade.create({
     student_id,
@@ -267,27 +289,27 @@ exports.createGrade = catchAsync(async (req, res) => {
     semester,
     graded_date: graded_date || new Date(),
     notes: notes || null,
-    is_published: is_published !== undefined ? is_published : false
+    is_published: is_published !== undefined ? is_published : false,
   });
-  
+
   // Fetch complete grade data
   const gradeData = await Grade.findByPk(newGrade.id, {
     include: [
       { model: Student, as: 'student', attributes: ['id', 'first_name', 'last_name'] },
-      { model: Course, as: 'course', attributes: ['id', 'name', 'code', 'subject'] }
-    ]
+      { model: Course, as: 'course', attributes: ['id', 'name', 'code', 'subject'] },
+    ],
   });
-  
+
   // Convert score to number for consistent API response
   const formattedGrade = {
     ...gradeData.toJSON(),
-    score: parseFloat(gradeData.score)
+    score: parseFloat(gradeData.score),
   };
-  
+
   res.status(201).json({
     success: true,
     message: 'Grade created successfully',
-    data: { grade: formattedGrade }
+    data: { grade: formattedGrade },
   });
 });
 
@@ -298,15 +320,15 @@ exports.createGrade = catchAsync(async (req, res) => {
  */
 exports.updateGrade = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   const grade = await Grade.findByPk(id, {
-    include: [{ model: Course, as: 'course' }]
+    include: [{ model: Course, as: 'course' }],
   });
-  
+
   if (!grade) {
     throw new NotFoundError('Grade not found');
   }
-  
+
   // Check permissions
   if (req.user.role === 'teacher') {
     const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });
@@ -314,45 +336,45 @@ exports.updateGrade = catchAsync(async (req, res) => {
       throw new AuthorizationError('You can only update grades for your own courses');
     }
   }
-  
+
   // Fields that can be updated
   const allowedFields = [
-    'score', 'grade_type', 'semester', 'graded_date', 
-    'notes', 'is_published'
+    'score', 'grade_type', 'semester', 'graded_date',
+    'notes', 'is_published',
   ];
-  
+
   const updates = {};
-  allowedFields.forEach(field => {
+  allowedFields.forEach((field) => {
     if (req.body[field] !== undefined) {
       updates[field] = req.body[field];
     }
   });
-  
+
   // Recalculate letter grade if score is updated
   if (updates.score !== undefined) {
     updates.letter_grade = Grade.calculateLetterGrade(parseFloat(updates.score));
   }
-  
+
   await grade.update(updates);
-  
+
   // Fetch updated data with associations
   const updatedGrade = await Grade.findByPk(id, {
     include: [
       { model: Student, as: 'student', attributes: ['id', 'first_name', 'last_name'] },
-      { model: Course, as: 'course', attributes: ['id', 'name', 'code', 'subject'] }
-    ]
+      { model: Course, as: 'course', attributes: ['id', 'name', 'code', 'subject'] },
+    ],
   });
-  
+
   // Convert score to number for consistent API response
   const formattedGrade = {
     ...updatedGrade.toJSON(),
-    score: parseFloat(updatedGrade.score)
+    score: parseFloat(updatedGrade.score),
   };
-  
+
   res.json({
     success: true,
     message: 'Grade updated successfully',
-    data: { grade: formattedGrade }
+    data: { grade: formattedGrade },
   });
 });
 
@@ -363,15 +385,15 @@ exports.updateGrade = catchAsync(async (req, res) => {
  */
 exports.deleteGrade = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   const grade = await Grade.findByPk(id, {
-    include: [{ model: Course, as: 'course' }]
+    include: [{ model: Course, as: 'course' }],
   });
-  
+
   if (!grade) {
     throw new NotFoundError('Grade not found');
   }
-  
+
   // Check permissions
   if (req.user.role === 'teacher') {
     const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });
@@ -379,14 +401,14 @@ exports.deleteGrade = catchAsync(async (req, res) => {
       throw new AuthorizationError('You can only delete grades for your own courses');
     }
   }
-  
+
   // Hard delete (since grades are records, not entities)
   await grade.destroy();
-  
+
   res.json({
     success: true,
     message: 'Grade deleted successfully',
-    data: { deletedGradeId: id }
+    data: { deletedGradeId: id },
   });
 });
 
@@ -397,66 +419,64 @@ exports.deleteGrade = catchAsync(async (req, res) => {
  */
 exports.getStudentGrades = catchAsync(async (req, res) => {
   const { studentId } = req.params;
-  
+
   // Verify student exists
   const student = await Student.findByPk(studentId);
   if (!student) {
     throw new NotFoundError('Student not found');
   }
-  
+
   // Check permissions
-  const isAdmin = req.user.role === 'admin';
-  const isTeacher = req.user.role === 'teacher';
   const isStudent = req.user.role === 'student';
-  
+
   if (isStudent) {
     const currentStudent = await Student.findOne({ where: { user_id: req.user.id } });
     if (!currentStudent || currentStudent.id !== studentId) {
       throw new AuthorizationError('You can only view your own grades');
     }
   }
-  
+
   // Filtering
   const where = { student_id: studentId };
-  
+
   // Students can only see published grades
   if (isStudent) {
     where.is_published = true;
   }
-  
+
   if (req.query.semester) {
     where.semester = req.query.semester;
   }
-  
+
   if (req.query.course_id) {
     where.course_id = req.query.course_id;
   }
-  
+
   // Get grades with course data
   const grades = await Grade.findAll({
     where,
     include: [{
       model: Course,
       as: 'course',
-      attributes: ['id', 'name', 'code', 'subject', 'credits']
+      attributes: ['id', 'name', 'code', 'subject', 'credits'],
     }],
-    order: [['semester', 'ASC'], ['graded_date', 'DESC']]
+    order: [['semester', 'ASC'], ['graded_date', 'DESC']],
   });
-  
+
   // Calculate GPA
   const gpa = await Grade.calculateStudentGPA(studentId);
-  
+
   res.json({
     success: true,
     data: {
       student: {
         id: student.id,
-        name: `${student.first_name} ${student.last_name}`
+        name: `${student.first_name} ${student.last_name}`,
       },
       grades,
       gpa,
-      total: grades.length
-    }
+      total: grades.length,
+    },
   });
 });
 
@@ -467,13 +487,13 @@ exports.getStudentGrades = catchAsync(async (req, res) => {
  */
 exports.getCourseGrades = catchAsync(async (req, res) => {
   const { courseId } = req.params;
-  
+
   // Verify course exists
   const course = await Course.findByPk(courseId);
   if (!course) {
     throw new NotFoundError('Course not found');
   }
-  
+
   // Check permissions
   if (req.user.role === 'teacher') {
     const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });
@@ -481,18 +501,18 @@ exports.getCourseGrades = catchAsync(async (req, res) => {
       throw new AuthorizationError('You can only view grades for your own courses');
     }
   }
-  
+
   // Filtering
   const where = { course_id: courseId };
-  
+
   if (req.query.semester) {
     where.semester = req.query.semester;
   }
-  
+
   if (req.query.grade_type) {
     where.grade_type = req.query.grade_type;
   }
-  
+
   // Get grades with student data
   const grades = await Grade.findAll({
     where,
@@ -503,18 +523,18 @@ exports.getCourseGrades = catchAsync(async (req, res) => {
       include: [{
         model: User,
         as: 'user',
-        attributes: ['email']
-      }]
+        attributes: ['email'],
+      }],
     }],
     order: [
       ['semester', 'ASC'],
-      [{ model: Student, as: 'student' }, 'last_name', 'ASC']
-    ]
+      [{ model: Student, as: 'student' }, 'last_name', 'ASC'],
+    ],
   });
-  
+
   // Calculate statistics
   const distribution = await Grade.getDistribution(courseId);
-  
+
   res.json({
     success: true,
     data: {
@@ -522,12 +542,12 @@ exports.getCourseGrades = catchAsync(async (req, res) => {
         id: course.id,
         name: course.name,
         code: course.code,
-        subject: course.subject
+        subject: course.subject,
       },
       grades,
       distribution,
-      total: grades.length
-    }
+      total: grades.length,
+    },
   });
 });
 
@@ -538,59 +558,59 @@ exports.getCourseGrades = catchAsync(async (req, res) => {
  */
 exports.getGradeStats = catchAsync(async (req, res) => {
   const semester = req.query.semester || '1';
-  
+
   const [totalGrades, byGradeType, averageScore] = await Promise.all([
     // Total grades
     Grade.count({ where: { semester } }),
-    
+
     // Grades by type
     Grade.findAll({
       where: { semester },
       attributes: [
         'grade_type',
         [Grade.sequelize.fn('COUNT', Grade.sequelize.col('id')), 'count'],
-        [Grade.sequelize.fn('AVG', Grade.sequelize.col('score')), 'avg_score']
+        [Grade.sequelize.fn('AVG', Grade.sequelize.col('score')), 'avg_score'],
       ],
       group: ['grade_type'],
-      order: [['grade_type', 'ASC']]
+      order: [['grade_type', 'ASC']],
     }),
-    
+
     // Overall average
     Grade.findOne({
       where: { semester },
       attributes: [
-        [Grade.sequelize.fn('AVG', Grade.sequelize.col('score')), 'average']
-      ]
-    })
+        [Grade.sequelize.fn('AVG', Grade.sequelize.col('score')), 'average'],
+      ],
+    }),
   ]);
-  
+
   // Pass/fail statistics
   const passingCount = await Grade.count({
     where: {
       semester,
-      score: { [Op.gte]: 50 }
-    }
+      score: { [Op.gte]: 50 },
+    },
   });
-  
+
   // Get published grades count
   const publishedCount = await Grade.count({
     where: {
       semester,
-      is_published: true
-    }
+      is_published: true,
+    },
   });
-  
+
   // Get grades by letter grade
   const byLetterGrade = await Grade.findAll({
     where: { semester },
     attributes: [
       'letter_grade',
-      [Grade.sequelize.fn('COUNT', Grade.sequelize.col('id')), 'count']
+      [Grade.sequelize.fn('COUNT', Grade.sequelize.col('id')), 'count'],
     ],
     group: ['letter_grade'],
-    order: [['letter_grade', 'ASC']]
+    order: [['letter_grade', 'ASC']],
   });
-  
+
   res.json({
     success: true,
     data: {
@@ -600,16 +620,16 @@ exports.getGradeStats = catchAsync(async (req, res) => {
       averageScore: Math.round(parseFloat(averageScore?.dataValues.average || 0) * 100) / 100,
       passingGrades: passingCount,
       passingRate: totalGrades > 0 ? Math.round((passingCount / totalGrades) * 10000) / 100 : 0,
-      byGradeType: byGradeType.map(item => ({
+      byGradeType: byGradeType.map((item) => ({
         grade_type: item.grade_type,
-        count: parseInt(item.dataValues.count),
-        avg_score: Math.round(parseFloat(item.dataValues.avg_score) * 100) / 100
+        count: parseInt(item.dataValues.count, 10),
+        avg_score: Math.round(parseFloat(item.dataValues.avg_score) * 100) / 100,
       })),
-      byLetterGrade: byLetterGrade.map(item => ({
+      byLetterGrade: byLetterGrade.map((item) => ({
         letter_grade: item.letter_grade,
-        count: parseInt(item.dataValues.count)
-      }))
-    }
+        count: parseInt(item.dataValues.count, 10),
+      })),
+    },
   });
 });
 
@@ -620,31 +640,31 @@ exports.getGradeStats = catchAsync(async (req, res) => {
  */
 exports.bulkCreateGrades = catchAsync(async (req, res) => {
   const { grades } = req.body;
-  
+
   if (!Array.isArray(grades) || grades.length === 0) {
     throw new ValidationError('Grades array is required and must not be empty');
   }
-  
+
   // Verify all courses belong to the teacher (if teacher)
   if (req.user.role === 'teacher') {
     const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });
     if (teacher) {
-      const courseIds = [...new Set(grades.map(g => g.course_id))];
+      const courseIds = [...new Set(grades.map((g) => g.course_id))];
       const courses = await Course.findAll({
         where: {
           id: { [Op.in]: courseIds },
-          teacher_id: teacher.id
-        }
+          teacher_id: teacher.id,
+        },
       });
-      
+
       if (courses.length !== courseIds.length) {
         throw new AuthorizationError('You can only create grades for your own courses');
       }
     }
   }
-  
+
   // Validate and prepare grades for bulk insert
-  const gradesToCreate = grades.map(g => ({
+  const gradesToCreate = grades.map((g) => ({
     student_id: g.student_id,
     course_id: g.course_id,
     score: parseFloat(g.score),
@@ -653,21 +673,21 @@ exports.bulkCreateGrades = catchAsync(async (req, res) => {
     semester: g.semester,
     graded_date: g.graded_date || new Date(),
     notes: g.notes || null,
-    is_published: g.is_published !== undefined ? g.is_published : false
+    is_published: g.is_published !== undefined ? g.is_published : false,
   }));
-  
+
   // Bulk create
   const createdGrades = await Grade.bulkCreate(gradesToCreate, {
-    validate: true
+    validate: true,
   });
-  
+
   res.status(201).json({
     success: true,
     message: `${createdGrades.length} grades created successfully`,
     data: {
       count: createdGrades.length,
-      grades: createdGrades
-    }
+      grades: createdGrades,
+    },
   });
 });
 

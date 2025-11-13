@@ -99,7 +99,7 @@ export const getGradeStats = async (params = {}) => {
   return response.data;
 };
 
-export default {
+const gradeService = {
   getAllGrades,
   getGradeById,
   createGrade,
@@ -110,3 +110,5 @@ export default {
   getCourseGrades,
   getGradeStats
 };
+
+export default gradeService;

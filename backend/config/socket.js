@@ -16,14 +16,14 @@ function initializeSocket(httpServer) {
     cors: {
       origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000', 'http://localhost:5001'],
       methods: ['GET', 'POST'],
-      credentials: true
-    }
+      credentials: true,
+    },
   });
 
   // Authentication middleware
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth.token;
+      const { token } = socket.handshake.auth;
 
       if (!token) {
         return next(new Error('Authentication token required'));
@@ -40,16 +40,17 @@ function initializeSocket(httpServer) {
       }
 
       // Attach user to socket
+      // eslint-disable-next-line no-param-reassign
       socket.user = {
         id: user.id,
         email: user.email,
-        role: user.role
+        role: user.role,
       };
 
-      next();
+      return next();
     } catch (error) {
       console.error('Socket authentication error:', error);
-      next(new Error('Authentication failed'));
+      return next(new Error('Authentication failed'));
     }
   });
 
@@ -64,6 +65,8 @@ function initializeSocket(httpServer) {
     // Join role-specific room
     socket.join(`role_${socket.user.role}`);
 
+    // Socket event handlers - lazy loading models to avoid circular dependencies
+    /* eslint-disable global-require */
     // Handle client requesting notification count
     socket.on('request_notification_count', async () => {
       try {
@@ -80,7 +83,7 @@ function initializeSocket(httpServer) {
       try {
         const { Notification } = require('../models');
         const notification = await Notification.findOne({
-          where: { id: notificationId, user_id: userId }
+          where: { id: notificationId, user_id: userId },
         });
 
         if (notification) {
@@ -104,6 +107,7 @@ function initializeSocket(httpServer) {
         console.error('Error marking all as read:', error);
       }
     });
+    /* eslint-enable global-require */
 
     // Handle disconnection
     socket.on('disconnect', () => {

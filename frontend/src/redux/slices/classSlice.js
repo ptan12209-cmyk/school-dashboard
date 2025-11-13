@@ -12,13 +12,14 @@ const initialState = {
 export const fetchClasses = createAsyncThunk(
   'classes/fetchClasses',
   async (params, { rejectWithValue }) => {
-    try {
-      // const response = await classService.getClasses(params);
-      // return response.data;
-      return []; // Returning mock data for now
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch classes');
-    }
+    // TODO: Implement when classService is ready
+    // try {
+    //   const response = await classService.getClasses(params);
+    //   return response.data;
+    // } catch (error) {
+    //   return rejectWithValue(error.response?.data?.message || 'Failed to fetch classes');
+    // }
+    return []; // Returning mock data for now
   }
 );
 

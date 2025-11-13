@@ -5,16 +5,32 @@
  */
 
 const express = require('express');
+
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 const aiController = require('../controllers/aiController');
 const { verifyToken, checkRole } = require('../middleware/authMiddleware');
+
+// ✅ SECURITY FIX: Add rate limiting for AI endpoints to prevent abuse
+const aiRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // 10 requests per minute per user
+  message: {
+    success: false,
+    message: 'Too many AI requests. Please try again in a minute.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Use user ID as key if authenticated
+  keyGenerator: (req) => req.user?.id || req.ip,
+});
 
 /**
  * @route   POST /api/ai/chat
  * @desc    Chat with AI assistant
  * @access  Private
  */
-router.post('/chat', verifyToken, aiController.chat);
+router.post('/chat', verifyToken, aiRateLimiter, aiController.chat);
 
 /**
  * @route   DELETE /api/ai/chat/history
@@ -31,7 +47,7 @@ router.delete('/chat/history', verifyToken, aiController.clearChatHistory);
 router.get(
   '/recommendations/study/:studentId',
   verifyToken,
-  aiController.getStudyRecommendations
+  aiController.getStudyRecommendations,
 );
 
 /**
@@ -42,7 +58,7 @@ router.get(
 router.get(
   '/predict/performance/:studentId',
   verifyToken,
-  aiController.predictPerformance
+  aiController.predictPerformance,
 );
 
 /**
@@ -53,7 +69,7 @@ router.get(
 router.post(
   '/recommendations/courses',
   verifyToken,
-  aiController.getCourseRecommendations
+  aiController.getCourseRecommendations,
 );
 
 /**
@@ -65,7 +81,7 @@ router.post(
   '/report/summary',
   verifyToken,
   checkRole('teacher', 'admin'),
-  aiController.generateReportSummary
+  aiController.generateReportSummary,
 );
 
 module.exports = router;

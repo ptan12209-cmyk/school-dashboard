@@ -6,14 +6,15 @@
  */
 
 // Load environment variables from .env.test
-require('dotenv').config({ 
-  path: '.env.test' 
+require('dotenv').config({
+  path: '.env.test',
 });
 
 // If .env.test doesn't exist, try .env
 if (!process.env.DB_PASSWORD) {
-  require('dotenv').config({ 
-    path: '.env' 
+  // eslint-disable-next-line global-require
+  require('dotenv').config({
+    path: '.env',
   });
 }
 

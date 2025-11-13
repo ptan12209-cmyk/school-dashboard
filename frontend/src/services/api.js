@@ -30,6 +30,7 @@ const BASE_URL = getBaseURL();
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 30000,
+  withCredentials: true, // ✅ SECURITY FIX: Send cookies with requests
   headers: {
     'Content-Type': 'application/json',
   },
@@ -37,20 +38,13 @@ const api = axios.create({
 
 /**
  * Request Interceptor
- * Add JWT token to headers
+ * ✅ SECURITY FIX: Token is now sent automatically via httpOnly cookies
  */
 api.interceptors.request.use(
   (config) => {
-    // Get token from localStorage (with null check for SSR/testing environments)
-    try {
-      const token = localStorage?.getItem('token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (error) {
-      // localStorage not available (SSR, testing, or privacy mode)
-      console.warn('localStorage not available:', error.message);
-    }
+    // ✅ Token is now sent automatically via httpOnly cookies
+    // No need to manually add Authorization header
+    // Cookies are sent automatically with withCredentials: true
 
     // Log in development
     if (process.env.NODE_ENV === 'development') {
@@ -93,35 +87,17 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Try to refresh token
+      // ✅ SECURITY FIX: Try to refresh token (token is in cookie, handled by backend)
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        
-        if (refreshToken) {
-          const response = await axios.post(`${BASE_URL}/auth/refresh`, {
-            refreshToken
-          });
+        await axios.post(`${BASE_URL}/auth/refresh`, {}, {
+          withCredentials: true // Send cookie to refresh endpoint
+        });
 
-          const { token } = response.data.data;
-          try {
-            localStorage?.setItem('token', token);
-          } catch (e) {
-            console.warn('Failed to save token:', e.message);
-          }
-
-          // Retry original request with new token
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return api(originalRequest);
-        }
+        // Retry original request (new token is in cookie)
+        return api(originalRequest);
       } catch (refreshError) {
         // Refresh failed, redirect to login
-        try {
-          localStorage?.removeItem('token');
-          localStorage?.removeItem('refreshToken');
-          localStorage?.removeItem('userRole');
-        } catch (e) {
-          console.warn('Failed to clear storage:', e.message);
-        }
+        // No need to clear localStorage, cookies are httpOnly
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

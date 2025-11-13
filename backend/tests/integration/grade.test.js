@@ -5,14 +5,14 @@
  * 
  * Endpoints tested:
  * - GET    /api/grade
- * - GET    /api/grade/stats
- * - GET    /api/grade/student/:studentId
- * - GET    /api/grade/course/:courseId
- * - GET    /api/grade/:id
+ * - GET    /api/grades/stats
+ * - GET    /api/grades/student/:studentId
+ * - GET    /api/grades/course/:courseId
+ * - GET    /api/grades/:id
  * - POST   /api/grade
- * - POST   /api/grade/bulk
- * - PUT    /api/grade/:id
- * - DELETE /api/grade/:id
+ * - POST   /api/grades/bulk
+ * - PUT    /api/grades/:id
+ * - DELETE /api/grades/:id
  * 
  * Total tests: 35
  */
@@ -65,7 +65,7 @@ describe('Grade Management API', () => {
    * GET /api/grade
    * ============================================
    */
-  describe('GET /api/grade', () => {
+  describe('GET /api/grades', () => {
     test('should get all grades as admin', async () => {
       await TestHelpers.createGrade(adminToken, {
         student_id: studentData.student.id,
@@ -73,7 +73,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .get('/api/grade')
+        .get('/api/grades')
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -84,25 +84,26 @@ describe('Grade Management API', () => {
 
     test('should get grades as teacher', async () => {
       const response = await request(app)
-        .get('/api/grade')
+        .get('/api/grades')
         .set('Authorization', `Bearer ${teacherToken}`);
 
       Assertions.assertSuccess(response, 200);
     });
 
     test('should support pagination', async () => {
+      // Create test grades using 0-10 scale
       for (let i = 0; i < 5; i++) {
         await TestHelpers.createGrade(adminToken, {
           student_id: studentData.student.id,
           course_id: course.id,
-          score: 80 + i,
+          score: 8.0 + (i * 0.2),  // 8.0, 8.2, 8.4, 8.6, 8.8
           grade_type: i < 2 ? (i % 2 === 0 ? 'Test' : 'Quiz') : (i === 2 ? 'Final' : i === 3 ? 'Midterm' : 'Assignment'),
           semester: i < 2 ? `${i + 1}` : 'Final' // Use valid semester values: 1, 2, Final
         });
       }
 
       const response = await request(app)
-        .get('/api/grade?page=1&limit=3')
+        .get('/api/grades?page=1&limit=3')
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -117,7 +118,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .get('/api/grade?semester=1')
+        .get('/api/grades?semester=1')
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -134,7 +135,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .get('/api/grade?grade_type=Quiz')
+        .get('/api/grades?grade_type=Quiz')
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -145,7 +146,7 @@ describe('Grade Management API', () => {
 
     test('should deny access for students', async () => {
       const response = await request(app)
-        .get('/api/grade')
+        .get('/api/grades')
         .set('Authorization', `Bearer ${studentData.token}`);
 
       Assertions.assertForbidden(response);
@@ -154,20 +155,20 @@ describe('Grade Management API', () => {
 
   /**
    * ============================================
-   * GET /api/grade/stats
+   * GET /api/grades/stats
    * ============================================
    */
-  describe('GET /api/grade/stats', () => {
+  describe('GET /api/grades/stats', () => {
     test('should get grade statistics as admin', async () => {
       await TestHelpers.createGrade(adminToken, {
         student_id: studentData.student.id,
         course_id: course.id,
-        score: 85,
+        score: 8.5,  // 0-10 scale
         is_published: true
       });
 
       const response = await request(app)
-        .get('/api/grade/stats')
+        .get('/api/grades/stats')
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -179,7 +180,7 @@ describe('Grade Management API', () => {
 
     test('should deny access for non-admin', async () => {
       const response = await request(app)
-        .get('/api/grade/stats')
+        .get('/api/grades/stats')
         .set('Authorization', `Bearer ${teacherToken}`);
 
       Assertions.assertForbidden(response);
@@ -191,12 +192,12 @@ describe('Grade Management API', () => {
    * POST /api/grade
    * ============================================
    */
-  describe('POST /api/grade', () => {
+  describe('POST /api/grades', () => {
     test('should create grade as admin', async () => {
       const gradeData = {
         student_id: studentData.student.id,
         course_id: course.id,
-        score: 92.5,
+        score: 9.2,  // 0-10 scale
         grade_type: 'Test',
         semester: '1',
         graded_date: '2024-10-01',
@@ -205,7 +206,7 @@ describe('Grade Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/grade')
+        .post('/api/grades')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(gradeData);
 
@@ -226,7 +227,7 @@ describe('Grade Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/grade')
+        .post('/api/grades')
         .set('Authorization', `Bearer ${teacherToken}`)
         .send(gradeData);
 
@@ -243,7 +244,7 @@ describe('Grade Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/grade')
+        .post('/api/grades')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(gradeData);
 
@@ -253,7 +254,7 @@ describe('Grade Management API', () => {
 
     test('should validate required fields', async () => {
       const response = await request(app)
-        .post('/api/grade')
+        .post('/api/grades')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           // Missing student_id, course_id, score, grade_type, semester
@@ -264,7 +265,7 @@ describe('Grade Management API', () => {
 
     test('should validate score range', async () => {
       const response = await request(app)
-        .post('/api/grade')
+        .post('/api/grades')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           student_id: studentData.student.id,
@@ -279,7 +280,7 @@ describe('Grade Management API', () => {
 
     test('should validate grade type', async () => {
       const response = await request(app)
-        .post('/api/grade')
+        .post('/api/grades')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           student_id: studentData.student.id,
@@ -294,7 +295,7 @@ describe('Grade Management API', () => {
 
     test('should validate semester', async () => {
       const response = await request(app)
-        .post('/api/grade')
+        .post('/api/grades')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           student_id: studentData.student.id,
@@ -311,7 +312,7 @@ describe('Grade Management API', () => {
       const gradeData = MockData.validGrade(studentData.student.id, course.id);
 
       const response = await request(app)
-        .post('/api/grade')
+        .post('/api/grades')
         .set('Authorization', `Bearer ${studentData.token}`)
         .send(gradeData);
 
@@ -321,10 +322,10 @@ describe('Grade Management API', () => {
 
   /**
    * ============================================
-   * POST /api/grade/bulk
+   * POST /api/grades/bulk
    * ============================================
    */
-  describe('POST /api/grade/bulk', () => {
+  describe('POST /api/grades/bulk', () => {
     test('should create multiple grades as admin', async () => {
       const student2 = await TestHelpers.createStudent();
 
@@ -348,7 +349,7 @@ describe('Grade Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/grade/bulk')
+        .post('/api/grades/bulk')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(bulkData);
 
@@ -358,7 +359,7 @@ describe('Grade Management API', () => {
 
     test('should validate bulk data', async () => {
       const response = await request(app)
-        .post('/api/grade/bulk')
+        .post('/api/grades/bulk')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           grades: [] // Empty array
@@ -370,10 +371,10 @@ describe('Grade Management API', () => {
 
   /**
    * ============================================
-   * GET /api/grade/student/:studentId
+   * GET /api/grades/student/:studentId
    * ============================================
    */
-  describe('GET /api/grade/student/:studentId', () => {
+  describe('GET /api/grades/student/:studentId', () => {
     test('should get student grades as admin', async () => {
       await TestHelpers.createGrade(adminToken, {
         student_id: studentData.student.id,
@@ -381,7 +382,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .get(`/api/grade/student/${studentData.student.id}`)
+        .get(`/api/grades/student/${studentData.student.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -396,7 +397,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .get(`/api/grade/student/${studentData.student.id}`)
+        .get(`/api/grades/student/${studentData.student.id}`)
         .set('Authorization', `Bearer ${studentData.token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -409,7 +410,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .get(`/api/grade/student/${studentData.student.id}`)
+        .get(`/api/grades/student/${studentData.student.id}`)
         .set('Authorization', `Bearer ${teacherToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -423,7 +424,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .get(`/api/grade/student/${studentData.student.id}?semester=1`)
+        .get(`/api/grades/student/${studentData.student.id}?semester=1`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -433,7 +434,7 @@ describe('Grade Management API', () => {
       const otherStudent = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get(`/api/grade/student/${otherStudent.student.id}`)
+        .get(`/api/grades/student/${otherStudent.student.id}`)
         .set('Authorization', `Bearer ${studentData.token}`);
 
       Assertions.assertForbidden(response);
@@ -442,10 +443,10 @@ describe('Grade Management API', () => {
 
   /**
    * ============================================
-   * GET /api/grade/course/:courseId
+   * GET /api/grades/course/:courseId
    * ============================================
    */
-  describe('GET /api/grade/course/:courseId', () => {
+  describe('GET /api/grades/course/:courseId', () => {
     test('should get course grades as admin', async () => {
       await TestHelpers.createGrade(adminToken, {
         student_id: studentData.student.id,
@@ -453,7 +454,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .get(`/api/grade/course/${course.id}`)
+        .get(`/api/grades/course/${course.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -462,7 +463,7 @@ describe('Grade Management API', () => {
 
     test('should allow teacher to view own course grades', async () => {
       const response = await request(app)
-        .get(`/api/grade/course/${course.id}`)
+        .get(`/api/grades/course/${course.id}`)
         .set('Authorization', `Bearer ${teacherToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -470,7 +471,7 @@ describe('Grade Management API', () => {
 
     test('should deny students access', async () => {
       const response = await request(app)
-        .get(`/api/grade/course/${course.id}`)
+        .get(`/api/grades/course/${course.id}`)
         .set('Authorization', `Bearer ${studentData.token}`);
 
       Assertions.assertForbidden(response);
@@ -479,10 +480,10 @@ describe('Grade Management API', () => {
 
   /**
    * ============================================
-   * GET /api/grade/:id
+   * GET /api/grades/:id
    * ============================================
    */
-  describe('GET /api/grade/:id', () => {
+  describe('GET /api/grades/:id', () => {
     test('should get grade by ID as admin', async () => {
       const grade = await TestHelpers.createGrade(adminToken, {
         student_id: studentData.student.id,
@@ -490,7 +491,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .get(`/api/grade/${grade.id}`)
+        .get(`/api/grades/${grade.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -506,7 +507,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .get(`/api/grade/${grade.id}`)
+        .get(`/api/grades/${grade.id}`)
         .set('Authorization', `Bearer ${studentData.token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -516,7 +517,7 @@ describe('Grade Management API', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       const response = await request(app)
-        .get(`/api/grade/${fakeId}`)
+        .get(`/api/grades/${fakeId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertNotFound(response);
@@ -525,10 +526,10 @@ describe('Grade Management API', () => {
 
   /**
    * ============================================
-   * PUT /api/grade/:id
+   * PUT /api/grades/:id
    * ============================================
    */
-  describe('PUT /api/grade/:id', () => {
+  describe('PUT /api/grades/:id', () => {
     test('should update grade as admin', async () => {
       const grade = await TestHelpers.createGrade(adminToken, {
         student_id: studentData.student.id,
@@ -543,7 +544,7 @@ describe('Grade Management API', () => {
       };
 
       const response = await request(app)
-        .put(`/api/grade/${grade.id}`)
+        .put(`/api/grades/${grade.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send(updateData);
 
@@ -560,7 +561,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .put(`/api/grade/${grade.id}`)
+        .put(`/api/grades/${grade.id}`)
         .set('Authorization', `Bearer ${teacherToken}`)
         .send({ score: 85 });
 
@@ -574,7 +575,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .put(`/api/grade/${grade.id}`)
+        .put(`/api/grades/${grade.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ score: -10 });
 
@@ -588,7 +589,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .put(`/api/grade/${grade.id}`)
+        .put(`/api/grades/${grade.id}`)
         .set('Authorization', `Bearer ${studentData.token}`)
         .send({ score: 100 });
 
@@ -599,7 +600,7 @@ describe('Grade Management API', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       const response = await request(app)
-        .put(`/api/grade/${fakeId}`)
+        .put(`/api/grades/${fakeId}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ score: 90 });
 
@@ -609,10 +610,10 @@ describe('Grade Management API', () => {
 
   /**
    * ============================================
-   * DELETE /api/grade/:id
+   * DELETE /api/grades/:id
    * ============================================
    */
-  describe('DELETE /api/grade/:id', () => {
+  describe('DELETE /api/grades/:id', () => {
     test('should delete grade as admin', async () => {
       const grade = await TestHelpers.createGrade(adminToken, {
         student_id: studentData.student.id,
@@ -620,7 +621,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .delete(`/api/grade/${grade.id}`)
+        .delete(`/api/grades/${grade.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -634,7 +635,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .delete(`/api/grade/${grade.id}`)
+        .delete(`/api/grades/${grade.id}`)
         .set('Authorization', `Bearer ${teacherToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -647,7 +648,7 @@ describe('Grade Management API', () => {
       });
 
       const response = await request(app)
-        .delete(`/api/grade/${grade.id}`)
+        .delete(`/api/grades/${grade.id}`)
         .set('Authorization', `Bearer ${studentData.token}`);
 
       Assertions.assertForbidden(response);
@@ -657,7 +658,7 @@ describe('Grade Management API', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       const response = await request(app)
-        .delete(`/api/grade/${fakeId}`)
+        .delete(`/api/grades/${fakeId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       Assertions.assertNotFound(response);

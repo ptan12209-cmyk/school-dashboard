@@ -16,6 +16,7 @@ const getJWTSecret = () => {
   }
 
   // Generate a random secret for development (warning logged)
+  // eslint-disable-next-line global-require
   const crypto = require('crypto');
   const randomSecret = crypto.randomBytes(64).toString('hex');
   console.warn('⚠️  WARNING: Using auto-generated JWT_SECRET for development. Set JWT_SECRET in .env for production!');
@@ -40,7 +41,7 @@ const jwtConfig = {
   issuer: 'ai-school-dashboard',
 
   // Audience (optional)
-  audience: 'school-users'
+  audience: 'school-users',
 };
 
 /**
@@ -49,28 +50,47 @@ const jwtConfig = {
 const passwordConfig = {
   // Salt rounds for bcrypt (higher = more secure but slower)
   // Recommended: 10-12 for production
-  saltRounds: parseInt(process.env.BCRYPT_ROUNDS) || 12,
-  
+  saltRounds: parseInt(process.env.BCRYPT_ROUNDS, 10) || 12,
+
   // Minimum password requirements
   minLength: 8,
   requireUppercase: true,
   requireLowercase: true,
   requireNumber: true,
-  requireSpecialChar: false
+  requireSpecialChar: false,
 };
 
 /**
  * Session Configuration (if using sessions)
+ * ✅ SECURITY FIX: Require strong session secret in production
  */
+const getSessionSecret = () => {
+  if (process.env.SESSION_SECRET) {
+    return process.env.SESSION_SECRET;
+  }
+
+  // Only allow fallback in development
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('SESSION_SECRET must be defined in production');
+  }
+
+  // Generate a random secret for development (warning logged)
+  // eslint-disable-next-line global-require
+  const crypto = require('crypto');
+  const randomSecret = crypto.randomBytes(64).toString('hex');
+  console.warn('⚠️  WARNING: Using auto-generated SESSION_SECRET for development. Set SESSION_SECRET in .env for production!');
+  return randomSecret;
+};
+
 const sessionConfig = {
-  secret: process.env.SESSION_SECRET || 'session-secret-key',
+  secret: getSessionSecret(),
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production', // HTTPS only in production
     httpOnly: true, // Prevent XSS attacks
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  },
 };
 
 /**
@@ -78,21 +98,21 @@ const sessionConfig = {
  */
 const corsConfig = {
   // Allowed origins (frontend URLs)
-  origin: process.env.CORS_ORIGIN 
-    ? process.env.CORS_ORIGIN.split(',') 
+  origin: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',')
     : ['http://localhost:3000', 'http://localhost:3001'],
-  
+
   // Allow credentials (cookies, authorization headers)
   credentials: true,
-  
+
   // Allowed HTTP methods
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  
+
   // Allowed headers
   allowedHeaders: ['Content-Type', 'Authorization'],
-  
+
   // How long to cache preflight requests (in seconds)
-  maxAge: 86400 // 24 hours
+  maxAge: 86400, // 24 hours
 };
 
 /**
@@ -100,17 +120,17 @@ const corsConfig = {
  */
 const rateLimitConfig = {
   // Time window in milliseconds
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutes
+
   // Maximum requests per window
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-  
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
+
   // Error message
   message: 'Too many requests from this IP, please try again later.',
-  
+
   // Return rate limit info in headers
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 };
 
 /**
@@ -120,7 +140,7 @@ const roles = {
   ADMIN: 'admin',
   TEACHER: 'teacher',
   PARENT: 'parent',
-  STUDENT: 'student'
+  STUDENT: 'student',
 };
 
 /**
@@ -131,7 +151,7 @@ const roleHierarchy = {
   admin: ['admin', 'teacher', 'parent', 'student'],
   teacher: ['teacher', 'student'],
   parent: ['parent'],
-  student: ['student']
+  student: ['student'],
 };
 
 module.exports = {
@@ -141,5 +161,5 @@ module.exports = {
   corsConfig,
   rateLimitConfig,
   roles,
-  roleHierarchy
+  roleHierarchy,
 };

@@ -2,9 +2,9 @@
  * Teacher Model - FIXED VERSION
  * ==============================
  * Sequelize model for teachers table
- * 
+ *
  * ✅ FIXED: hire_date validation now uses dynamic check
- * 
+ *
  * Relations:
  * - belongsTo User (through user_id)
  * - hasMany Class (homeroom classes)
@@ -20,7 +20,7 @@ const Teacher = sequelize.define('Teacher', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
-    comment: 'Unique teacher identifier'
+    comment: 'Unique teacher identifier',
   },
 
   // Foreign key to users
@@ -30,10 +30,10 @@ const Teacher = sequelize.define('Teacher', {
     unique: true,
     references: {
       model: 'users',
-      key: 'id'
+      key: 'id',
     },
     onDelete: 'CASCADE',
-    comment: 'Links to users table for authentication'
+    comment: 'Links to users table for authentication',
   },
 
   // Personal information
@@ -42,14 +42,14 @@ const Teacher = sequelize.define('Teacher', {
     allowNull: false,
     validate: {
       notEmpty: {
-        msg: 'First name cannot be empty'
+        msg: 'First name cannot be empty',
       },
       len: {
         args: [1, 100],
-        msg: 'First name must be between 1 and 100 characters'
-      }
+        msg: 'First name must be between 1 and 100 characters',
+      },
     },
-    comment: 'Teacher first name'
+    comment: 'Teacher first name',
   },
 
   last_name: {
@@ -57,21 +57,21 @@ const Teacher = sequelize.define('Teacher', {
     allowNull: false,
     validate: {
       notEmpty: {
-        msg: 'Last name cannot be empty'
+        msg: 'Last name cannot be empty',
       },
       len: {
         args: [1, 100],
-        msg: 'Last name must be between 1 and 100 characters'
-      }
+        msg: 'Last name must be between 1 and 100 characters',
+      },
     },
-    comment: 'Teacher last name'
+    comment: 'Teacher last name',
   },
 
   // Professional information
   department: {
     type: DataTypes.STRING(100),
     allowNull: true,
-    comment: 'Teaching department/subject area'
+    comment: 'Teaching department/subject area',
   },
 
   phone: {
@@ -79,11 +79,11 @@ const Teacher = sequelize.define('Teacher', {
     allowNull: true,
     validate: {
       is: {
-        args: /^[0-9\s\-\+\(\)]*$/i,
-        msg: 'Phone number can only contain numbers, spaces, and +-() characters'
-      }
+        args: /^[0-9\s\-+()]*$/i,
+        msg: 'Phone number can only contain numbers, spaces, and +-() characters',
+      },
     },
-    comment: 'Contact phone number'
+    comment: 'Contact phone number',
   },
 
   // ✅ FIXED: Dynamic validation instead of static date
@@ -92,23 +92,23 @@ const Teacher = sequelize.define('Teacher', {
     allowNull: true,
     validate: {
       isDate: {
-        msg: 'Hire date must be a valid date'
+        msg: 'Hire date must be a valid date',
       },
       notFuture(value) {
         const inputDate = new Date(value);
         const today = new Date();
-        
+
         // Compare only dates, ignore time
         inputDate.setHours(0, 0, 0, 0);
         today.setHours(0, 0, 0, 0);
-        
+
         if (inputDate > today) {
           throw new Error('Hire date cannot be in the future');
         }
-      }
+      },
     },
-    comment: 'Date when teacher was hired'
-  }
+    comment: 'Date when teacher was hired',
+  },
 }, {
   // Model options
   tableName: 'teachers',
@@ -121,18 +121,18 @@ const Teacher = sequelize.define('Teacher', {
   indexes: [
     {
       unique: true,
-      fields: ['user_id']
+      fields: ['user_id'],
     },
     {
-      fields: ['department']
+      fields: ['department'],
     },
     {
-      fields: ['first_name', 'last_name']
+      fields: ['first_name', 'last_name'],
     },
     {
-      fields: ['hire_date']
-    }
-  ]
+      fields: ['hire_date'],
+    },
+  ],
 });
 
 // ============================================
@@ -143,7 +143,7 @@ const Teacher = sequelize.define('Teacher', {
  * Get full name of teacher
  * @returns {string} Full name
  */
-Teacher.prototype.getFullName = function() {
+Teacher.prototype.getFullName = function () {
   return `${this.first_name} ${this.last_name}`;
 };
 
@@ -151,13 +151,13 @@ Teacher.prototype.getFullName = function() {
  * Get years of service
  * @returns {number|null} Years since hire date
  */
-Teacher.prototype.getYearsOfService = function() {
+Teacher.prototype.getYearsOfService = function () {
   if (!this.hire_date) return null;
-  
+
   const hireDate = new Date(this.hire_date);
   const today = new Date();
   const years = today.getFullYear() - hireDate.getFullYear();
-  
+
   return years;
 };
 
@@ -170,10 +170,10 @@ Teacher.prototype.getYearsOfService = function() {
  * @param {string} department - Department name
  * @returns {Promise<Teacher[]>} Array of teachers
  */
-Teacher.findByDepartment = async function(department) {
+Teacher.findByDepartment = async function (department) {
   return await this.findAll({
     where: { department },
-    order: [['last_name', 'ASC']]
+    order: [['last_name', 'ASC']],
   });
 };
 
@@ -182,22 +182,17 @@ Teacher.findByDepartment = async function(department) {
  * @param {Date} beforeDate - Cutoff date
  * @returns {Promise<Teacher[]>} Array of senior teachers
  */
-Teacher.findSenior = async function(beforeDate) {
+Teacher.findSenior = async function (beforeDate) {
+  // eslint-disable-next-line global-require
   const { Op } = require('sequelize');
   return await this.findAll({
     where: {
       hire_date: {
-        [Op.lt]: beforeDate
-      }
+        [Op.lt]: beforeDate,
+      },
     },
-    order: [['hire_date', 'ASC']]
+    order: [['hire_date', 'ASC']],
   });
 };
 
 module.exports = Teacher;
-
-
-
-
-
-

@@ -5,13 +5,13 @@
  * 
  * Endpoints tested:
  * - GET    /api/student
- * - GET    /api/student/stats
- * - GET    /api/student/unassigned
- * - GET    /api/student/:id
+ * - GET    /api/students/stats
+ * - GET    /api/students/unassigned
+ * - GET    /api/students/:id
  * - POST   /api/student
- * - PUT    /api/student/:id
- * - DELETE /api/student/:id
- * - GET    /api/student/:id/grade
+ * - PUT    /api/students/:id
+ * - DELETE /api/students/:id
+ * - GET    /api/students/:id/grade
  * 
  * Total tests: 26
  */
@@ -45,7 +45,7 @@ describe('Student Management API', () => {
    * GET /api/student
    * ============================================
    */
-  describe('GET /api/student', () => {
+  describe('GET /api/students', () => {
     test('should get all student as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       
@@ -53,7 +53,7 @@ describe('Student Management API', () => {
       await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get('/api/student')
+        .get('/api/students')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -69,7 +69,7 @@ describe('Student Management API', () => {
       await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get('/api/student')
+        .get('/api/students')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -84,7 +84,7 @@ describe('Student Management API', () => {
       }
 
       const response = await request(app)
-        .get('/api/student?page=1&limit=3')
+        .get('/api/students?page=1&limit=3')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -98,7 +98,7 @@ describe('Student Management API', () => {
       await TestHelpers.createStudent({ gender: 'F' });
 
       const response = await request(app)
-        .get('/api/student?gender=M')
+        .get('/api/students?gender=M')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -116,7 +116,7 @@ describe('Student Management API', () => {
       });
 
       const response = await request(app)
-        .get('/api/student?search=Alice')
+        .get('/api/students?search=Alice')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -127,7 +127,7 @@ describe('Student Management API', () => {
       const { token } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get('/api/student')
+        .get('/api/students')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -136,10 +136,10 @@ describe('Student Management API', () => {
 
   /**
    * ============================================
-   * GET /api/student/stats
+   * GET /api/students/stats
    * ============================================
    */
-  describe('GET /api/student/stats', () => {
+  describe('GET /api/students/stats', () => {
     test('should get student statistics as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       
@@ -147,7 +147,7 @@ describe('Student Management API', () => {
       await TestHelpers.createStudent({ gender: 'F' });
 
       const response = await request(app)
-        .get('/api/student/stats')
+        .get('/api/students/stats')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -162,7 +162,7 @@ describe('Student Management API', () => {
       const { token } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .get('/api/student/stats')
+        .get('/api/students/stats')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -171,10 +171,10 @@ describe('Student Management API', () => {
 
   /**
    * ============================================
-   * GET /api/student/unassigned
+   * GET /api/students/unassigned
    * ============================================
    */
-  describe('GET /api/student/unassigned', () => {
+  describe('GET /api/students/unassigned', () => {
     test('should get unassigned student', async () => {
       const { token } = await TestHelpers.createAdmin();
       
@@ -182,7 +182,7 @@ describe('Student Management API', () => {
       await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get('/api/student/unassigned')
+        .get('/api/students/unassigned')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -194,7 +194,7 @@ describe('Student Management API', () => {
       const { token } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .get('/api/student/unassigned')
+        .get('/api/students/unassigned')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -204,7 +204,7 @@ describe('Student Management API', () => {
       const { token } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get('/api/student/unassigned')
+        .get('/api/students/unassigned')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -216,7 +216,7 @@ describe('Student Management API', () => {
    * POST /api/student
    * ============================================
    */
-  describe('POST /api/student', () => {
+  describe('POST /api/students', () => {
     test('should create student as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
 
@@ -235,7 +235,7 @@ describe('Student Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/student')
+        .post('/api/students')
         .set('Authorization', `Bearer ${token}`)
         .send(studentData);
 
@@ -257,7 +257,7 @@ describe('Student Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/student')
+        .post('/api/students')
         .set('Authorization', `Bearer ${token}`)
         .send(studentData);
 
@@ -278,7 +278,7 @@ describe('Student Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/student')
+        .post('/api/students')
         .set('Authorization', `Bearer ${token}`)
         .send(studentData);
 
@@ -289,7 +289,7 @@ describe('Student Management API', () => {
       const { token } = await TestHelpers.createAdmin();
 
       const response = await request(app)
-        .post('/api/student')
+        .post('/api/students')
         .set('Authorization', `Bearer ${token}`)
         .send({
           email: 'test@test.com'
@@ -303,7 +303,7 @@ describe('Student Management API', () => {
       const { token } = await TestHelpers.createAdmin();
 
       const response = await request(app)
-        .post('/api/student')
+        .post('/api/students')
         .set('Authorization', `Bearer ${token}`)
         .send({
           email: 'test@test.com',
@@ -322,7 +322,7 @@ describe('Student Management API', () => {
       const studentData = MockData.validStudent();
 
       const response = await request(app)
-        .post('/api/student')
+        .post('/api/students')
         .set('Authorization', `Bearer ${token}`)
         .send(studentData);
 
@@ -332,16 +332,16 @@ describe('Student Management API', () => {
 
   /**
    * ============================================
-   * GET /api/student/:id
+   * GET /api/students/:id
    * ============================================
    */
-  describe('GET /api/student/:id', () => {
+  describe('GET /api/students/:id', () => {
     test('should get student by ID as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { student } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get(`/api/student/${student.id}`)
+        .get(`/api/students/${student.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -353,7 +353,7 @@ describe('Student Management API', () => {
       const { token, student } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get(`/api/student/${student.id}`)
+        .get(`/api/students/${student.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -365,7 +365,7 @@ describe('Student Management API', () => {
       const { student } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get(`/api/student/${student.id}`)
+        .get(`/api/students/${student.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -376,7 +376,7 @@ describe('Student Management API', () => {
       const { student: otherStudent } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get(`/api/student/${otherStudent.id}`)
+        .get(`/api/students/${otherStudent.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -387,7 +387,7 @@ describe('Student Management API', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       const response = await request(app)
-        .get(`/api/student/${fakeId}`)
+        .get(`/api/students/${fakeId}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertNotFound(response);
@@ -396,10 +396,10 @@ describe('Student Management API', () => {
 
   /**
    * ============================================
-   * PUT /api/student/:id
+   * PUT /api/students/:id
    * ============================================
    */
-  describe('PUT /api/student/:id', () => {
+  describe('PUT /api/students/:id', () => {
     test('should update student as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { student } = await TestHelpers.createStudent();
@@ -412,7 +412,7 @@ describe('Student Management API', () => {
       };
 
       const response = await request(app)
-        .put(`/api/student/${student.id}`)
+        .put(`/api/students/${student.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
 
@@ -429,7 +429,7 @@ describe('Student Management API', () => {
       };
 
       const response = await request(app)
-        .put(`/api/student/${student.id}`)
+        .put(`/api/students/${student.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
 
@@ -446,7 +446,7 @@ describe('Student Management API', () => {
       };
 
       const response = await request(app)
-        .put(`/api/student/${student.id}`)
+        .put(`/api/students/${student.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
 
@@ -462,7 +462,7 @@ describe('Student Management API', () => {
       const { student: otherStudent } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .put(`/api/student/${otherStudent.id}`)
+        .put(`/api/students/${otherStudent.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ phone: '0000000000' });
 
@@ -474,7 +474,7 @@ describe('Student Management API', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       const response = await request(app)
-        .put(`/api/student/${fakeId}`)
+        .put(`/api/students/${fakeId}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ firstName: 'Test' });
 
@@ -484,16 +484,16 @@ describe('Student Management API', () => {
 
   /**
    * ============================================
-   * DELETE /api/student/:id
+   * DELETE /api/students/:id
    * ============================================
    */
-  describe('DELETE /api/student/:id', () => {
+  describe('DELETE /api/students/:id', () => {
     test('should delete student as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { student } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .delete(`/api/student/${student.id}`)
+        .delete(`/api/students/${student.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -505,7 +505,7 @@ describe('Student Management API', () => {
       const { token, student } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .delete(`/api/student/${student.id}`)
+        .delete(`/api/students/${student.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -516,7 +516,7 @@ describe('Student Management API', () => {
       const { student } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .delete(`/api/student/${student.id}`)
+        .delete(`/api/students/${student.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -527,7 +527,7 @@ describe('Student Management API', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       const response = await request(app)
-        .delete(`/api/student/${fakeId}`)
+        .delete(`/api/students/${fakeId}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertNotFound(response);
@@ -536,16 +536,16 @@ describe('Student Management API', () => {
 
   /**
    * ============================================
-   * GET /api/student/:id/grade
+   * GET /api/students/:id/grade
    * ============================================
    */
-  describe('GET /api/student/:id/grade', () => {
+  describe('GET /api/students/:id/grade', () => {
     test('should get student grade as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { student } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get(`/api/student/${student.id}/grade`)
+        .get(`/api/students/${student.id}/grade`)
         .set('Authorization', `Bearer ${token}`);
 
       // Currently returns placeholder message
@@ -556,7 +556,7 @@ describe('Student Management API', () => {
       const { token, student } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get(`/api/student/${student.id}/grade`)
+        .get(`/api/students/${student.id}/grade`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -567,7 +567,7 @@ describe('Student Management API', () => {
       const { student } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get(`/api/student/${student.id}/grade`)
+        .get(`/api/students/${student.id}/grade`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);

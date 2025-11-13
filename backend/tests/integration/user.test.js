@@ -5,12 +5,12 @@
  * 
  * Endpoints tested:
  * - GET    /api/user
- * - GET    /api/user/stats
- * - GET    /api/user/:id
- * - PUT    /api/user/:id
- * - DELETE /api/user/:id
- * - PATCH  /api/user/:id/activate
- * - PATCH  /api/user/:id/deactivate
+ * - GET    /api/users/stats
+ * - GET    /api/users/:id
+ * - PUT    /api/users/:id
+ * - DELETE /api/users/:id
+ * - PATCH  /api/users/:id/activate
+ * - PATCH  /api/users/:id/deactivate
  * 
  * Total tests: 28
  */
@@ -44,7 +44,7 @@ describe('User Management API', () => {
    * GET /api/user
    * ============================================
    */
-  describe('GET /api/user', () => {
+  describe('GET /api/users', () => {
     test('should get all user as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       
@@ -53,7 +53,7 @@ describe('User Management API', () => {
       await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get('/api/user')
+        .get('/api/users')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -72,7 +72,7 @@ describe('User Management API', () => {
       }
 
       const response = await request(app)
-        .get('/api/user?page=1&limit=3')
+        .get('/api/users?page=1&limit=3')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -87,7 +87,7 @@ describe('User Management API', () => {
       await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get('/api/user?role=teacher')
+        .get('/api/users?role=teacher')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -103,11 +103,11 @@ describe('User Management API', () => {
       
       // Deactivate one user
       await request(app)
-        .patch(`/api/user/${user.id}/deactivate`)
+        .patch(`/api/users/${user.id}/deactivate`)
         .set('Authorization', `Bearer ${token}`);
 
       const response = await request(app)
-        .get('/api/user?is_active=false')
+        .get('/api/users?is_active=false')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -122,7 +122,7 @@ describe('User Management API', () => {
       await TestHelpers.createStudent({ email: 'searchable@test.com' });
 
       const response = await request(app)
-        .get('/api/user?search=searchable')
+        .get('/api/users?search=searchable')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -134,14 +134,14 @@ describe('User Management API', () => {
       const { token } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .get('/api/user')
+        .get('/api/users')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
     });
 
     test('should deny access without token', async () => {
-      const response = await request(app).get('/api/user');
+      const response = await request(app).get('/api/users');
 
       Assertions.assertAuthRequired(response);
     });
@@ -149,10 +149,10 @@ describe('User Management API', () => {
 
   /**
    * ============================================
-   * GET /api/user/stats
+   * GET /api/users/stats
    * ============================================
    */
-  describe('GET /api/user/stats', () => {
+  describe('GET /api/users/stats', () => {
     test('should get user statistics as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       
@@ -160,7 +160,7 @@ describe('User Management API', () => {
       await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get('/api/user/stats')
+        .get('/api/users/stats')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -177,7 +177,7 @@ describe('User Management API', () => {
       const { token } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .get('/api/user/stats')
+        .get('/api/users/stats')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -186,16 +186,16 @@ describe('User Management API', () => {
 
   /**
    * ============================================
-   * GET /api/user/:id
+   * GET /api/users/:id
    * ============================================
    */
-  describe('GET /api/user/:id', () => {
+  describe('GET /api/users/:id', () => {
     test('should get user by ID as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { user } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get(`/api/user/${user.id}`)
+        .get(`/api/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -207,7 +207,7 @@ describe('User Management API', () => {
       const { token, user } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .get(`/api/user/${user.id}`)
+        .get(`/api/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -219,7 +219,7 @@ describe('User Management API', () => {
       const { user: otherUser } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .get(`/api/user/${otherUser.id}`)
+        .get(`/api/users/${otherUser.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -229,7 +229,7 @@ describe('User Management API', () => {
       const { token } = await TestHelpers.createAdmin();
 
       const response = await request(app)
-        .get(`/api/user/${MockData.invalidUUID()}`)
+        .get(`/api/users/${MockData.invalidUUID()}`)
         .set('Authorization', `Bearer ${token}`);
 
       // Will get validation error for invalid UUID format
@@ -239,10 +239,10 @@ describe('User Management API', () => {
 
   /**
    * ============================================
-   * PUT /api/user/:id
+   * PUT /api/users/:id
    * ============================================
    */
-  describe('PUT /api/user/:id', () => {
+  describe('PUT /api/users/:id', () => {
     test('should update user as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { user } = await TestHelpers.createStudent();
@@ -254,7 +254,7 @@ describe('User Management API', () => {
       };
 
       const response = await request(app)
-        .put(`/api/user/${user.id}`)
+        .put(`/api/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
 
@@ -271,7 +271,7 @@ describe('User Management API', () => {
       };
 
       const response = await request(app)
-        .put(`/api/user/${user.id}`)
+        .put(`/api/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
 
@@ -287,7 +287,7 @@ describe('User Management API', () => {
       };
 
       const response = await request(app)
-        .put(`/api/user/${user.id}`)
+        .put(`/api/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
 
@@ -302,7 +302,7 @@ describe('User Management API', () => {
       await TestHelpers.createStudent({ email: 'taken@test.com' });
 
       const response = await request(app)
-        .put(`/api/user/${user.id}`)
+        .put(`/api/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ email: 'taken@test.com' });
 
@@ -314,7 +314,7 @@ describe('User Management API', () => {
       const { user: otherUser } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .put(`/api/user/${otherUser.id}`)
+        .put(`/api/users/${otherUser.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ email: 'hacked@test.com' });
 
@@ -324,16 +324,16 @@ describe('User Management API', () => {
 
   /**
    * ============================================
-   * DELETE /api/user/:id
+   * DELETE /api/users/:id
    * ============================================
    */
-  describe('DELETE /api/user/:id', () => {
+  describe('DELETE /api/users/:id', () => {
     test('should delete user as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { user } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .delete(`/api/user/${user.id}`)
+        .delete(`/api/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -344,7 +344,7 @@ describe('User Management API', () => {
       const { token, user } = await TestHelpers.createAdmin();
 
       const response = await request(app)
-        .delete(`/api/user/${user.id}`)
+        .delete(`/api/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertValidationError(response);
@@ -356,7 +356,7 @@ describe('User Management API', () => {
       const { user } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .delete(`/api/user/${user.id}`)
+        .delete(`/api/users/${user.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -367,7 +367,7 @@ describe('User Management API', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       const response = await request(app)
-        .delete(`/api/user/${fakeId}`)
+        .delete(`/api/users/${fakeId}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertNotFound(response);
@@ -376,22 +376,22 @@ describe('User Management API', () => {
 
   /**
    * ============================================
-   * PATCH /api/user/:id/activate
+   * PATCH /api/users/:id/activate
    * ============================================
    */
-  describe('PATCH /api/user/:id/activate', () => {
+  describe('PATCH /api/users/:id/activate', () => {
     test('should activate inactive user as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { user } = await TestHelpers.createStudent();
 
       // Deactivate first
       await request(app)
-        .patch(`/api/user/${user.id}/deactivate`)
+        .patch(`/api/users/${user.id}/deactivate`)
         .set('Authorization', `Bearer ${token}`);
 
       // Activate
       const response = await request(app)
-        .patch(`/api/user/${user.id}/activate`)
+        .patch(`/api/users/${user.id}/activate`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -403,7 +403,7 @@ describe('User Management API', () => {
       const { user } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .patch(`/api/user/${user.id}/activate`)
+        .patch(`/api/users/${user.id}/activate`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertValidationError(response);
@@ -415,7 +415,7 @@ describe('User Management API', () => {
       const { user } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .patch(`/api/user/${user.id}/activate`)
+        .patch(`/api/users/${user.id}/activate`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -424,16 +424,16 @@ describe('User Management API', () => {
 
   /**
    * ============================================
-   * PATCH /api/user/:id/deactivate
+   * PATCH /api/users/:id/deactivate
    * ============================================
    */
-  describe('PATCH /api/user/:id/deactivate', () => {
+  describe('PATCH /api/users/:id/deactivate', () => {
     test('should deactivate user as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { user } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .patch(`/api/user/${user.id}/deactivate`)
+        .patch(`/api/users/${user.id}/deactivate`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -444,7 +444,7 @@ describe('User Management API', () => {
       const { token, user } = await TestHelpers.createAdmin();
 
       const response = await request(app)
-        .patch(`/api/user/${user.id}/deactivate`)
+        .patch(`/api/users/${user.id}/deactivate`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertValidationError(response);
@@ -457,12 +457,12 @@ describe('User Management API', () => {
 
       // Deactivate first time
       await request(app)
-        .patch(`/api/user/${user.id}/deactivate`)
+        .patch(`/api/users/${user.id}/deactivate`)
         .set('Authorization', `Bearer ${token}`);
 
       // Try to deactivate again
       const response = await request(app)
-        .patch(`/api/user/${user.id}/deactivate`)
+        .patch(`/api/users/${user.id}/deactivate`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertValidationError(response);
@@ -474,7 +474,7 @@ describe('User Management API', () => {
       const { user } = await TestHelpers.createStudent();
 
       const response = await request(app)
-        .patch(`/api/user/${user.id}/deactivate`)
+        .patch(`/api/users/${user.id}/deactivate`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);

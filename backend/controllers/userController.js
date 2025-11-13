@@ -1,6 +1,8 @@
-const { User, Teacher, Student } = require('../models');
-const { catchAsync, NotFoundError, ConflictError, ValidationError, AuthorizationError } = require('../middleware/errorHandler');
 const { Op } = require('sequelize');
+const { User, Teacher, Student } = require('../models');
+const {
+  catchAsync, NotFoundError, ConflictError, ValidationError, AuthorizationError,
+} = require('../middleware/errorHandler');
 
 /**
  * @route   GET /api/users
@@ -9,28 +11,28 @@ const { Op } = require('sequelize');
  */
 exports.getAllUsers = catchAsync(async (req, res) => {
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
   const offset = (page - 1) * limit;
-  
+
   // Filtering
   const where = {};
-  
+
   if (req.query.role) {
     where.role = req.query.role;
   }
-  
+
   if (req.query.is_active !== undefined) {
     where.is_active = req.query.is_active === 'true';
   }
-  
+
   // Search by email
   if (req.query.search) {
     where.email = {
-      [Op.iLike]: `%${req.query.search}%`
+      [Op.iLike]: `%${req.query.search}%`,
     };
   }
-  
+
   // Sorting with whitelist validation to prevent SQL injection
   const order = [];
   if (req.query.sort) {
@@ -51,16 +53,16 @@ exports.getAllUsers = catchAsync(async (req, res) => {
   } else {
     order.push(['created_at', 'DESC']);
   }
-  
+
   // Query
   const { count, rows } = await User.findAndCountAll({
     where,
     limit,
     offset,
     order,
-    attributes: { exclude: ['password_hash'] }
+    attributes: { exclude: ['password_hash'] },
   });
-  
+
   res.json({
     success: true,
     data: {
@@ -69,9 +71,9 @@ exports.getAllUsers = catchAsync(async (req, res) => {
         total: count,
         page,
         pages: Math.ceil(count / limit),
-        limit
-      }
-    }
+        limit,
+      },
+    },
   });
 });
 
@@ -82,44 +84,44 @@ exports.getAllUsers = catchAsync(async (req, res) => {
  */
 exports.getUserById = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   // Validate UUID format
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(id)) {
     throw new ValidationError('Invalid user ID format');
   }
-  
+
   // ✅ IMPROVED: Convert IDs to string for comparison (handles UUID better)
   const isAdmin = req.user.role === 'admin';
   const isSelf = String(req.user.id) === String(id);
-  
+
   if (!isAdmin && !isSelf) {
     throw new AuthorizationError('You can only view your own profile');
   }
-  
+
   const user = await User.findByPk(id, {
-    attributes: { exclude: ['password_hash'] }
+    attributes: { exclude: ['password_hash'] },
   });
-  
+
   if (!user) {
     throw new NotFoundError('User not found');
   }
-  
+
   // Get profile based on role
   let profile = null;
-  
+
   if (user.role === 'teacher') {
     profile = await Teacher.findOne({ where: { user_id: id } });
   } else if (user.role === 'student') {
     profile = await Student.findOne({ where: { user_id: id } });
   }
-  
+
   res.json({
     success: true,
     data: {
       user: user.toJSON(),
-      profile: profile ? profile.toJSON() : null
-    }
+      profile: profile ? profile.toJSON() : null,
+    },
   });
 });
 
@@ -131,48 +133,48 @@ exports.getUserById = catchAsync(async (req, res) => {
 exports.updateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
   const isAdmin = req.user.role === 'admin';
-  
+
   // ✅ IMPROVED: Convert IDs to string for comparison
   const isSelf = String(req.user.id) === String(id);
-  
+
   if (!isAdmin && !isSelf) {
     throw new AuthorizationError('You can only update your own profile');
   }
-  
+
   const user = await User.findByPk(id);
-  
+
   if (!user) {
     throw new NotFoundError('User not found');
   }
-  
+
   // Fields that can be updated
-  const allowedFields = isAdmin 
-    ? ['email', 'role', 'is_active'] 
+  const allowedFields = isAdmin
+    ? ['email', 'role', 'is_active']
     : ['email']; // Non-admin can only update email
-  
+
   const updates = {};
-  allowedFields.forEach(field => {
+  allowedFields.forEach((field) => {
     if (req.body[field] !== undefined) {
       updates[field] = req.body[field];
     }
   });
-  
+
   // Check email uniqueness if changing email
   if (updates.email && updates.email !== user.email) {
-    const existingUser = await User.findOne({ 
-      where: { 
+    const existingUser = await User.findOne({
+      where: {
         email: updates.email,
-        id: { [Op.ne]: id }
-      } 
+        id: { [Op.ne]: id },
+      },
     });
-    
+
     if (existingUser) {
       throw new ConflictError('Email already exists');
     }
   }
-  
+
   await user.update(updates);
-  
+
   res.json({
     success: true,
     message: 'User updated successfully',
@@ -181,9 +183,9 @@ exports.updateUser = catchAsync(async (req, res) => {
         id: user.id,
         email: user.email,
         role: user.role,
-        is_active: user.is_active
-      }
-    }
+        is_active: user.is_active,
+      },
+    },
   });
 });
 
@@ -194,26 +196,26 @@ exports.updateUser = catchAsync(async (req, res) => {
  */
 exports.deleteUser = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   // ✅ IMPROVED: Convert IDs to string for comparison
   // Prevent deleting yourself
   if (String(req.user.id) === String(id)) {
     throw new ValidationError('You cannot delete your own account');
   }
-  
+
   const user = await User.findByPk(id);
-  
+
   if (!user) {
     throw new NotFoundError('User not found');
   }
-  
+
   // Soft delete by setting is_active to false
   await user.update({ is_active: false });
-  
+
   res.json({
     success: true,
     message: 'User deleted successfully',
-    data: { deletedUserId: id }
+    data: { deletedUserId: id },
   });
 });
 
@@ -224,19 +226,19 @@ exports.deleteUser = catchAsync(async (req, res) => {
  */
 exports.activateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   const user = await User.findByPk(id);
-  
+
   if (!user) {
     throw new NotFoundError('User not found');
   }
-  
+
   if (user.is_active) {
     throw new ValidationError('User is already active');
   }
-  
+
   await user.update({ is_active: true });
-  
+
   res.json({
     success: true,
     message: 'User activated successfully',
@@ -244,9 +246,9 @@ exports.activateUser = catchAsync(async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        is_active: user.is_active
-      }
-    }
+        is_active: user.is_active,
+      },
+    },
   });
 });
 
@@ -257,25 +259,25 @@ exports.activateUser = catchAsync(async (req, res) => {
  */
 exports.deactivateUser = catchAsync(async (req, res) => {
   const { id } = req.params;
-  
+
   // ✅ IMPROVED: Convert IDs to string for comparison
   // Prevent deactivating yourself
   if (String(req.user.id) === String(id)) {
     throw new ValidationError('You cannot deactivate your own account');
   }
-  
+
   const user = await User.findByPk(id);
-  
+
   if (!user) {
     throw new NotFoundError('User not found');
   }
-  
+
   if (!user.is_active) {
     throw new ValidationError('User is already inactive');
   }
-  
+
   await user.update({ is_active: false });
-  
+
   res.json({
     success: true,
     message: 'User deactivated successfully',
@@ -283,9 +285,9 @@ exports.deactivateUser = catchAsync(async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        is_active: user.is_active
-      }
-    }
+        is_active: user.is_active,
+      },
+    },
   });
 });
 
@@ -301,9 +303,9 @@ exports.getUserStats = catchAsync(async (req, res) => {
     User.count({ where: { is_active: false } }),
     User.count({ where: { role: 'admin' } }),
     User.count({ where: { role: 'teacher' } }),
-    User.count({ where: { role: 'student' } })
+    User.count({ where: { role: 'student' } }),
   ]);
-  
+
   res.json({
     success: true,
     data: {
@@ -313,9 +315,9 @@ exports.getUserStats = catchAsync(async (req, res) => {
       byRole: {
         admin: admins,
         teacher: teachers,
-        student: students
-      }
-    }
+        student: students,
+      },
+    },
   });
 });
 

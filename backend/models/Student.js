@@ -2,7 +2,7 @@
  * Student Model
  * ==============
  * Sequelize model for students table
- * 
+ *
  * Relations:
  * - belongsTo User (through user_id)
  * - belongsTo Class (through class_id)
@@ -19,7 +19,7 @@ const Student = sequelize.define('Student', {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
-    comment: 'Unique student identifier'
+    comment: 'Unique student identifier',
   },
 
   // Foreign key to users
@@ -29,10 +29,10 @@ const Student = sequelize.define('Student', {
     unique: true,
     references: {
       model: 'users',
-      key: 'id'
+      key: 'id',
     },
     onDelete: 'CASCADE',
-    comment: 'Links to users table for authentication'
+    comment: 'Links to users table for authentication',
   },
 
   // Personal information
@@ -41,14 +41,14 @@ const Student = sequelize.define('Student', {
     allowNull: false,
     validate: {
       notEmpty: {
-        msg: 'First name cannot be empty'
+        msg: 'First name cannot be empty',
       },
       len: {
         args: [1, 100],
-        msg: 'First name must be between 1 and 100 characters'
-      }
+        msg: 'First name must be between 1 and 100 characters',
+      },
     },
-    comment: 'Student first name'
+    comment: 'Student first name',
   },
 
   last_name: {
@@ -56,14 +56,14 @@ const Student = sequelize.define('Student', {
     allowNull: false,
     validate: {
       notEmpty: {
-        msg: 'Last name cannot be empty'
+        msg: 'Last name cannot be empty',
       },
       len: {
         args: [1, 100],
-        msg: 'Last name must be between 1 and 100 characters'
-      }
+        msg: 'Last name must be between 1 and 100 characters',
+      },
     },
-    comment: 'Student last name'
+    comment: 'Student last name',
   },
 
   date_of_birth: {
@@ -71,14 +71,14 @@ const Student = sequelize.define('Student', {
     allowNull: false,
     validate: {
       isDate: {
-        msg: 'Date of birth must be a valid date'
+        msg: 'Date of birth must be a valid date',
       },
       isOldEnough(value) {
         const minAge = 10;
         const birthDate = new Date(value);
         const today = new Date();
         const age = today.getFullYear() - birthDate.getFullYear();
-        
+
         if (age < minAge) {
           throw new Error(`Student must be at least ${minAge} years old`);
         }
@@ -88,13 +88,13 @@ const Student = sequelize.define('Student', {
         const birthDate = new Date(value);
         const today = new Date();
         const age = today.getFullYear() - birthDate.getFullYear();
-        
+
         if (age > maxAge) {
           throw new Error(`Student age cannot exceed ${maxAge} years`);
         }
-      }
+      },
     },
-    comment: 'Student date of birth'
+    comment: 'Student date of birth',
   },
 
   gender: {
@@ -103,10 +103,10 @@ const Student = sequelize.define('Student', {
     validate: {
       isIn: {
         args: [['M', 'F', 'Other']],
-        msg: 'Gender must be M, F, or Other'
-      }
+        msg: 'Gender must be M, F, or Other',
+      },
     },
-    comment: 'Student gender'
+    comment: 'Student gender',
   },
 
   // Class assignment
@@ -115,10 +115,10 @@ const Student = sequelize.define('Student', {
     allowNull: true,
     references: {
       model: 'classes',
-      key: 'id'
+      key: 'id',
     },
     onDelete: 'SET NULL',
-    comment: 'Current class assignment (null for new students)'
+    comment: 'Current class assignment (null for new students)',
   },
 
   // Contact information
@@ -127,24 +127,24 @@ const Student = sequelize.define('Student', {
     allowNull: true,
     validate: {
       is: {
-        args: /^[0-9\s\-\+\(\)]*$/i,
-        msg: 'Phone number can only contain numbers, spaces, and +-() characters'
-      }
+        args: /^[0-9\s\-+()]*$/i,
+        msg: 'Phone number can only contain numbers, spaces, and +-() characters',
+      },
     },
-    comment: 'Student contact phone'
+    comment: 'Student contact phone',
   },
 
   address: {
     type: DataTypes.TEXT,
     allowNull: true,
-    comment: 'Student residential address'
+    comment: 'Student residential address',
   },
 
   // Parent/Guardian information
   parent_name: {
     type: DataTypes.STRING(200),
     allowNull: true,
-    comment: 'Parent or guardian full name'
+    comment: 'Parent or guardian full name',
   },
 
   parent_phone: {
@@ -152,11 +152,11 @@ const Student = sequelize.define('Student', {
     allowNull: true,
     validate: {
       is: {
-        args: /^[0-9\s\-\+\(\)]*$/i,
-        msg: 'Parent phone can only contain numbers, spaces, and +-() characters'
-      }
+        args: /^[0-9\s\-+()]*$/i,
+        msg: 'Parent phone can only contain numbers, spaces, and +-() characters',
+      },
     },
-    comment: 'Parent or guardian contact phone'
+    comment: 'Parent or guardian contact phone',
   },
 
   parent_email: {
@@ -164,11 +164,11 @@ const Student = sequelize.define('Student', {
     allowNull: true,
     validate: {
       isEmail: {
-        msg: 'Parent email must be a valid email address'
-      }
+        msg: 'Parent email must be a valid email address',
+      },
     },
-    comment: 'Parent or guardian email'
-  }
+    comment: 'Parent or guardian email',
+  },
 }, {
   // Model options
   tableName: 'students',
@@ -181,21 +181,21 @@ const Student = sequelize.define('Student', {
   indexes: [
     {
       unique: true,
-      fields: ['user_id']
+      fields: ['user_id'],
     },
     {
-      fields: ['class_id']
+      fields: ['class_id'],
     },
     {
-      fields: ['first_name', 'last_name']
+      fields: ['first_name', 'last_name'],
     },
     {
-      fields: ['date_of_birth']
+      fields: ['date_of_birth'],
     },
     {
-      fields: ['parent_email']
-    }
-  ]
+      fields: ['parent_email'],
+    },
+  ],
 });
 
 // ============================================
@@ -206,7 +206,7 @@ const Student = sequelize.define('Student', {
  * Get full name of student
  * @returns {string} Full name
  */
-Student.prototype.getFullName = function() {
+Student.prototype.getFullName = function () {
   return `${this.first_name} ${this.last_name}`;
 };
 
@@ -214,16 +214,16 @@ Student.prototype.getFullName = function() {
  * Calculate student age
  * @returns {number} Age in years
  */
-Student.prototype.getAge = function() {
+Student.prototype.getAge = function () {
   const birthDate = new Date(this.date_of_birth);
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     age--;
   }
-  
+
   return age;
 };
 
@@ -231,7 +231,7 @@ Student.prototype.getAge = function() {
  * Check if student has parent contact
  * @returns {boolean} True if parent contact exists
  */
-Student.prototype.hasParentContact = function() {
+Student.prototype.hasParentContact = function () {
   return !!(this.parent_phone || this.parent_email);
 };
 
@@ -239,14 +239,14 @@ Student.prototype.hasParentContact = function() {
  * Get display info for UI
  * @returns {Object} Display information
  */
-Student.prototype.getDisplayInfo = function() {
+Student.prototype.getDisplayInfo = function () {
   return {
     id: this.id,
     fullName: this.getFullName(),
     age: this.getAge(),
     email: this.user?.email,
     class: this.class?.name,
-    hasContact: this.hasParentContact()
+    hasContact: this.hasParentContact(),
   };
 };
 
@@ -259,10 +259,10 @@ Student.prototype.getDisplayInfo = function() {
  * @param {string} classId - Class UUID
  * @returns {Promise<Student[]>} Array of students
  */
-Student.findByClass = async function(classId) {
+Student.findByClass = async function (classId) {
   return await this.findAll({
     where: { class_id: classId },
-    order: [['last_name', 'ASC'], ['first_name', 'ASC']]
+    order: [['last_name', 'ASC'], ['first_name', 'ASC']],
   });
 };
 
@@ -272,21 +272,22 @@ Student.findByClass = async function(classId) {
  * @param {number} maxAge - Maximum age
  * @returns {Promise<Student[]>} Array of students
  */
-Student.findByAgeRange = async function(minAge, maxAge) {
+Student.findByAgeRange = async function (minAge, maxAge) {
+  // eslint-disable-next-line global-require
   const { Op } = require('sequelize');
   const today = new Date();
-  
+
   // Calculate birth date range
   const maxBirthDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
   const minBirthDate = new Date(today.getFullYear() - maxAge - 1, today.getMonth(), today.getDate());
-  
+
   return await this.findAll({
     where: {
       date_of_birth: {
-        [Op.between]: [minBirthDate, maxBirthDate]
-      }
+        [Op.between]: [minBirthDate, maxBirthDate],
+      },
     },
-    order: [['date_of_birth', 'DESC']]
+    order: [['date_of_birth', 'DESC']],
   });
 };
 
@@ -294,10 +295,10 @@ Student.findByAgeRange = async function(minAge, maxAge) {
  * Find students without class assignment
  * @returns {Promise<Student[]>} Array of unassigned students
  */
-Student.findUnassigned = async function() {
+Student.findUnassigned = async function () {
   return await this.findAll({
     where: { class_id: null },
-    order: [['last_name', 'ASC']]
+    order: [['last_name', 'ASC']],
   });
 };
 
@@ -306,16 +307,17 @@ Student.findUnassigned = async function() {
  * @param {string} searchTerm - Name to search
  * @returns {Promise<Student[]>} Array of matching students
  */
-Student.searchByName = async function(searchTerm) {
+Student.searchByName = async function (searchTerm) {
+  // eslint-disable-next-line global-require
   const { Op } = require('sequelize');
   return await this.findAll({
     where: {
       [Op.or]: [
         { first_name: { [Op.iLike]: `%${searchTerm}%` } },
-        { last_name: { [Op.iLike]: `%${searchTerm}%` } }
-      ]
+        { last_name: { [Op.iLike]: `%${searchTerm}%` } },
+      ],
     },
-    order: [['last_name', 'ASC']]
+    order: [['last_name', 'ASC']],
   });
 };
 

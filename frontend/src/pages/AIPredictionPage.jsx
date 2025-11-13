@@ -43,32 +43,40 @@ const AIPredictionPage = () => {
     try {
       setLoading(true);
 
-      // Fetch students
-      const studentsResponse = await api.get('/students', { params: { limit: 100 } });
+      // ✅ FIX: Fetch all data in parallel for better performance
+      const [studentsResponse, gradesResponse, attendanceResponse] = await Promise.all([
+        api.get('/students', { params: { limit: 1000 } }),
+        api.get('/grades', { params: { limit: 10000 } }),
+        api.get('/attendance', { params: { limit: 10000 } })
+      ]);
+
       const students = studentsResponse.data?.data?.students || [];
-
-      // Fetch grades
-      const gradesResponse = await api.get('/grades', { params: { limit: 100 } });
       const grades = gradesResponse.data?.data?.grades || [];
-
-      // Fetch attendance
-      const attendanceResponse = await api.get('/attendance', { params: { limit: 100 } });
       const attendance = attendanceResponse.data?.data?.attendance || [];
+
+      // ✅ FIX: Handle empty data case
+      if (students.length === 0) {
+        setPredictions([]);
+        return;
+      }
 
       // Generate predictions for each student
       const studentPredictions = students.map(student => {
         // Get student's grades
         const studentGrades = grades.filter(g => g.student_id === student.id);
+        // ✅ FIX: Database grades are already 0-10 scale, don't divide by 10!
         const avgGrade = studentGrades.length > 0
-          ? studentGrades.reduce((sum, g) => sum + parseFloat(g.score || 0), 0) / studentGrades.length / 10
+          ? studentGrades.reduce((sum, g) => sum + parseFloat(g.score || 0), 0) / studentGrades.length
           : 0;
 
-        // Get student's attendance
+        // Get student's attendance (case-insensitive check)
         const studentAttendance = attendance.filter(a => a.student_id === student.id);
-        const presentCount = studentAttendance.filter(a => a.status === 'Present').length;
+        const presentCount = studentAttendance.filter(a =>
+          a.status && a.status.toLowerCase() === 'present'
+        ).length;
         const attendanceRate = studentAttendance.length > 0
           ? (presentCount / studentAttendance.length) * 100
-          : 0;
+          : 100; // ✅ FIX: Default to 100% if no attendance records
 
         // Simple AI prediction algorithm (avgGrade is now 0-10 scale)
         let prediction, priority, confidence, factors = [], recommendation;
@@ -119,7 +127,7 @@ const AIPredictionPage = () => {
       setPredictions(studentPredictions);
     } catch (error) {
       console.error('Error fetching predictions:', error);
-      // Fallback to empty if error
+      // ✅ FIX: Better error handling
       setPredictions([]);
     } finally {
       setLoading(false);
@@ -236,7 +244,9 @@ const AIPredictionPage = () => {
                 <Typography variant="h6">TB Độ Tin Cậy</Typography>
               </Box>
               <Typography variant="h4" color="info.main">
-                {Math.round(predictions.reduce((acc, p) => acc + p.confidence, 0) / predictions.length)}%
+                {predictions.length > 0
+                  ? Math.round(predictions.reduce((acc, p) => acc + p.confidence, 0) / predictions.length)
+                  : 0}%
               </Typography>
             </CardContent>
           </Card>
@@ -244,11 +254,31 @@ const AIPredictionPage = () => {
       </Grid>
 
       {/* Predictions List */}
-      <Grid container spacing={3}>
-        {predictions.map((prediction) => (
-          <Grid item xs={12} md={6} lg={4} key={prediction.id}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
+      {predictions.length === 0 ? (
+        <Card>
+          <CardContent sx={{ textAlign: 'center', py: 8 }}>
+            <PsychologyIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              Không có dữ liệu dự đoán
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Cần có ít nhất 1 học sinh với điểm số và điểm danh để tạo dự đoán AI
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={fetchPredictions}
+              sx={{ mt: 3 }}
+            >
+              Tải lại
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Grid container spacing={3}>
+          {predictions.map((prediction) => (
+            <Grid item xs={12} md={6} lg={4} key={prediction.id}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography variant="h6">{prediction.student}</Typography>
                   <Chip
@@ -313,7 +343,8 @@ const AIPredictionPage = () => {
             </Card>
           </Grid>
         ))}
-      </Grid>
+        </Grid>
+      )}
 
       {/* Details Modal */}
       <Dialog

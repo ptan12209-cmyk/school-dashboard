@@ -13,31 +13,45 @@ class AIService {
     this.apiUrl = geminiConfig.apiUrl;
     this.model = geminiConfig.model;
     this.conversationHistory = new Map(); // Store per-user conversation history
+
+    // ✅ SECURITY FIX: Add TTL and max size to prevent memory leak
+    this.MAX_HISTORY_SIZE = 1000; // Maximum number of users to store
+    this.HISTORY_TTL = 3600000; // 1 hour in milliseconds
+
+    // Cleanup old history every 10 minutes
+    this.cleanupInterval = setInterval(() => this.cleanupHistory(), 600000);
   }
 
   /**
-   * Call Gemini API
+   * Call Gemini API with retry logic
    * @param {string} prompt - User prompt
    * @param {Array} history - Optional conversation history
+   * @param {number} retries - Number of retries left
    * @returns {Promise<string>} AI response
    */
-  async callGemini(prompt, history = []) {
+  async callGemini(prompt, history = [], retries = 2) {
     try {
+      // ✅ FIX: Check if API key is configured
+      if (!this.apiKey || this.apiKey === '') {
+        console.warn('⚠️  Gemini API key not configured');
+        return this.getFallbackResponse(prompt);
+      }
+
       // Build contents array for Gemini API
       const contents = [];
 
       // Add conversation history
-      history.forEach(msg => {
+      history.forEach((msg) => {
         contents.push({
           role: msg.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: msg.content }]
+          parts: [{ text: msg.content }],
         });
       });
 
       // Add current prompt
       contents.push({
         role: 'user',
-        parts: [{ text: prompt }]
+        parts: [{ text: prompt }],
       });
 
       const url = `${this.apiUrl}/models/${this.model}:generateContent?key=${this.apiKey}`;
@@ -45,18 +59,18 @@ class AIService {
       const response = await axios.post(
         url,
         {
-          contents: contents,
+          contents,
           generationConfig: {
             temperature: geminiConfig.temperature,
             maxOutputTokens: geminiConfig.maxTokens,
-          }
+          },
         },
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          timeout: geminiConfig.timeout
-        }
+          timeout: geminiConfig.timeout,
+        },
       );
 
       // Extract text from Gemini response
@@ -70,16 +84,66 @@ class AIService {
     } catch (error) {
       console.error('Gemini API Error:', error.response?.data || error.message);
 
+      // ✅ FIX: Retry on timeout, network errors, or 503 overload
+      const shouldRetry = retries > 0 && (
+        error.code === 'ECONNABORTED'
+        || error.code === 'ETIMEDOUT'
+        || error.response?.status === 503
+        || error.response?.data?.error?.code === 503
+      );
+
+      if (shouldRetry) {
+        const retryDelay = geminiConfig.retryDelay * (3 - retries); // Exponential backoff: 2s, 4s, 6s
+        console.log(`⚠️  ${error.code || 'Service overloaded'}, retrying in ${retryDelay / 1000}s... (${retries} retries left)`);
+        await new Promise((resolve) => {
+          setTimeout(resolve, retryDelay);
+        });
+        return this.callGemini(prompt, history, retries - 1);
+      }
+
+      // Handle non-retryable error codes
       if (error.response?.status === 429) {
-        throw new Error('Đã vượt quá giới hạn API. Vui lòng thử lại sau vài phút.');
+        return 'Xin lỗi, bạn đã vượt quá giới hạn số lần sử dụng AI. Vui lòng thử lại sau vài phút. 🙏';
+      }
+
+      if (error.response?.status === 503 || error.response?.data?.error?.code === 503) {
+        // All retries exhausted for 503
+        return 'Xin lỗi, dịch vụ AI của Google hiện đang quá tải sau nhiều lần thử. Vui lòng thử lại sau 5-10 phút. 🔄\n\nBạn có thể tiếp tục sử dụng các tính năng khác của hệ thống.';
       }
 
       if (error.response?.status === 400) {
-        throw new Error('Yêu cầu không hợp lệ. Vui lòng thử lại.');
+        return 'Xin lỗi, câu hỏi của bạn không hợp lệ. Vui lòng thử lại với câu hỏi khác.';
       }
 
-      throw new Error('Không thể kết nối với AI assistant. Vui lòng kiểm tra API key.');
+      // ✅ FIX: Return fallback response instead of throwing error
+      console.warn('⚠️  Gemini API failed, using fallback response');
+      return this.getFallbackResponse(prompt);
     }
+  }
+
+  /**
+   * Get fallback response when API is unavailable
+   * @param {string} prompt - User prompt
+   * @returns {string} Fallback response
+   */
+  getFallbackResponse(prompt) {
+    const lowercasePrompt = prompt.toLowerCase();
+
+    // Context-aware fallback responses
+    if (lowercasePrompt.includes('điểm') || lowercasePrompt.includes('grade')) {
+      return 'Xin lỗi, tôi hiện không thể truy cập dữ liệu điểm. Vui lòng kiểm tra trang Điểm số để xem chi tiết.';
+    }
+
+    if (lowercasePrompt.includes('điểm danh') || lowercasePrompt.includes('attendance')) {
+      return 'Xin lỗi, tôi hiện không thể truy cập dữ liệu điểm danh. Vui lòng kiểm tra trang Điểm danh để xem chi tiết.';
+    }
+
+    if (lowercasePrompt.includes('bài tập') || lowercasePrompt.includes('assignment')) {
+      return 'Xin lỗi, tôi hiện không thể truy cập dữ liệu bài tập. Vui lòng kiểm tra trang Bài tập để xem chi tiết.';
+    }
+
+    // Generic fallback
+    return 'Xin lỗi, AI assistant hiện đang không khả dụng do lỗi kết nối hoặc API key chưa được cấu hình. Vui lòng liên hệ quản trị viên hoặc thử lại sau. 🙏\n\nBạn có thể tiếp tục sử dụng các tính năng khác của hệ thống.';
   }
 
   /**
@@ -91,11 +155,19 @@ class AIService {
    */
   async chat(userId, message, context = {}) {
     try {
-      // Get or create conversation history
-      if (!this.conversationHistory.has(userId)) {
-        this.conversationHistory.set(userId, []);
+      // ✅ SECURITY FIX: Check if history exists and is not expired
+      const historyEntry = this.conversationHistory.get(userId);
+      let history = [];
+
+      if (historyEntry) {
+        const age = Date.now() - historyEntry.lastAccess;
+        if (age < this.HISTORY_TTL) {
+          history = historyEntry.messages;
+        } else {
+          // Expired, remove
+          this.conversationHistory.delete(userId);
+        }
       }
-      const history = this.conversationHistory.get(userId);
 
       // Build system prompt based on context
       const systemPrompt = this.buildSystemPrompt(context);
@@ -115,6 +187,17 @@ class AIService {
         history.splice(0, history.length - 20);
       }
 
+      // ✅ Store with timestamp
+      this.conversationHistory.set(userId, {
+        messages: history,
+        lastAccess: Date.now(),
+      });
+
+      // ✅ Enforce max size to prevent unbounded growth
+      if (this.conversationHistory.size > this.MAX_HISTORY_SIZE) {
+        this.evictOldest();
+      }
+
       return aiResponse;
     } catch (error) {
       console.error('AI Chat Error:', error.message);
@@ -127,6 +210,46 @@ class AIService {
    */
   clearHistory(userId) {
     this.conversationHistory.delete(userId);
+  }
+
+  /**
+   * ✅ SECURITY FIX: Cleanup expired history entries
+   */
+  cleanupHistory() {
+    const now = Date.now();
+    let cleaned = 0;
+
+    for (const [userId, entry] of this.conversationHistory.entries()) {
+      if (now - entry.lastAccess > this.HISTORY_TTL) {
+        this.conversationHistory.delete(userId);
+        cleaned++;
+      }
+    }
+
+    if (cleaned > 0) {
+      console.log(`🧹 Cleaned up ${cleaned} expired chat history entries`);
+    }
+  }
+
+  /**
+   * ✅ SECURITY FIX: Evict oldest entry when max size is reached
+   */
+  evictOldest() {
+    // Find and remove the oldest entry
+    let oldestUserId = null;
+    let oldestTime = Infinity;
+
+    for (const [userId, entry] of this.conversationHistory.entries()) {
+      if (entry.lastAccess < oldestTime) {
+        oldestTime = entry.lastAccess;
+        oldestUserId = userId;
+      }
+    }
+
+    if (oldestUserId) {
+      this.conversationHistory.delete(oldestUserId);
+      console.log(`🧹 Evicted oldest chat history for user: ${oldestUserId}`);
+    }
   }
 
   /**
@@ -164,7 +287,7 @@ Vai trò của bạn:
 - Tạo báo cáo và tóm tắt`;
     }
 
-    prompt += `\n\nHãy hữu ích, thân thiện và chuyên nghiệp. Nếu bạn không biết điều gì, hãy thừa nhận một cách trung thực.`;
+    prompt += '\n\nHãy hữu ích, thân thiện và chuyên nghiệp. Nếu bạn không biết điều gì, hãy thừa nhận một cách trung thực.';
 
     return prompt;
   }
@@ -174,7 +297,9 @@ Vai trò của bạn:
    */
   async generateStudyRecommendations(studentData) {
     try {
-      const { name, grades, weakSubjects, strengths } = studentData;
+      const {
+        name, grades, weakSubjects, strengths,
+      } = studentData;
 
       const prompt = `Phân tích hiệu suất học sinh này và đưa ra gợi ý học tập cá nhân hóa:
 
@@ -210,7 +335,8 @@ Trả lời bằng tiếng Việt với các gạch đầu dòng rõ ràng.`;
 
     // Simple linear regression
     const n = grades.length;
-    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    let sumX = 0; let sumY = 0; let sumXY = 0; let
+      sumX2 = 0;
 
     grades.forEach((grade, index) => {
       const x = index + 1;
@@ -238,7 +364,7 @@ Trả lời bằng tiếng Việt với các gạch đầu dòng rõ ràng.`;
       trend,
       prediction: Math.max(0, Math.min(10, prediction)).toFixed(2),
       slope: slope.toFixed(3),
-      confidence: this.calculateConfidence(grades)
+      confidence: this.calculateConfidence(grades),
     };
   }
 
@@ -246,9 +372,9 @@ Trả lời bằng tiếng Việt với các gạch đầu dòng rõ ràng.`;
    * Calculate confidence level based on grade variance
    */
   calculateConfidence(grades) {
-    const scores = grades.map(g => parseFloat(g.score));
+    const scores = grades.map((g) => parseFloat(g.score));
     const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
-    const variance = scores.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / scores.length;
+    const variance = scores.reduce((acc, val) => acc + (val - mean) ** 2, 0) / scores.length;
     const stdDev = Math.sqrt(variance);
 
     // Lower std dev = higher confidence
@@ -262,7 +388,9 @@ Trả lời bằng tiếng Việt với các gạch đầu dòng rõ ràng.`;
    */
   async generateCourseRecommendations(studentProfile) {
     try {
-      const { interests, completedCourses, avgGrade, careerGoals } = studentProfile;
+      const {
+        interests, completedCourses, avgGrade, careerGoals,
+      } = studentProfile;
 
       const prompt = `Dựa trên hồ sơ học sinh này, gợi ý 5 khóa học phù hợp:
 
@@ -292,7 +420,9 @@ Trả lời bằng tiếng Việt.`;
    */
   async generateReportSummary(reportData) {
     try {
-      const { studentName, grades, attendance, behavior, period } = reportData;
+      const {
+        studentName, grades, attendance, behavior, period,
+      } = reportData;
 
       const prompt = `Tạo bản tóm tắt báo cáo toàn diện cho học sinh này:
 
@@ -303,7 +433,7 @@ Tỷ lệ điểm danh: ${attendance.rate}%
 Điểm hạnh kiểm: ${behavior.score}/10
 
 Các môn học:
-${grades.subjects.map(s => `- ${s.name}: ${s.score}/10`).join('\n')}
+${grades.subjects.map((s) => `- ${s.name}: ${s.score}/10`).join('\n')}
 
 Vui lòng viết:
 1. Tóm tắt hiệu suất tổng thể

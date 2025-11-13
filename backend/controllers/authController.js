@@ -5,13 +5,13 @@ const { User, Teacher, Student } = require('../models');
  * @desc    Register a new user
  * @access  Public
  */
-exports.register = async (req, res, next) => {
+exports.register = async (req, res) => {
   try {
-    const { 
-      email, 
-      password, 
-      role, 
-      firstName, 
+    const {
+      email,
+      password,
+      role,
+      firstName,
       lastName,
       dateOfBirth,
       gender,
@@ -19,14 +19,14 @@ exports.register = async (req, res, next) => {
       phone,
       parentName,
       parentPhone,
-      parentEmail
+      parentEmail,
     } = req.body;
-    
+
     // Validate required fields first
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email and password are required'
+        message: 'Email and password are required',
       });
     }
     // Normalize email to lowercase and trim whitespace to prevent duplicates
@@ -37,31 +37,31 @@ exports.register = async (req, res, next) => {
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: 'Email already exists'
+        message: 'Email already exists',
       });
     }
-    
+
     // Validate password strength
     const passwordValidation = User.validatePassword(password);
     if (!passwordValidation.valid) {
       return res.status(400).json({
         success: false,
         message: 'Password does not meet requirements',
-        errors: passwordValidation.errors
+        errors: passwordValidation.errors,
       });
     }
-    
+
     // Create user
     const user = await User.create({
       email: trimmedEmail,
       password_hash: password, // Will be hashed by beforeCreate hook
       role: role || 'student',
-      is_active: true
+      is_active: true,
     });
-    
+
     // Create profile based on role
     let profile = null;
-    
+
     try {
       if (role === 'teacher' && firstName && lastName) {
         profile = await Teacher.create({
@@ -70,7 +70,7 @@ exports.register = async (req, res, next) => {
           last_name: lastName,
           department: department || null,
           phone: phone || null,
-          hire_date: new Date()
+          hire_date: new Date(),
         });
       } else if (role === 'student' && firstName && lastName && dateOfBirth) {
         profile = await Student.create({
@@ -82,63 +82,70 @@ exports.register = async (req, res, next) => {
           phone: phone || null,
           parent_name: parentName || null,
           parent_phone: parentPhone || null,
-          parent_email: parentEmail || null
+          parent_email: parentEmail || null,
         });
       }
     } catch (profileError) {
       // Rollback user creation if profile creation fails
       await user.destroy();
-      
+
       return res.status(400).json({
         success: false,
-        message: profileError.message || 'Failed to create user profile'
+        message: profileError.message || 'Failed to create user profile',
       });
     }
-    
+
     // Generate token
     const token = user.generateToken();
-    
-    res.status(201).json({
+
+    // ✅ SECURITY FIX: Set token as httpOnly cookie (prevents XSS)
+    res.cookie('accessToken', token, {
+      httpOnly: true, // Cannot be accessed by JavaScript
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // lax for dev, strict for prod
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    return res.status(201).json({
       success: true,
       message: 'User registered successfully',
       data: {
         user: {
           id: user.id,
           email: user.email,
-          role: user.role
+          role: user.role,
         },
         profile,
-        token
-      }
+        // ✅ Token is now in httpOnly cookie, not in response body
+      },
     });
-    
   } catch (error) {
     console.error('Register error:', error);
-    
+
     // Handle Sequelize validation errors
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
         success: false,
         message: 'Validation error',
-        errors: error.errors.map(e => ({
+        errors: error.errors.map((e) => ({
           field: e.path,
-          message: e.message
-        }))
+          message: e.message,
+        })),
       });
     }
-    
+
     // Handle unique constraint errors
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(409).json({
         success: false,
-        message: 'Email already exists'
+        message: 'Email already exists',
       });
     }
-    
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: 'Server error during registration',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -148,16 +155,16 @@ exports.register = async (req, res, next) => {
  * @desc    Login user and return token
  * @access  Public
  */
-exports.login = async (req, res, next) => {
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     // âœ… COMPREHENSIVE VALIDATION
     // Return 400 (validation error) for missing fields
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email and password are required'
+        message: 'Email and password are required',
       });
     }
 
@@ -170,41 +177,49 @@ exports.login = async (req, res, next) => {
       // Return 401 for invalid credentials (user not found)
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid email or password',
       });
     }
-    
+
     // Check if account is active
     if (!user.is_active) {
       return res.status(403).json({
         success: false,
-        message: 'Account is inactive. Please contact administrator.'
+        message: 'Account is inactive. Please contact administrator.',
       });
     }
-    
+
     // Verify password
     const isValidPassword = await user.comparePassword(password);
-    
+
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid email or password',
       });
     }
-    
+
     // Get user profile based on role
     let profile = null;
-    
+
     if (user.role === 'teacher') {
       profile = await Teacher.findOne({ where: { user_id: user.id } });
     } else if (user.role === 'student') {
       profile = await Student.findOne({ where: { user_id: user.id } });
     }
-    
+
     // Generate token
     const token = user.generateToken();
-    
-    res.json({
+
+    // ✅ SECURITY FIX: Set token as httpOnly cookie (prevents XSS)
+    res.cookie('accessToken', token, {
+      httpOnly: true, // Cannot be accessed by JavaScript
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // lax for dev, strict for prod
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    return res.json({
       success: true,
       message: 'Login successful',
       data: {
@@ -212,25 +227,24 @@ exports.login = async (req, res, next) => {
           id: user.id,
           email: user.email,
           role: user.role,
-          is_active: user.is_active
+          is_active: user.is_active,
         },
         profile: profile ? {
           id: profile.id,
           firstName: profile.first_name,
           lastName: profile.last_name,
-          fullName: profile.getFullName ? profile.getFullName() : `${profile.first_name} ${profile.last_name}`
+          fullName: profile.getFullName ? profile.getFullName() : `${profile.first_name} ${profile.last_name}`,
         } : null,
-        token
-      }
+        // ✅ Token is now in httpOnly cookie, not in response body
+      },
     });
-    
   } catch (error) {
     console.error('Login error:', error);
-    
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: 'Server error during login',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -240,51 +254,50 @@ exports.login = async (req, res, next) => {
  * @desc    Get current user profile
  * @access  Private (requires authentication)
  */
-exports.getCurrentUser = async (req, res, next) => {
+exports.getCurrentUser = async (req, res) => {
   try {
     // User is already attached to req by authMiddleware
     const userId = req.user.id;
-    
+
     // Fetch user with profile
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'email', 'role', 'is_active', 'created_at']
+      attributes: ['id', 'email', 'role', 'is_active', 'created_at'],
     });
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
-    
+
     // Get profile based on role
     let profile = null;
-    
+
     if (user.role === 'teacher') {
-      profile = await Teacher.findOne({ 
-        where: { user_id: user.id }
+      profile = await Teacher.findOne({
+        where: { user_id: user.id },
       });
     } else if (user.role === 'student') {
-      profile = await Student.findOne({ 
-        where: { user_id: user.id }
+      profile = await Student.findOne({
+        where: { user_id: user.id },
       });
     }
-    
-    res.json({
+
+    return res.json({
       success: true,
       data: {
         user: user.toJSON(),
-        profile: profile ? profile.toJSON() : null
-      }
+        profile: profile ? profile.toJSON() : null,
+      },
     });
-    
   } catch (error) {
     console.error('Get current user error:', error);
-    
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -294,27 +307,30 @@ exports.getCurrentUser = async (req, res, next) => {
  * @desc    Logout user (client-side should delete token)
  * @access  Private
  */
-exports.logout = async (req, res, next) => {
+exports.logout = async (req, res) => {
   try {
-    // With JWT, logout is handled client-side by deleting the token
-    // This endpoint is mainly for logging/tracking purposes
-    
-    res.json({
+    // ✅ SECURITY FIX: Clear httpOnly cookie on logout
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    });
+
+    return res.json({
       success: true,
       message: 'Logout successful',
       data: {
         loggedOut: true,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
-    
   } catch (error) {
     console.error('Logout error:', error);
-    
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -324,35 +340,43 @@ exports.logout = async (req, res, next) => {
  * @desc    Refresh access token
  * @access  Private
  */
-exports.refreshToken = async (req, res, next) => {
+exports.refreshToken = async (req, res) => {
   try {
     // User is already authenticated via authMiddleware
     const userId = req.user.id;
-    
+
     const user = await User.findByPk(userId);
-    
+
     if (!user || !user.is_active) {
       return res.status(401).json({
         success: false,
-        message: 'User not found or inactive'
+        message: 'User not found or inactive',
       });
     }
-    
+
     // Generate new token
     const token = user.generateToken();
-    
-    res.json({
-      success: true,
-      data: { token }
+
+    // ✅ SECURITY FIX: Set refreshed token as httpOnly cookie
+    res.cookie('accessToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
     });
-    
+
+    return res.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      // ✅ Token is now in httpOnly cookie
+    });
   } catch (error) {
     console.error('Refresh token error:', error);
-    
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
       message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
