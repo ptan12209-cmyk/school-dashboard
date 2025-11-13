@@ -13,16 +13,16 @@ const {
  */
 exports.getAllClasses = catchAsync(async (req, res) => {
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
   const offset = (page - 1) * limit;
 
   // Filtering
   const where = {};
 
   if (req.query.grade_level) {
-    const gradeLevel = parseInt(req.query.grade_level);
-    if (!isNaN(gradeLevel)) {
+    const gradeLevel = parseInt(req.query.grade_level, 10);
+    if (!Number.isNaN(gradeLevel)) {
       where.grade_level = gradeLevel;
     }
   }
@@ -339,8 +339,8 @@ exports.getClassStudents = catchAsync(async (req, res) => {
   }
 
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 50;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 50;
   const offset = (page - 1) * limit;
 
   // Get students with user data
@@ -471,12 +471,12 @@ exports.getClassStats = catchAsync(async (req, res) => {
       school_year,
       totalClasses,
       activeClasses,
-      totalCapacity: parseInt(capacityStats[0]?.dataValues.totalCapacity || 0),
+      totalCapacity: parseInt(capacityStats[0]?.dataValues.totalCapacity || 0, 10),
       enrolledStudents: enrollmentCount,
-      availableSeats: parseInt(capacityStats[0]?.dataValues.totalCapacity || 0) - enrollmentCount,
+      availableSeats: parseInt(capacityStats[0]?.dataValues.totalCapacity || 0, 10) - enrollmentCount,
       byGradeLevel: byGradeLevel.map((item) => ({
         grade_level: item.grade_level,
-        count: parseInt(item.dataValues.count),
+        count: parseInt(item.dataValues.count, 10),
       })),
     },
   });
@@ -488,7 +488,7 @@ exports.getClassStats = catchAsync(async (req, res) => {
  * @access  Admin
  */
 exports.getAvailableClasses = catchAsync(async (req, res) => {
-  const grade_level = req.query.grade_level ? parseInt(req.query.grade_level) : null;
+  const grade_level = req.query.grade_level ? parseInt(req.query.grade_level, 10) : null;
   const school_year = req.query.school_year || '2024-2025';
 
   // Get all active classes with student count
@@ -519,7 +519,7 @@ exports.getAvailableClasses = catchAsync(async (req, res) => {
 
   // Filter classes that are not full
   const availableClasses = classes.filter((classData) => {
-    const studentCount = parseInt(classData.dataValues.student_count || 0);
+    const studentCount = parseInt(classData.dataValues.student_count || 0, 10);
     return studentCount < classData.max_students;
   });
 
@@ -528,8 +528,8 @@ exports.getAvailableClasses = catchAsync(async (req, res) => {
     data: {
       classes: availableClasses.map((classData) => ({
         ...classData.toJSON(),
-        student_count: parseInt(classData.dataValues.student_count || 0),
-        available_seats: classData.max_students - parseInt(classData.dataValues.student_count || 0),
+        student_count: parseInt(classData.dataValues.student_count || 0, 10),
+        available_seats: classData.max_students - parseInt(classData.dataValues.student_count || 0, 10),
         is_full: false,
       })),
     },

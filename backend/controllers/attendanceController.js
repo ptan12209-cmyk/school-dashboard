@@ -608,7 +608,7 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
       period: { startDate, endDate },
       total: totalRecords,
       overallRate: totalRecords > 0
-        ? Math.round((byStatus.find((s) => s.status === 'Present')?.dataValues?.count || 0) / totalRecords * 10000) / 100
+        ? Math.round(((byStatus.find((s) => s.status === 'Present')?.dataValues?.count || 0) / totalRecords) * 10000) / 100
         : 0,
       byStatus: byStatus.map((item) => ({
         status: item.status,

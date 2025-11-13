@@ -219,7 +219,7 @@ Class.getStats = async function () {
     active,
     byGradeLevel: byGradeLevel.map((item) => ({
       gradeLevel: item.grade_level,
-      count: parseInt(item.count),
+      count: parseInt(item.count, 10),
     })),
     totalStudents,
   };

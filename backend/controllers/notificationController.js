@@ -17,8 +17,8 @@ exports.getUserNotifications = catchAsync(async (req, res) => {
   const { page = 1, limit = 20, filter } = req.query;
 
   const options = {
-    page: parseInt(page),
-    limit: parseInt(limit),
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
   };
 
   // Apply filters

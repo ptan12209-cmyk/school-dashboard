@@ -13,8 +13,8 @@ const {
  */
 exports.getAllGrades = catchAsync(async (req, res) => {
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 50;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 50;
   const offset = (page - 1) * limit;
 
   // Filtering
@@ -46,7 +46,7 @@ exports.getAllGrades = catchAsync(async (req, res) => {
     const endDate = new Date(req.query.end_date);
 
     // Validate date range
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
       return res.status(400).json({
         success: false,
         message: 'Invalid date format. Please use valid dates.',
@@ -622,12 +622,12 @@ exports.getGradeStats = catchAsync(async (req, res) => {
       passingRate: totalGrades > 0 ? Math.round((passingCount / totalGrades) * 10000) / 100 : 0,
       byGradeType: byGradeType.map((item) => ({
         grade_type: item.grade_type,
-        count: parseInt(item.dataValues.count),
+        count: parseInt(item.dataValues.count, 10),
         avg_score: Math.round(parseFloat(item.dataValues.avg_score) * 100) / 100,
       })),
       byLetterGrade: byLetterGrade.map((item) => ({
         letter_grade: item.letter_grade,
-        count: parseInt(item.dataValues.count),
+        count: parseInt(item.dataValues.count, 10),
       })),
     },
   });

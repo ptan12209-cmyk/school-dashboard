@@ -13,8 +13,8 @@ const {
  */
 exports.getAllCourses = catchAsync(async (req, res) => {
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
   const offset = (page - 1) * limit;
 
   // Filtering
@@ -407,8 +407,8 @@ exports.getCourseGrades = catchAsync(async (req, res) => {
   }
 
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 50;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 50;
   const offset = (page - 1) * limit;
 
   // Get grades with student data
@@ -543,7 +543,7 @@ exports.getAllSubjects = catchAsync(async (req, res) => {
     data: {
       subjects: subjects.map((item) => ({
         subject: item.subject,
-        course_count: parseInt(item.dataValues.course_count),
+        course_count: parseInt(item.dataValues.course_count, 10),
       })),
     },
   });
@@ -595,11 +595,11 @@ exports.getCourseStats = catchAsync(async (req, res) => {
       activeCourses,
       bySubject: bySubject.map((item) => ({
         subject: item.subject,
-        count: parseInt(item.dataValues.count),
+        count: parseInt(item.dataValues.count, 10),
       })),
       bySemester: bySemester.map((item) => ({
         semester: item.semester,
-        count: parseInt(item.dataValues.count),
+        count: parseInt(item.dataValues.count, 10),
       })),
     },
   });

@@ -338,7 +338,7 @@ Grade.getStats = async function () {
     averageScore: avgScore && avgScore.avgScore ? parseFloat(avgScore.avgScore).toFixed(2) : null,
     byLetterGrade: byLetterGrade.map((item) => ({
       grade: item.letter_grade,
-      count: parseInt(item.count),
+      count: parseInt(item.count, 10),
     })),
   };
 };

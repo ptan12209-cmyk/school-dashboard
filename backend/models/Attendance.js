@@ -280,13 +280,13 @@ Attendance.getCourseStats = async function (courseId, options = {}) {
   });
 
   const present = byStatus.find((s) => s.status === 'Present');
-  const presentCount = present ? parseInt(present.count) : 0;
+  const presentCount = present ? parseInt(present.count, 10) : 0;
   const rate = ((presentCount / total) * 100).toFixed(1);
 
   return {
     total,
     byStatus: byStatus.reduce((acc, item) => {
-      acc[item.status] = parseInt(item.count);
+      acc[item.status] = parseInt(item.count, 10);
       return acc;
     }, {}),
     rate: parseFloat(rate),
@@ -318,7 +318,7 @@ Attendance.getStats = async function (options = {}) {
   });
 
   const present = byStatus.find((s) => s.status === 'Present');
-  const presentCount = present ? parseInt(present.count) : 0;
+  const presentCount = present ? parseInt(present.count, 10) : 0;
   const overallRate = total > 0 ? ((presentCount / total) * 100).toFixed(1) : 0;
 
   return {
@@ -326,8 +326,8 @@ Attendance.getStats = async function (options = {}) {
     overallRate: parseFloat(overallRate),
     byStatus: byStatus.map((item) => ({
       status: item.status,
-      count: parseInt(item.count),
-      percentage: ((parseInt(item.count) / total) * 100).toFixed(1),
+      count: parseInt(item.count, 10),
+      percentage: ((parseInt(item.count, 10) / total) * 100).toFixed(1),
     })),
   };
 };

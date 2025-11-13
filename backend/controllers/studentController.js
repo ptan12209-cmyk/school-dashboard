@@ -16,8 +16,8 @@ exports.getAllStudents = catchAsync(async (req, res) => {
   }
 
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
   const offset = (page - 1) * limit;
 
   // Filtering
@@ -425,7 +425,7 @@ exports.getStudentStats = catchAsync(async (req, res) => {
       unassigned,
       byGender: byGender.map((g) => ({
         gender: g.gender,
-        count: parseInt(g.dataValues.count),
+        count: parseInt(g.dataValues.count, 10),
       })),
     },
   });

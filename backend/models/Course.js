@@ -317,11 +317,11 @@ Course.getStats = async function () {
     active,
     bySubject: bySubject.map((item) => ({
       subject: item.subject,
-      count: parseInt(item.count),
+      count: parseInt(item.count, 10),
     })),
     bySemester: bySemester.map((item) => ({
       semester: item.semester,
-      count: parseInt(item.count),
+      count: parseInt(item.count, 10),
     })),
   };
 };
