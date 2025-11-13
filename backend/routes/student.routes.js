@@ -96,7 +96,7 @@ router.post(
 
     body('phone')
       .optional()
-      .matches(/^[0-9\s\-\+\(\)]*$/)
+      .matches(/^[0-9\s\-+()]*$/)
       .withMessage('Phone number contains invalid characters'),
 
     body('address')
@@ -113,7 +113,7 @@ router.post(
 
     body('parentPhone')
       .optional()
-      .matches(/^[0-9\s\-\+\(\)]*$/)
+      .matches(/^[0-9\s\-+()]*$/)
       .withMessage('Parent phone contains invalid characters'),
 
     body('parentEmail')
@@ -173,7 +173,7 @@ router.put(
 
     body('phone')
       .optional()
-      .matches(/^[0-9\s\-\+\(\)]*$/)
+      .matches(/^[0-9\s\-+()]*$/)
       .withMessage('Phone number contains invalid characters'),
 
     body('address')
@@ -190,7 +190,7 @@ router.put(
 
     body('parentPhone')
       .optional()
-      .matches(/^[0-9\s\-\+\(\)]*$/)
+      .matches(/^[0-9\s\-+()]*$/)
       .withMessage('Parent phone contains invalid characters'),
 
     body('parentEmail')

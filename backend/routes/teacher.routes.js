@@ -105,7 +105,7 @@ router.post(
 
     body('phone')
       .optional()
-      .matches(/^[0-9\s\-\+\(\)]*$/)
+      .matches(/^[0-9\s\-+()]*$/)
       .withMessage('Phone number contains invalid characters'),
 
     body('hireDate')
@@ -152,7 +152,7 @@ router.put(
 
     body('phone')
       .optional()
-      .matches(/^[0-9\s\-\+\(\)]*$/)
+      .matches(/^[0-9\s\-+()]*$/)
       .withMessage('Phone number contains invalid characters'),
 
     body('hireDate')

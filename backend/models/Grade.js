@@ -299,7 +299,7 @@ Grade.getDistribution = async function (courseId) {
   };
 
   grades.forEach((grade) => {
-    if (distribution.hasOwnProperty(grade.letter_grade)) {
+    if (Object.prototype.hasOwnProperty.call(distribution, grade.letter_grade)) {
       distribution[grade.letter_grade]++;
     }
   });

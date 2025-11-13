@@ -67,7 +67,7 @@ router.post(
     // Validate phone
     body('phone')
       .optional()
-      .matches(/^[0-9\s\-\+\(\)]*$/)
+      .matches(/^[0-9\s\-+()]*$/)
       .withMessage('Số điện thoại chỉ chứa số và ký tự +-() '),
   ],
   validate, // Sẽ uncomment sau khi tạo middleware

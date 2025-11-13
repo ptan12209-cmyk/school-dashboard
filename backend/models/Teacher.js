@@ -79,7 +79,7 @@ const Teacher = sequelize.define('Teacher', {
     allowNull: true,
     validate: {
       is: {
-        args: /^[0-9\s\-\+\(\)]*$/i,
+        args: /^[0-9\s\-+()]*$/i,
         msg: 'Phone number can only contain numbers, spaces, and +-() characters',
       },
     },

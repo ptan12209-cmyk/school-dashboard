@@ -6,7 +6,7 @@
  * Usage: node test-db.js
  */
 
-const { sequelize } = require('./config/database');
+const { sequelize } = require('./database');
 
 async function testConnection() {
   try {

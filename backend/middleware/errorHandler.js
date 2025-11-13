@@ -1,3 +1,5 @@
+/* eslint-disable max-classes-per-file */
+// Custom Error Classes for API Error Handling
 class AppError extends Error {
   constructor(message, statusCode) {
     super(message);
