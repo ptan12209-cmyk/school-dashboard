@@ -5,13 +5,13 @@
  * 
  * Endpoints tested:
  * - GET    /api/teacher
- * - GET    /api/teacher/departments/list
- * - GET    /api/teacher/stats
- * - GET    /api/teacher/:id
+ * - GET    /api/teachers/departments/list
+ * - GET    /api/teachers/stats
+ * - GET    /api/teachers/:id
  * - POST   /api/teacher
- * - PUT    /api/teacher/:id
- * - DELETE /api/teacher/:id
- * - GET    /api/teacher/:id/course
+ * - PUT    /api/teachers/:id
+ * - DELETE /api/teachers/:id
+ * - GET    /api/teachers/:id/course
  * 
  * Total tests: 25
  */
@@ -45,7 +45,7 @@ describe('Teacher Management API', () => {
    * GET /api/teacher
    * ============================================
    */
-  describe('GET /api/teacher', () => {
+  describe('GET /api/teachers', () => {
     test('should get all teacher', async () => {
       const { token } = await TestHelpers.createAdmin();
       
@@ -53,7 +53,7 @@ describe('Teacher Management API', () => {
       await TestHelpers.createTeacher({ department: 'Science' });
 
       const response = await request(app)
-        .get('/api/teacher')
+        .get('/api/teachers')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -71,7 +71,7 @@ describe('Teacher Management API', () => {
       }
 
       const response = await request(app)
-        .get('/api/teacher?page=1&limit=3')
+        .get('/api/teachers?page=1&limit=3')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -85,7 +85,7 @@ describe('Teacher Management API', () => {
       await TestHelpers.createTeacher({ department: 'Science' });
 
       const response = await request(app)
-        .get('/api/teacher?department=Mathematics')
+        .get('/api/teachers?department=Mathematics')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -103,7 +103,7 @@ describe('Teacher Management API', () => {
       });
 
       const response = await request(app)
-        .get('/api/teacher?search=John')
+        .get('/api/teachers?search=John')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -117,11 +117,11 @@ describe('Teacher Management API', () => {
 
       // Deactivate one teacher
       await request(app)
-        .patch(`/api/user/${user.id}/deactivate`)
+        .patch(`/api/users/${user.id}/deactivate`)
         .set('Authorization', `Bearer ${adminData.token}`);
 
       const response = await request(app)
-        .get('/api/teacher')
+        .get('/api/teachers')
         .set('Authorization', `Bearer ${teacherToken}`);
 
       Assertions.assertSuccess(response, 200);
@@ -133,10 +133,10 @@ describe('Teacher Management API', () => {
 
   /**
    * ============================================
-   * GET /api/teacher/departments/list
+   * GET /api/teachers/departments/list
    * ============================================
    */
-  describe('GET /api/teacher/departments/list', () => {
+  describe('GET /api/teachers/departments/list', () => {
     test('should get department list without authentication', async () => {
       // Create teacher with different departments
       await TestHelpers.createTeacher({ department: 'Mathematics' });
@@ -144,7 +144,7 @@ describe('Teacher Management API', () => {
       await TestHelpers.createTeacher({ department: 'Mathematics' }); // Duplicate
 
       const response = await request(app)
-        .get('/api/teacher/departments/list');
+        .get('/api/teachers/departments/list');
 
       Assertions.assertSuccess(response, 200);
       expect(response.body.data).toHaveProperty('departments');
@@ -155,7 +155,7 @@ describe('Teacher Management API', () => {
 
     test('should return empty array when no teacher', async () => {
       const response = await request(app)
-        .get('/api/teacher/departments/list');
+        .get('/api/teachers/departments/list');
 
       Assertions.assertSuccess(response, 200);
       expect(response.body.data.departments).toEqual([]);
@@ -164,10 +164,10 @@ describe('Teacher Management API', () => {
 
   /**
    * ============================================
-   * GET /api/teacher/stats
+   * GET /api/teachers/stats
    * ============================================
    */
-  describe('GET /api/teacher/stats', () => {
+  describe('GET /api/teachers/stats', () => {
     test('should get teacher statistics as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       
@@ -176,7 +176,7 @@ describe('Teacher Management API', () => {
       await TestHelpers.createTeacher({ department: 'Mathematics' });
 
       const response = await request(app)
-        .get('/api/teacher/stats')
+        .get('/api/teachers/stats')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -190,7 +190,7 @@ describe('Teacher Management API', () => {
       const { token } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .get('/api/teacher/stats')
+        .get('/api/teachers/stats')
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -202,7 +202,7 @@ describe('Teacher Management API', () => {
    * POST /api/teacher
    * ============================================
    */
-  describe('POST /api/teacher', () => {
+  describe('POST /api/teachers', () => {
     test('should create teacher as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
 
@@ -217,7 +217,7 @@ describe('Teacher Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/teacher')
+        .post('/api/teachers')
         .set('Authorization', `Bearer ${token}`)
         .send(teacherData);
 
@@ -239,7 +239,7 @@ describe('Teacher Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/teacher')
+        .post('/api/teachers')
         .set('Authorization', `Bearer ${token}`)
         .send(teacherData);
 
@@ -260,7 +260,7 @@ describe('Teacher Management API', () => {
       };
 
       const response = await request(app)
-        .post('/api/teacher')
+        .post('/api/teachers')
         .set('Authorization', `Bearer ${token}`)
         .send(teacherData);
 
@@ -271,7 +271,7 @@ describe('Teacher Management API', () => {
       const { token } = await TestHelpers.createAdmin();
 
       const response = await request(app)
-        .post('/api/teacher')
+        .post('/api/teachers')
         .set('Authorization', `Bearer ${token}`)
         .send({
           email: 'test@test.com'
@@ -285,7 +285,7 @@ describe('Teacher Management API', () => {
       const { token } = await TestHelpers.createAdmin();
 
       const response = await request(app)
-        .post('/api/teacher')
+        .post('/api/teachers')
         .set('Authorization', `Bearer ${token}`)
         .send({
           email: 'test@test.com',
@@ -303,7 +303,7 @@ describe('Teacher Management API', () => {
       const teacherData = MockData.validTeacher();
 
       const response = await request(app)
-        .post('/api/teacher')
+        .post('/api/teachers')
         .set('Authorization', `Bearer ${token}`)
         .send(teacherData);
 
@@ -313,16 +313,16 @@ describe('Teacher Management API', () => {
 
   /**
    * ============================================
-   * GET /api/teacher/:id
+   * GET /api/teachers/:id
    * ============================================
    */
-  describe('GET /api/teacher/:id', () => {
+  describe('GET /api/teachers/:id', () => {
     test('should get teacher by ID', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { teacher } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .get(`/api/teacher/${teacher.id}`)
+        .get(`/api/teachers/${teacher.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -335,7 +335,7 @@ describe('Teacher Management API', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       const response = await request(app)
-        .get(`/api/teacher/${fakeId}`)
+        .get(`/api/teachers/${fakeId}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertNotFound(response);
@@ -344,10 +344,10 @@ describe('Teacher Management API', () => {
 
   /**
    * ============================================
-   * PUT /api/teacher/:id
+   * PUT /api/teachers/:id
    * ============================================
    */
-  describe('PUT /api/teacher/:id', () => {
+  describe('PUT /api/teachers/:id', () => {
     test('should update teacher as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { teacher } = await TestHelpers.createTeacher();
@@ -360,7 +360,7 @@ describe('Teacher Management API', () => {
       };
 
       const response = await request(app)
-        .put(`/api/teacher/${teacher.id}`)
+        .put(`/api/teachers/${teacher.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
 
@@ -377,7 +377,7 @@ describe('Teacher Management API', () => {
       };
 
       const response = await request(app)
-        .put(`/api/teacher/${teacher.id}`)
+        .put(`/api/teachers/${teacher.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
 
@@ -390,7 +390,7 @@ describe('Teacher Management API', () => {
       const { teacher: otherTeacher } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .put(`/api/teacher/${otherTeacher.id}`)
+        .put(`/api/teachers/${otherTeacher.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ phone: '0000000000' });
 
@@ -402,7 +402,7 @@ describe('Teacher Management API', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       const response = await request(app)
-        .put(`/api/teacher/${fakeId}`)
+        .put(`/api/teachers/${fakeId}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ firstName: 'Test' });
 
@@ -412,16 +412,16 @@ describe('Teacher Management API', () => {
 
   /**
    * ============================================
-   * DELETE /api/teacher/:id
+   * DELETE /api/teachers/:id
    * ============================================
    */
-  describe('DELETE /api/teacher/:id', () => {
+  describe('DELETE /api/teachers/:id', () => {
     test('should delete teacher as admin', async () => {
       const { token } = await TestHelpers.createAdmin();
       const { teacher } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .delete(`/api/teacher/${teacher.id}`)
+        .delete(`/api/teachers/${teacher.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertSuccess(response, 200);
@@ -433,7 +433,7 @@ describe('Teacher Management API', () => {
       const { token, teacher } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .delete(`/api/teacher/${teacher.id}`)
+        .delete(`/api/teachers/${teacher.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -444,7 +444,7 @@ describe('Teacher Management API', () => {
       const { teacher: otherTeacher } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .delete(`/api/teacher/${otherTeacher.id}`)
+        .delete(`/api/teachers/${otherTeacher.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertForbidden(response);
@@ -455,7 +455,7 @@ describe('Teacher Management API', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       const response = await request(app)
-        .delete(`/api/teacher/${fakeId}`)
+        .delete(`/api/teachers/${fakeId}`)
         .set('Authorization', `Bearer ${token}`);
 
       Assertions.assertNotFound(response);
@@ -464,15 +464,15 @@ describe('Teacher Management API', () => {
 
   /**
    * ============================================
-   * GET /api/teacher/:id/course
+   * GET /api/teachers/:id/course
    * ============================================
    */
-  describe('GET /api/teacher/:id/course', () => {
+  describe('GET /api/teachers/:id/course', () => {
     test('should get teacher course', async () => {
       const { token, teacher } = await TestHelpers.createTeacher();
 
       const response = await request(app)
-        .get(`/api/teacher/${teacher.id}/course`)
+        .get(`/api/teachers/${teacher.id}/course`)
         .set('Authorization', `Bearer ${token}`);
 
       // Currently returns placeholder message
