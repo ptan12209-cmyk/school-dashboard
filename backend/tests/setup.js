@@ -95,9 +95,19 @@ class TestHelpers {
       .post('/api/auth/register')
       .send(userData);
 
+    // ✅ FIX: Extract token from httpOnly cookie instead of response body
+    const cookies = response.headers['set-cookie'];
+    let token = null;
+    if (cookies) {
+      const accessTokenCookie = cookies.find(cookie => cookie.startsWith('accessToken='));
+      if (accessTokenCookie) {
+        token = accessTokenCookie.split(';')[0].split('=')[1];
+      }
+    }
+
     return {
       user: response.body.data.user,
-      token: response.body.data.token,
+      token: token,
       profile: response.body.data.profile
     };
   }
@@ -120,9 +130,19 @@ class TestHelpers {
       .post('/api/auth/register')
       .send(userData);
 
+    // ✅ FIX: Extract token from httpOnly cookie instead of response body
+    const cookies = response.headers['set-cookie'];
+    let token = null;
+    if (cookies) {
+      const accessTokenCookie = cookies.find(cookie => cookie.startsWith('accessToken='));
+      if (accessTokenCookie) {
+        token = accessTokenCookie.split(';')[0].split('=')[1];
+      }
+    }
+
     return {
       user: response.body.data.user,
-      token: response.body.data.token,
+      token: token,
       teacher: response.body.data.profile
     };
   }
@@ -149,9 +169,19 @@ class TestHelpers {
       .post('/api/auth/register')
       .send(userData);
 
+    // ✅ FIX: Extract token from httpOnly cookie instead of response body
+    const cookies = response.headers['set-cookie'];
+    let token = null;
+    if (cookies) {
+      const accessTokenCookie = cookies.find(cookie => cookie.startsWith('accessToken='));
+      if (accessTokenCookie) {
+        token = accessTokenCookie.split(';')[0].split('=')[1];
+      }
+    }
+
     return {
       user: response.body.data.user,
-      token: response.body.data.token,
+      token: token,
       student: response.body.data.profile
     };
   }
@@ -168,7 +198,7 @@ static async createClass(token, classData = {}) {
   }
   
   const response = await request(app)
-    .post('/api/class')
+    .post('/api/classes')
     .set('Authorization', `Bearer ${adminToken}`)
     .send({
       name: classData.name || `Test Class ${Date.now()}`,
@@ -204,7 +234,7 @@ static async createClass(token, classData = {}) {
     };
 
     const response = await request(app)
-      .post('/api/course')
+      .post('/api/courses')
       .set('Authorization', `Bearer ${token}`)
       .send(courseData);
 
@@ -227,7 +257,7 @@ static async createClass(token, classData = {}) {
     };
 
     const response = await request(app)
-      .post('/api/grade')
+      .post('/api/grades')
       .set('Authorization', `Bearer ${token}`)
       .send(gradeData);
 
@@ -269,9 +299,19 @@ static async createClass(token, classData = {}) {
       .post('/api/auth/login')
       .send({ email, password });
 
+    // ✅ FIX: Extract token from httpOnly cookie instead of response body
+    const cookies = response.headers['set-cookie'];
+    let token = null;
+    if (cookies) {
+      const accessTokenCookie = cookies.find(cookie => cookie.startsWith('accessToken='));
+      if (accessTokenCookie) {
+        token = accessTokenCookie.split(';')[0].split('=')[1];
+      }
+    }
+
     return {
       user: response.body.data.user,
-      token: response.body.data.token
+      token: token
     };
   }
 

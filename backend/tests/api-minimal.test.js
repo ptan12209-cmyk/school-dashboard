@@ -11,13 +11,13 @@ let adminToken = '';
 let adminEmail = '';
 
 describe('🧪 API Tests', () => {
-  
+
   test('Health check', async () => {
     const res = await request(app).get('/health').expect(200);
     expect(res.body.status).toBe('OK');
     console.log('✅ Health check passed');
   });
-  
+
   test('Register admin', async () => {
     adminEmail = `admin${Date.now()}@test.com`;
     const res = await request(app)
@@ -30,11 +30,19 @@ describe('🧪 API Tests', () => {
         lastName: 'Admin'
       })
       .expect(201);
-    
-    adminToken = res.body.data.token;
+
+    // ✅ FIX: Extract token from httpOnly cookie instead of response body
+    const cookies = res.headers['set-cookie'];
+    if (cookies) {
+      const accessTokenCookie = cookies.find(cookie => cookie.startsWith('accessToken='));
+      if (accessTokenCookie) {
+        adminToken = accessTokenCookie.split(';')[0].split('=')[1];
+      }
+    }
+
     console.log('✅ Admin registered');
   });
-  
+
   test('Login', async () => {
     const res = await request(app)
       .post('/api/auth/login')
@@ -43,33 +51,33 @@ describe('🧪 API Tests', () => {
         password: 'Admin@123'
       })
       .expect(200);
-    
+
     console.log('✅ Login successful');
   });
-  
+
   test('Get current user', async () => {
     await request(app)
       .get('/api/auth/me')
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
-    
+
     console.log('✅ Got current user');
   });
-  
+
   test('List users', async () => {
     const res = await request(app)
-      .get('/api/user')
+      .get('/api/users')
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
-    
-    console.log(`✅ Listed ${res.body.data.user.length} users`);
+
+    console.log(`✅ Listed ${res.body.data.users.length} users`);
   });
 });
 // In tests/api-minimal.test.js, add:
 
 test('Create teacher', async () => {
   const res = await request(app)
-    .post('/api/teacher')
+    .post('/api/teachers')
     .set('Authorization', `Bearer ${adminToken}`)
     .send({
       email: `teacher${Date.now()}@test.com`,
@@ -79,13 +87,13 @@ test('Create teacher', async () => {
       department: 'Science'
     })
     .expect(201);
-  
+
   console.log('✅ Teacher created');
 });
 
 test('Create student', async () => {
   const res = await request(app)
-    .post('/api/student')
+    .post('/api/students')
     .set('Authorization', `Bearer ${adminToken}`)
     .send({
       email: `student${Date.now()}@test.com`,
@@ -96,6 +104,6 @@ test('Create student', async () => {
       gender: 'M'
     })
     .expect(201);
-  
+
   console.log('✅ Student created');
 });
