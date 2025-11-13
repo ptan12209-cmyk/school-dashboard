@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const {
-  Student, Teacher, Course, Grade, Attendance, Class, User,
+  Student, Teacher, Course, Grade, Attendance, Class,
 } = require('../models');
 const { catchAsync } = require('../middleware/errorHandler');
 
@@ -94,7 +94,7 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
     limit: 5,
   });
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       stats: {

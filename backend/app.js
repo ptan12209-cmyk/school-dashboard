@@ -252,16 +252,14 @@ app.use(`${API_PREFIX}/ai`, aiRoutes);
 /**
  * 404 Handler - Route not found
  */
-app.use((req, res, next) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-    path: req.originalUrl,
-    method: req.method,
-  });
-});
+app.use((req, res) => res.status(404).json({
+  success: false,
+  message: 'Route not found',
+  path: req.originalUrl,
+  method: req.method,
+}));
 
-app.use((err, req, res, _next) => {
+app.use((err, req, res) => {
   // Log error for debugging
   console.error('Error occurred:', {
     message: err.message,
@@ -280,7 +278,7 @@ app.use((err, req, res, _next) => {
   }
 
   // Default error response
-  res.status(err.statusCode || 500).json({ // ✅ ĐÚNG: err.statusCode là number
+  return res.status(err.statusCode || 500).json({ // ✅ ĐÚNG: err.statusCode là number
     success: false,
     message: err.message || 'Internal server error',
     ...(process.env.NODE_ENV !== 'production' && {

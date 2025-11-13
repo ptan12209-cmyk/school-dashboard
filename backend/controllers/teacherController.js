@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Teacher, User, sequelize } = require('../models');
+const { Teacher, User } = require('../models');
 const {
   catchAsync, NotFoundError, ConflictError, ValidationError, AuthorizationError,
 } = require('../middleware/errorHandler');
@@ -178,7 +178,7 @@ exports.createTeacher = catchAsync(async (req, res) => {
     hire_date: hireDate || today, // ← FIXED
   });
 
-  res.status(201).json({
+  return res.status(201).json({
     success: true,
     message: 'Teacher created successfully',
     data: {

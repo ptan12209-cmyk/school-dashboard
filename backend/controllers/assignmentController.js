@@ -24,7 +24,7 @@ exports.createAssignment = catchAsync(async (req, res) => {
   const { io } = req.app.locals;
   const assignment = await assignmentService.createAssignment(assignmentData, questions, teacherId, io);
 
-  res.status(201).json({
+  return res.status(201).json({
     success: true,
     data: assignment,
   });
@@ -43,7 +43,7 @@ exports.getAssignment = catchAsync(async (req, res) => {
     });
   }
 
-  res.json({
+  return res.json({
     success: true,
     data: assignment,
   });
@@ -56,7 +56,7 @@ exports.getAssignmentsByCourse = catchAsync(async (req, res) => {
   const { courseId } = req.params;
   const assignments = await assignmentService.getAssignmentsByCourse(courseId, req.query);
 
-  res.json({
+  return res.json({
     success: true,
     data: assignments,
   });
@@ -77,7 +77,7 @@ exports.getStudentAssignments = catchAsync(async (req, res) => {
 
   const assignments = await assignmentService.getStudentAssignments(studentId);
 
-  res.json({
+  return res.json({
     success: true,
     data: assignments,
   });
@@ -101,7 +101,7 @@ exports.updateAssignment = catchAsync(async (req, res) => {
 
   await assignment.update(req.body);
 
-  res.json({
+  return res.json({
     success: true,
     data: assignment,
   });
@@ -125,7 +125,7 @@ exports.deleteAssignment = catchAsync(async (req, res) => {
 
   await assignment.destroy();
 
-  res.json({
+  return res.json({
     success: true,
     message: 'Đã xóa bài tập',
   });
@@ -140,7 +140,7 @@ exports.publishAssignment = catchAsync(async (req, res) => {
 
   const assignment = await assignmentService.publishAssignment(req.params.id, teacherId, io);
 
-  res.json({
+  return res.json({
     success: true,
     data: assignment,
     message: 'Đã phát hành bài tập',
@@ -162,7 +162,7 @@ exports.startAssignment = catchAsync(async (req, res) => {
 
   const submission = await assignmentService.startAssignment(req.params.id, studentId);
 
-  res.status(201).json({
+  return res.status(201).json({
     success: true,
     data: submission,
   });
@@ -174,7 +174,6 @@ exports.startAssignment = catchAsync(async (req, res) => {
 exports.submitAssignment = catchAsync(async (req, res) => {
   const studentId = req.user.studentProfile?.id;
   const { submissionId, answers } = req.body;
-  const { io } = req.app.locals;
 
   if (!studentId) {
     return res.status(403).json({
@@ -185,7 +184,7 @@ exports.submitAssignment = catchAsync(async (req, res) => {
 
   const submission = await assignmentService.submitAssignment(submissionId, answers, studentId);
 
-  res.json({
+  return res.json({
     success: true,
     data: submission,
     message: 'Đã nộp bài thành công',
@@ -215,7 +214,7 @@ exports.gradeSubmission = catchAsync(async (req, res) => {
     io,
   );
 
-  res.json({
+  return res.json({
     success: true,
     data: submission,
     message: 'Đã chấm bài thành công',
@@ -237,7 +236,7 @@ exports.getSubmissionsForGrading = catchAsync(async (req, res) => {
 
   const submissions = await assignmentService.getSubmissionsForGrading(req.params.id, teacherId);
 
-  res.json({
+  return res.json({
     success: true,
     data: submissions,
   });
@@ -249,7 +248,7 @@ exports.getSubmissionsForGrading = catchAsync(async (req, res) => {
 exports.getAssignmentStatistics = catchAsync(async (req, res) => {
   const stats = await assignmentService.getAssignmentStatistics(req.params.id);
 
-  res.json({
+  return res.json({
     success: true,
     data: stats,
   });

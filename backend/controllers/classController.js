@@ -3,7 +3,7 @@ const {
   Class, Teacher, Student, User, Course,
 } = require('../models');
 const {
-  catchAsync, NotFoundError, ValidationError, AuthorizationError,
+  catchAsync, NotFoundError, ValidationError,
 } = require('../middleware/errorHandler');
 
 /**
@@ -84,7 +84,7 @@ exports.getAllClasses = catchAsync(async (req, res) => {
     distinct: true,
   });
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       classes,

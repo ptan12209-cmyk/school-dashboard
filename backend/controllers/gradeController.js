@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const {
-  Grade, Student, Course, Teacher, User, Class,
+  Grade, Student, Course, Teacher, User,
 } = require('../models');
 const {
   catchAsync, NotFoundError, ValidationError, AuthorizationError,
@@ -145,7 +145,7 @@ exports.getAllGrades = catchAsync(async (req, res) => {
     distinct: true,
   });
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       grades,
@@ -192,7 +192,6 @@ exports.getGradeById = catchAsync(async (req, res) => {
   }
 
   // Check permissions
-  const isAdmin = req.user.role === 'admin';
   const isStudent = req.user.role === 'student';
   const isTeacher = req.user.role === 'teacher';
 
@@ -428,8 +427,6 @@ exports.getStudentGrades = catchAsync(async (req, res) => {
   }
 
   // Check permissions
-  const isAdmin = req.user.role === 'admin';
-  const isTeacher = req.user.role === 'teacher';
   const isStudent = req.user.role === 'student';
 
   if (isStudent) {

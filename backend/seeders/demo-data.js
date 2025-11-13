@@ -183,7 +183,6 @@ async function seed() {
     console.log('\n✅ Creating attendance records...');
 
     let attendanceCount = 0;
-    const statuses = ['present', 'absent', 'late'];
     const weights = [0.85, 0.05, 0.10]; // 85% present, 5% absent, 10% late
 
     // Create attendance for last 30 days

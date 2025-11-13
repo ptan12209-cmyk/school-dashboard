@@ -78,7 +78,7 @@ exports.getNotification = catchAsync(async (req, res) => {
     });
   }
 
-  res.json({
+  return res.json({
     success: true,
     data: notification,
   });
@@ -110,7 +110,7 @@ exports.markAsRead = catchAsync(async (req, res) => {
     io.emitToUser(userId, 'notification_count', count);
   }
 
-  res.json({
+  return res.json({
     success: true,
     data: notification,
     unreadCount: count,
@@ -133,7 +133,7 @@ exports.markAllAsRead = catchAsync(async (req, res) => {
     io.emitToUser(userId, 'all_notifications_read');
   }
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       markedCount: count,
@@ -176,7 +176,7 @@ exports.deleteNotification = catchAsync(async (req, res) => {
     io.emitToUser(userId, 'notification_deleted', id);
   }
 
-  res.json({
+  return res.json({
     success: true,
     message: 'Đã xóa thông báo',
     unreadCount: count,

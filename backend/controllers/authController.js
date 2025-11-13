@@ -5,7 +5,7 @@ const { User, Teacher, Student } = require('../models');
  * @desc    Register a new user
  * @access  Public
  */
-exports.register = async (req, res, next) => {
+exports.register = async (req, res) => {
   try {
     const {
       email,
@@ -106,7 +106,7 @@ exports.register = async (req, res, next) => {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'User registered successfully',
       data: {
@@ -142,7 +142,7 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error during registration',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
@@ -155,7 +155,7 @@ exports.register = async (req, res, next) => {
  * @desc    Login user and return token
  * @access  Public
  */
-exports.login = async (req, res, next) => {
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -219,7 +219,7 @@ exports.login = async (req, res, next) => {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Login successful',
       data: {
@@ -241,7 +241,7 @@ exports.login = async (req, res, next) => {
   } catch (error) {
     console.error('Login error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error during login',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
@@ -254,7 +254,7 @@ exports.login = async (req, res, next) => {
  * @desc    Get current user profile
  * @access  Private (requires authentication)
  */
-exports.getCurrentUser = async (req, res, next) => {
+exports.getCurrentUser = async (req, res) => {
   try {
     // User is already attached to req by authMiddleware
     const userId = req.user.id;
@@ -284,7 +284,7 @@ exports.getCurrentUser = async (req, res, next) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         user: user.toJSON(),
@@ -294,7 +294,7 @@ exports.getCurrentUser = async (req, res, next) => {
   } catch (error) {
     console.error('Get current user error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
@@ -307,7 +307,7 @@ exports.getCurrentUser = async (req, res, next) => {
  * @desc    Logout user (client-side should delete token)
  * @access  Private
  */
-exports.logout = async (req, res, next) => {
+exports.logout = async (req, res) => {
   try {
     // ✅ SECURITY FIX: Clear httpOnly cookie on logout
     res.clearCookie('accessToken', {
@@ -316,7 +316,7 @@ exports.logout = async (req, res, next) => {
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
     });
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Logout successful',
       data: {
@@ -327,7 +327,7 @@ exports.logout = async (req, res, next) => {
   } catch (error) {
     console.error('Logout error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
@@ -340,7 +340,7 @@ exports.logout = async (req, res, next) => {
  * @desc    Refresh access token
  * @access  Private
  */
-exports.refreshToken = async (req, res, next) => {
+exports.refreshToken = async (req, res) => {
   try {
     // User is already authenticated via authMiddleware
     const userId = req.user.id;
@@ -365,7 +365,7 @@ exports.refreshToken = async (req, res, next) => {
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Token refreshed successfully',
       // ✅ Token is now in httpOnly cookie
@@ -373,7 +373,7 @@ exports.refreshToken = async (req, res, next) => {
   } catch (error) {
     console.error('Refresh token error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,

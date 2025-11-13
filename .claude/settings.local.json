@@ -12,7 +12,14 @@
       "Bash(npm audit:*)",
       "Bash(npm test:*)",
       "Bash(timeout 120 npm test:*)",
-      "Bash(npm run lint:fix:*)"
+      "Bash(npm run lint:fix:*)",
+      "Bash(dir:*)",
+      "Bash(tree:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npx eslint:*)",
+      "Bash(node -e:*)",
+      "Bash(node -p:*)",
+      "Bash(npm run lint:backend:*)"
     ],
     "deny": [],
     "ask": []

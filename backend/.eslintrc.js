@@ -20,7 +20,7 @@ module.exports = {
     'max-len': ['warn', { code: 120 }], // Increase line length limit
     'no-continue': 'off', // Allow continue statements
     'no-nested-ternary': 'warn', // Warn on nested ternary
-    'camelcase': 'warn', // Warn on snake_case
+    camelcase: 'warn', // Warn on snake_case
     'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
   },
   ignorePatterns: ['node_modules/', 'tests/'],

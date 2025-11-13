@@ -31,7 +31,6 @@ console.log('Working dir:', process.cwd());
 console.log('\n📄 3. Environment Files:');
 console.log('-'.repeat(60));
 const fs = require('fs');
-const path = require('path');
 
 const envFiles = ['.env', '.env.test', '_env'];
 envFiles.forEach((file) => {

@@ -64,7 +64,7 @@ exports.chat = catchAsync(async (req, res) => {
 
   const response = await aiService.chat(userId, message, context);
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       message: response,
@@ -81,7 +81,7 @@ exports.clearChatHistory = catchAsync(async (req, res) => {
   const userId = req.user.id;
   aiService.clearHistory(userId);
 
-  res.json({
+  return res.json({
     success: true,
     message: 'Đã xóa lịch sử trò chuyện',
   });
@@ -150,7 +150,7 @@ exports.getStudyRecommendations = catchAsync(async (req, res) => {
 
   const recommendations = await aiService.generateStudyRecommendations(studentData);
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       recommendations,
@@ -198,7 +198,7 @@ exports.predictPerformance = catchAsync(async (req, res) => {
 
   const prediction = aiService.predictPerformanceTrend(grades);
 
-  res.json({
+  return res.json({
     success: true,
     data: prediction,
   });
@@ -244,7 +244,7 @@ exports.getCourseRecommendations = catchAsync(async (req, res) => {
 
   const recommendations = await aiService.generateCourseRecommendations(studentProfile);
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       recommendations,
@@ -331,7 +331,7 @@ exports.generateReportSummary = catchAsync(async (req, res) => {
 
   const summary = await aiService.generateReportSummary(reportData);
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       summary,

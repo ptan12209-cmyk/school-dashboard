@@ -92,7 +92,7 @@ exports.getAllCourses = catchAsync(async (req, res) => {
     distinct: true,
   });
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       courses,

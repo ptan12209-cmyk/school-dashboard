@@ -46,7 +46,7 @@ function initializeSocket(httpServer) {
         role: user.role,
       };
 
-      next();
+      return next();
     } catch (error) {
       console.error('Socket authentication error:', error);
       next(new Error('Authentication failed'));

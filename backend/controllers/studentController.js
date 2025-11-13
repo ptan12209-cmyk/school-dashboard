@@ -217,7 +217,7 @@ exports.createStudent = catchAsync(async (req, res) => {
     class_id: classId || null,
   });
 
-  res.status(201).json({
+  return res.status(201).json({
     success: true,
     message: 'Student created successfully',
     data: {

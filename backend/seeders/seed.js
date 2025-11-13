@@ -462,7 +462,6 @@ async function seed() {
     // 11. CREATE NOTIFICATIONS
     // ========================================
     console.log('🔔 Creating notifications...');
-    const notifications = [];
 
     // Tạo thông báo cho admin
     await Notification.create({

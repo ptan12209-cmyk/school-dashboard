@@ -13,7 +13,7 @@ class AssignmentService {
   /**
    * Create new assignment with questions
    */
-  async createAssignment(assignmentData, questions, teacherId, io) {
+  async createAssignment(assignmentData, questions, teacherId) {
     const { course_id, ...data } = assignmentData;
 
     // Create assignment
