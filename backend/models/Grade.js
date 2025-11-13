@@ -230,6 +230,7 @@ Grade.findByCourse = function (courseId, options = {}) {
  * Calculate student's GPA
  */
 Grade.calculateStudentGPA = async function (studentId, options = {}) {
+  // eslint-disable-next-line global-require
   const Course = require('./Course');
 
   const where = {

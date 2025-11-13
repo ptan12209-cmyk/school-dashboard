@@ -146,7 +146,9 @@ const Course = sequelize.define('Course', {
  * Get student count enrolled in course
  */
 Course.prototype.getEnrollmentCount = async function () {
+  // eslint-disable-next-line global-require
   const Class = require('./Class');
+  // eslint-disable-next-line global-require
   const Student = require('./Student');
 
   const classData = await Class.findByPk(this.class_id, {
@@ -164,6 +166,7 @@ Course.prototype.getEnrollmentCount = async function () {
  * Get average grade for course
  */
 Course.prototype.getAverageGrade = async function () {
+  // eslint-disable-next-line global-require
   const Grade = require('./Grade');
 
   const result = await Grade.findOne({
@@ -181,6 +184,7 @@ Course.prototype.getAverageGrade = async function () {
  * Get course statistics
  */
 Course.prototype.getStatistics = async function () {
+  // eslint-disable-next-line global-require
   const Grade = require('./Grade');
 
   const grades = await Grade.findAll({

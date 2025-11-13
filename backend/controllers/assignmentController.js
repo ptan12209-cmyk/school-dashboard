@@ -87,6 +87,7 @@ exports.getStudentAssignments = catchAsync(async (req, res) => {
  * Update assignment
  */
 exports.updateAssignment = catchAsync(async (req, res) => {
+  // eslint-disable-next-line global-require
   const { Assignment } = require('../models');
   const teacherId = req.user.teacherProfile?.id;
 
@@ -111,6 +112,7 @@ exports.updateAssignment = catchAsync(async (req, res) => {
  * Delete assignment
  */
 exports.deleteAssignment = catchAsync(async (req, res) => {
+  // eslint-disable-next-line global-require
   const { Assignment } = require('../models');
   const teacherId = req.user.teacherProfile?.id;
 

@@ -292,6 +292,7 @@ exports.deleteTeacher = catchAsync(async (req, res) => {
  * @access  Public (no auth required)
  */
 exports.getDepartmentsList = catchAsync(async (req, res) => {
+  // eslint-disable-next-line global-require
   const { sequelize } = require('../models');
 
   // Get distinct departments
@@ -323,7 +324,9 @@ exports.getDepartmentsList = catchAsync(async (req, res) => {
  * @access  Public (no auth required)
  */
 exports.getSubjectsList = catchAsync(async (req, res) => {
+  // eslint-disable-next-line global-require
   const { sequelize } = require('../models');
+  // eslint-disable-next-line global-require
   const Course = require('../models/Course');
 
   // Get distinct subjects from courses

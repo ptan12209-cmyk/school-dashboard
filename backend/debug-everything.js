@@ -65,6 +65,7 @@ delete process.env.DB_USER;
 delete process.env.DB_NAME;
 
 // Try loading .env.test first
+/* eslint-disable global-require */
 if (fs.existsSync('.env.test')) {
   console.log('Loading .env.test...');
   require('dotenv').config({ path: '.env.test' });
@@ -80,6 +81,7 @@ if (fs.existsSync('.env.test')) {
 } else {
   console.log('❌ No environment file found!');
 }
+/* eslint-enable global-require */
 
 // ============================================
 // 5. CHECK ENVIRONMENT VARIABLES
@@ -166,6 +168,7 @@ if (fs.existsSync('config/database.js')) {
     // Clear cache
     delete require.cache[require.resolve('./config/database')];
 
+    // eslint-disable-next-line global-require
     const dbConfig = require('./config/database');
     console.log('Config loaded successfully');
     console.log('Current config:', JSON.stringify(dbConfig.config || dbConfig, null, 2));

@@ -65,6 +65,8 @@ function initializeSocket(httpServer) {
     // Join role-specific room
     socket.join(`role_${socket.user.role}`);
 
+    // Socket event handlers - lazy loading models to avoid circular dependencies
+    /* eslint-disable global-require */
     // Handle client requesting notification count
     socket.on('request_notification_count', async () => {
       try {
@@ -105,6 +107,7 @@ function initializeSocket(httpServer) {
         console.error('Error marking all as read:', error);
       }
     });
+    /* eslint-enable global-require */
 
     // Handle disconnection
     socket.on('disconnect', () => {

@@ -110,6 +110,7 @@ const Class = sequelize.define('Class', {
  * Get student count in class
  */
 Class.prototype.getStudentCount = async function () {
+  // eslint-disable-next-line global-require
   const Student = require('./Student');
   return await Student.count({ where: { class_id: this.id } });
 };
@@ -170,6 +171,7 @@ Class.findBySchoolYear = function (schoolYear) {
  * Find classes with available space
  */
 Class.findAvailable = async function () {
+  // eslint-disable-next-line global-require
   const Student = require('./Student');
 
   const classes = await this.findAll({
@@ -191,6 +193,7 @@ Class.findAvailable = async function () {
  * Get class statistics
  */
 Class.getStats = async function () {
+  // eslint-disable-next-line global-require
   const Student = require('./Student');
 
   const total = await this.count();

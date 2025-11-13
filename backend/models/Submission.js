@@ -278,6 +278,7 @@ Submission.getAttemptsCount = async function (assignmentId, studentId) {
 
 // Get submissions needing grading
 Submission.getNeedingGrading = async function (teacherId) {
+  // eslint-disable-next-line global-require
   const { Assignment } = require('./index');
 
   return await Submission.findAll({

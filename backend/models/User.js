@@ -140,7 +140,6 @@ const User = sequelize.define('User', {
  * @returns {Promise<boolean>} True if password matches
  */
 User.prototype.comparePassword = async function (candidatePassword) {
-  const bcrypt = require('bcryptjs');
   return await bcrypt.compare(candidatePassword, this.password_hash);
 };
 /**

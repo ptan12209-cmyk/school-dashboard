@@ -229,6 +229,7 @@ Assignment.prototype.calculateLatePenalty = function (submittedAt) {
 
 // Update statistics
 Assignment.prototype.updateStatistics = async function () {
+  // eslint-disable-next-line global-require
   const { Submission } = require('./index');
 
   const submissions = await Submission.findAll({

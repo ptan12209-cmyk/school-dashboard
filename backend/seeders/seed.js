@@ -162,7 +162,7 @@ async function seed() {
 
       const classObj = await Class.create({
         name: className,
-        grade_level: parseInt(className.substring(0, 2)),
+        grade_level: parseInt(className.substring(0, 2), 10),
         school_year: '2024-2025',
         teacher_id: homeRoomTeacher.teacher.id,
         max_students: 40,

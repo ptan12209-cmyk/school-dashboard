@@ -21,7 +21,11 @@
       "Bash(node -p:*)",
       "Bash(npm run lint:backend:*)",
       "Bash(gh pr create:*)",
-      "Bash(eslint-results.json)"
+      "Bash(eslint-results.json)",
+      "Bash(eslint-output.json)",
+      "Bash(findstr:*)",
+      "Bash(Select-String -Pattern \"global-require|\\.js\" -Context 0,0)",
+      "Bash(git diff:*)"
     ],
     "deny": [],
     "ask": []

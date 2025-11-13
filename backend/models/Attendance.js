@@ -336,6 +336,7 @@ Attendance.getStats = async function (options = {}) {
  * Get students with poor attendance
  */
 Attendance.getPoorAttendance = async function (threshold = 80, options = {}) {
+  // eslint-disable-next-line global-require
   const Student = require('./Student');
 
   const where = {};

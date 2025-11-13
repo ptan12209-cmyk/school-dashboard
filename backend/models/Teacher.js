@@ -183,6 +183,7 @@ Teacher.findByDepartment = async function (department) {
  * @returns {Promise<Teacher[]>} Array of senior teachers
  */
 Teacher.findSenior = async function (beforeDate) {
+  // eslint-disable-next-line global-require
   const { Op } = require('sequelize');
   return await this.findAll({
     where: {

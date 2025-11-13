@@ -16,6 +16,7 @@ const getJWTSecret = () => {
   }
 
   // Generate a random secret for development (warning logged)
+  // eslint-disable-next-line global-require
   const crypto = require('crypto');
   const randomSecret = crypto.randomBytes(64).toString('hex');
   console.warn('⚠️  WARNING: Using auto-generated JWT_SECRET for development. Set JWT_SECRET in .env for production!');
@@ -74,6 +75,7 @@ const getSessionSecret = () => {
   }
 
   // Generate a random secret for development (warning logged)
+  // eslint-disable-next-line global-require
   const crypto = require('crypto');
   const randomSecret = crypto.randomBytes(64).toString('hex');
   console.warn('⚠️  WARNING: Using auto-generated SESSION_SECRET for development. Set SESSION_SECRET in .env for production!');

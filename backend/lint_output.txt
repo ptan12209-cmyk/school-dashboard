@@ -1,0 +1,396 @@
+
+> ai-school-dashboard-backend@1.0.0 lint
+> eslint . --ext .js --ignore-pattern node_modules --ignore-pattern tests
+
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\config\auth.js
+   4:1   warning  This line has a length of 128. Maximum allowed is 120  max-len
+  19:18  error    Unexpected require()                                   global-require
+  77:18  error    Unexpected require()                                   global-require
+  79:1   warning  This line has a length of 127. Maximum allowed is 120  max-len
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\config\socket.js
+   17:1   warning  This line has a length of 128. Maximum allowed is 120  max-len
+   71:34  error    Unexpected require()                                   global-require
+   82:34  error    Unexpected require()                                   global-require
+  100:34  error    Unexpected require()                                   global-require
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\controllers\assignmentController.js
+   90:26  error  Unexpected require()  global-require
+  114:26  error  Unexpected require()  global-require
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\controllers\attendanceController.js
+  183:5   warning  Identifier 'student_id' is not in camel case           camelcase
+  184:5   warning  Identifier 'course_id' is not in camel case            camelcase
+  188:5   warning  Identifier 'check_in_time' is not in camel case        camelcase
+  189:5   warning  Identifier 'check_out_time' is not in camel case       camelcase
+  193:8   warning  Identifier 'student_id' is not in camel case           camelcase
+  193:23  warning  Identifier 'course_id' is not in camel case            camelcase
+  220:7   warning  Identifier 'student_id' is not in camel case           camelcase
+  221:7   warning  Identifier 'course_id' is not in camel case            camelcase
+  235:5   warning  Identifier 'student_id' is not in camel case           camelcase
+  236:5   warning  Identifier 'course_id' is not in camel case            camelcase
+  240:20  warning  Identifier 'check_in_time' is not in camel case        camelcase
+  241:21  warning  Identifier 'check_out_time' is not in camel case       camelcase
+  611:1   warning  This line has a length of 123. Maximum allowed is 120  max-len
+  631:11  warning  Identifier 'course_id' is not in camel case            camelcase
+  633:8   warning  Identifier 'course_id' is not in camel case            camelcase
+  654:7   warning  Identifier 'course_id' is not in camel case            camelcase
+  670:5   warning  Identifier 'course_id' is not in camel case            camelcase
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\controllers\classController.js
+   52:1   warning  This line has a length of 126. Maximum allowed is 120  max-len
+  160:5   warning  Identifier 'grade_level' is not in camel case          camelcase
+  161:5   warning  Identifier 'teacher_id' is not in camel case           camelcase
+  163:5   warning  Identifier 'room_number' is not in camel case          camelcase
+  164:5   warning  Identifier 'school_year' is not in camel case          camelcase
+  168:17  warning  Identifier 'grade_level' is not in camel case          camelcase
+  176:20  warning  Identifier 'school_year' is not in camel case          camelcase
+  185:7   warning  Identifier 'teacher_id' is not in camel case           camelcase
+  195:5   warning  Identifier 'grade_level' is not in camel case          camelcase
+  196:17  warning  Identifier 'teacher_id' is not in camel case           camelcase
+  198:5   warning  Identifier 'room_number' is not in camel case          camelcase
+  199:18  warning  Identifier 'school_year' is not in camel case          camelcase
+  428:9   warning  Identifier 'school_year' is not in camel case          camelcase
+  433:28  warning  Identifier 'school_year' is not in camel case          camelcase
+  436:28  warning  Identifier 'school_year' is not in camel case          camelcase
+  440:16  warning  Identifier 'school_year' is not in camel case          camelcase
+  451:16  warning  Identifier 'school_year' is not in camel case          camelcase
+  463:16  warning  Identifier 'school_year' is not in camel case          camelcase
+  471:7   warning  Identifier 'school_year' is not in camel case          camelcase
+  491:9   warning  Identifier 'grade_level' is not in camel case          camelcase
+  492:9   warning  Identifier 'school_year' is not in camel case          camelcase
+  495:36  warning  Identifier 'school_year' is not in camel case          camelcase
+  496:7   warning  Identifier 'grade_level' is not in camel case          camelcase
+  497:25  warning  Identifier 'grade_level' is not in camel case          camelcase
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\controllers\courseController.js
+  167:5   warning  Identifier 'teacher_id' is not in camel case   camelcase
+  168:5   warning  Identifier 'class_id' is not in camel case     camelcase
+  170:5   warning  Identifier 'school_year' is not in camel case  camelcase
+  183:20  warning  Identifier 'school_year' is not in camel case  camelcase
+  192:7   warning  Identifier 'teacher_id' is not in camel case   camelcase
+  200:7   warning  Identifier 'class_id' is not in camel case     camelcase
+  208:8   warning  Identifier 'teacher_id' is not in camel case   camelcase
+  208:23  warning  Identifier 'class_id' is not in camel case     camelcase
+  235:5   warning  Identifier 'teacher_id' is not in camel case   camelcase
+  236:5   warning  Identifier 'class_id' is not in camel case     camelcase
+  238:18  warning  Identifier 'school_year' is not in camel case  camelcase
+  526:9   warning  Identifier 'school_year' is not in camel case  camelcase
+  530:7   warning  Identifier 'school_year' is not in camel case  camelcase
+  558:9   warning  Identifier 'school_year' is not in camel case  camelcase
+  562:29  warning  Identifier 'school_year' is not in camel case  camelcase
+  565:29  warning  Identifier 'school_year' is not in camel case  camelcase
+  569:16  warning  Identifier 'school_year' is not in camel case  camelcase
+  580:16  warning  Identifier 'school_year' is not in camel case  camelcase
+  593:7   warning  Identifier 'school_year' is not in camel case  camelcase
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\controllers\dashboardController.js
+   29:20  warning  Unexpected `await` inside a loop                       no-await-in-loop
+   60:1   warning  This line has a length of 128. Maximum allowed is 120  max-len
+  124:1   warning  This line has a length of 171. Maximum allowed is 120  max-len
+  132:1   warning  This line has a length of 142. Maximum allowed is 120  max-len
+  245:1   warning  This line has a length of 124. Maximum allowed is 120  max-len
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\controllers\gradeController.js
+  108:1   warning  This line has a length of 131. Maximum allowed is 120  max-len
+  230:5   warning  Identifier 'student_id' is not in camel case           camelcase
+  231:5   warning  Identifier 'course_id' is not in camel case            camelcase
+  233:5   warning  Identifier 'grade_type' is not in camel case           camelcase
+  235:5   warning  Identifier 'graded_date' is not in camel case          camelcase
+  237:5   warning  Identifier 'is_published' is not in camel case         camelcase
+  241:8   warning  Identifier 'student_id' is not in camel case           camelcase
+  241:23  warning  Identifier 'course_id' is not in camel case            camelcase
+  241:60  warning  Identifier 'grade_type' is not in camel case           camelcase
+  268:7   warning  Identifier 'student_id' is not in camel case           camelcase
+  269:7   warning  Identifier 'course_id' is not in camel case            camelcase
+  270:7   warning  Identifier 'grade_type' is not in camel case           camelcase
+  277:12  warning  Identifier 'grade_type' is not in camel case           camelcase
+  284:5   warning  Identifier 'student_id' is not in camel case           camelcase
+  285:5   warning  Identifier 'course_id' is not in camel case            camelcase
+  288:5   warning  Identifier 'grade_type' is not in camel case           camelcase
+  290:18  warning  Identifier 'graded_date' is not in camel case          camelcase
+  292:19  warning  Identifier 'is_published' is not in camel case         camelcase
+  292:48  warning  Identifier 'is_published' is not in camel case         camelcase
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\controllers\studentController.js
+  56:1  warning  This line has a length of 161. Maximum allowed is 120  max-len
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\controllers\teacherController.js
+   42:1   warning  This line has a length of 145. Maximum allowed is 120  max-len
+  295:25  error    Unexpected require()                                   global-require
+  326:25  error    Unexpected require()                                   global-require
+  327:18  error    Unexpected require()                                   global-require
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\debug-everything.js
+   70:3   error    Unexpected require()                                   global-require
+   74:3   error    Unexpected require()                                   global-require
+   78:3   error    Unexpected require()                                   global-require
+  133:1   warning  This line has a length of 134. Maximum allowed is 120  max-len
+  169:22  error    Unexpected require()                                   global-require
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\jest.setup.js
+  15:3  error  Unexpected require()  global-require
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\Assignment.js
+  197:36  warning  Unexpected unnamed function                 func-names
+  210:34  warning  Unexpected unnamed function                 func-names
+  216:45  warning  Unexpected unnamed function                 func-names
+  231:41  warning  Unexpected unnamed async function           func-names
+  232:26  error    Unexpected require()                        global-require
+  256:26  warning  Unexpected unnamed async function           func-names
+  257:10  warning  Redundant use of `await` on a return value  no-return-await
+  271:25  warning  Unexpected unnamed async function           func-names
+  272:10  warning  Redundant use of `await` on a return value  no-return-await
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\Attendance.js
+  105:35  warning  Unexpected unnamed function                   func-names
+  112:38  warning  Unexpected unnamed function                   func-names
+  119:36  warning  Unexpected unnamed function                   func-names
+  143:28  warning  Unexpected unnamed function                   func-names
+  169:27  warning  Unexpected unnamed function                   func-names
+  189:25  warning  Unexpected unnamed function                   func-names
+  209:38  warning  Unexpected unnamed async function             func-names
+  255:29  warning  Unexpected unnamed async function             func-names
+  299:23  warning  Unexpected unnamed async function             func-names
+  338:32  warning  Unexpected unnamed async function             func-names
+  339:19  error    Unexpected require()                          global-require
+  362:16  warning  Identifier 'student_id' is not in camel case  camelcase
+  363:19  warning  Unexpected `await` inside a loop              no-await-in-loop
+  366:23  warning  Unexpected `await` inside a loop              no-await-in-loop
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\Class.js
+  112:35  warning  Unexpected unnamed async function           func-names
+  113:19  error    Unexpected require()                        global-require
+  114:10  warning  Redundant use of `await` on a return value  no-return-await
+  120:26  warning  Unexpected unnamed async function           func-names
+  128:35  warning  Unexpected unnamed async function           func-names
+  146:26  warning  Unexpected unnamed async function           func-names
+  147:10  warning  Redundant use of `await` on a return value  no-return-await
+  159:26  warning  Unexpected unnamed function                 func-names
+  172:23  warning  Unexpected unnamed async function           func-names
+  173:19  error    Unexpected require()                        global-require
+  193:18  warning  Unexpected unnamed async function           func-names
+  194:19  error    Unexpected require()                        global-require
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\Course.js
+  148:39  warning  Unexpected unnamed async function  func-names
+  149:17  error    Unexpected require()               global-require
+  150:19  error    Unexpected require()               global-require
+  166:36  warning  Unexpected unnamed async function  func-names
+  167:17  error    Unexpected require()               global-require
+  183:34  warning  Unexpected unnamed async function  func-names
+  184:17  error    Unexpected require()               global-require
+  222:24  warning  Unexpected unnamed function        func-names
+  235:24  warning  Unexpected unnamed function        func-names
+  248:22  warning  Unexpected unnamed function        func-names
+  261:27  warning  Unexpected unnamed function        func-names
+  274:25  warning  Unexpected unnamed async function  func-names
+  290:19  warning  Unexpected unnamed async function  func-names
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\Grade.js
+  140:29  warning  Unexpected unnamed function        func-names
+  147:29  warning  Unexpected unnamed function        func-names
+  164:30  warning  Unexpected unnamed function        func-names
+  177:22  warning  Unexpected unnamed function        func-names
+  192:23  warning  Unexpected unnamed function        func-names
+  212:22  warning  Unexpected unnamed function        func-names
+  232:29  warning  Unexpected unnamed async function  func-names
+  233:18  error    Unexpected require()               global-require
+  283:25  warning  Unexpected unnamed async function  func-names
+  313:18  warning  Unexpected unnamed async function  func-names
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\Notification.js
+  153:37  warning  Unexpected unnamed async function           func-names
+  163:40  warning  Unexpected unnamed async function           func-names
+  173:39  warning  Unexpected unnamed async function           func-names
+  183:36  warning  Unexpected unnamed function                 func-names
+  191:31  warning  Unexpected unnamed async function           func-names
+  192:10  warning  Redundant use of `await` on a return value  no-return-await
+  203:30  warning  Unexpected unnamed async function           func-names
+  204:10  warning  Redundant use of `await` on a return value  no-return-await
+  221:39  warning  Unexpected unnamed async function           func-names
+  225:10  warning  Redundant use of `await` on a return value  no-return-await
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\Question.js
+  138:34  warning  Unexpected unnamed function        func-names
+  170:37  warning  Unexpected unnamed function        func-names
+  176:39  warning  Unexpected unnamed async function  func-names
+  185:37  warning  Unexpected unnamed function        func-names
+  194:28  warning  Unexpected unnamed async function  func-names
+  204:34  warning  Unexpected unnamed async function  func-names
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\Student.js
+  209:33  warning  Unexpected unnamed function                 func-names
+  217:28  warning  Unexpected unnamed function                 func-names
+  234:38  warning  Unexpected unnamed function                 func-names
+  242:36  warning  Unexpected unnamed function                 func-names
+  262:23  warning  Unexpected unnamed async function           func-names
+  263:10  warning  Redundant use of `await` on a return value  no-return-await
+  275:26  warning  Unexpected unnamed async function           func-names
+  276:18  error    Unexpected require()                        global-require
+  283:10  warning  Redundant use of `await` on a return value  no-return-await
+  297:26  warning  Unexpected unnamed async function           func-names
+  298:10  warning  Redundant use of `await` on a return value  no-return-await
+  309:24  warning  Unexpected unnamed async function           func-names
+  310:18  error    Unexpected require()                        global-require
+  311:10  warning  Redundant use of `await` on a return value  no-return-await
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\Submission.js
+  171:39  warning  Unexpected unnamed function                 func-names
+  197:31  warning  Unexpected unnamed async function           func-names
+  225:40  warning  Unexpected unnamed async function           func-names
+  236:35  warning  Unexpected unnamed function                 func-names
+  258:29  warning  Unexpected unnamed async function           func-names
+  259:10  warning  Redundant use of `await` on a return value  no-return-await
+  270:31  warning  Unexpected unnamed async function           func-names
+  271:10  warning  Redundant use of `await` on a return value  no-return-await
+  280:32  warning  Unexpected unnamed async function           func-names
+  281:26  error    Unexpected require()                        global-require
+  283:10  warning  Redundant use of `await` on a return value  no-return-await
+  300:33  warning  Unexpected unnamed async function           func-names
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\Teacher.js
+  146:33  warning  Unexpected unnamed function                 func-names
+  154:39  warning  Unexpected unnamed function                 func-names
+  173:28  warning  Unexpected unnamed async function           func-names
+  174:10  warning  Redundant use of `await` on a return value  no-return-await
+  185:22  warning  Unexpected unnamed async function           func-names
+  186:18  error    Unexpected require()                        global-require
+  187:10  warning  Redundant use of `await` on a return value  no-return-await
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\models\User.js
+  142:34  warning  Unexpected unnamed async function                func-names
+  143:10  warning  Redundant use of `await` on a return value       no-return-await
+  149:32  warning  Unexpected unnamed function                      func-names
+  169:29  warning  Unexpected unnamed function                      func-names
+  170:11  warning  Identifier 'password_hash' is not in camel case  camelcase
+  179:26  warning  Unexpected unnamed function                      func-names
+  195:20  warning  Unexpected unnamed async function                func-names
+  196:10  warning  Redundant use of `await` on a return value       no-return-await
+  206:19  warning  Unexpected unnamed async function                func-names
+  207:10  warning  Redundant use of `await` on a return value       no-return-await
+  220:19  warning  Unexpected unnamed async function                func-names
+  221:10  warning  Redundant use of `await` on a return value       no-return-await
+  234:25  warning  Unexpected unnamed function                      func-names
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\routes\attendance.routes.js
+  161:1  warning  This line has a length of 121. Maximum allowed is 120  max-len
+  164:1  warning  This line has a length of 121. Maximum allowed is 120  max-len
+  211:1  warning  This line has a length of 121. Maximum allowed is 120  max-len
+  214:1  warning  This line has a length of 121. Maximum allowed is 120  max-len
+  241:1  warning  This line has a length of 121. Maximum allowed is 120  max-len
+  244:1  warning  This line has a length of 121. Maximum allowed is 120  max-len
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\routes\grade.routes.js
+   25:1  warning  This line has a length of 154. Maximum allowed is 120  max-len
+   79:1  warning  This line has a length of 154. Maximum allowed is 120  max-len
+  216:1  warning  This line has a length of 126. Maximum allowed is 120  max-len
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\seeders\demo-data.js
+   25:1   warning  This line has a length of 140. Maximum allowed is 120  max-len
+   28:1   warning  This line has a length of 142. Maximum allowed is 120  max-len
+   31:1   warning  This line has a length of 141. Maximum allowed is 120  max-len
+   34:1   warning  This line has a length of 142. Maximum allowed is 120  max-len
+   37:1   warning  This line has a length of 141. Maximum allowed is 120  max-len
+   43:20  warning  Unexpected `await` inside a loop                       no-await-in-loop
+   51:23  warning  Unexpected `await` inside a loop                       no-await-in-loop
+   86:20  warning  Unexpected `await` inside a loop                       no-await-in-loop
+   93:23  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  126:1   warning  This line has a length of 122. Maximum allowed is 120  max-len
+  131:22  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  149:9   warning  Unexpected `await` inside a loop                       no-await-in-loop
+  162:9   warning  Unexpected `await` inside a loop                       no-await-in-loop
+  206:11  warning  Unexpected `await` inside a loop                       no-await-in-loop
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\seeders\seed.js
+  133:20  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  140:23  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  163:24  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  187:20  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  194:23  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  204:1   warning  This line has a length of 130. Maximum allowed is 120  max-len
+  227:24  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  263:11  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  313:11  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  346:28  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  349:1   warning  This line has a length of 130. Maximum allowed is 120  max-len
+  349:21  warning  Do not nest ternary expressions                        no-nested-ternary
+  349:55  warning  Do not nest ternary expressions                        no-nested-ternary
+  350:1   warning  This line has a length of 185. Maximum allowed is 120  max-len
+  350:44  warning  Do not nest ternary expressions                        no-nested-ternary
+  350:84  warning  Do not nest ternary expressions                        no-nested-ternary
+  352:25  warning  Do not nest ternary expressions                        no-nested-ternary
+  352:49  warning  Do not nest ternary expressions                        no-nested-ternary
+  359:31  warning  Do not nest ternary expressions                        no-nested-ternary
+  396:11  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  432:11  warning  Unexpected `await` inside a loop                       no-await-in-loop
+  480:7   warning  Unexpected `await` inside a loop                       no-await-in-loop
+  483:1   warning  This line has a length of 123. Maximum allowed is 120  max-len
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\services\aiService.js
+   97:1  warning  This line has a length of 129. Maximum allowed is 120             max-len
+  111:1  warning  This line has a length of 183. Maximum allowed is 120             max-len
+  129:3  warning  Expected 'this' to be used by class method 'getFallbackResponse'  class-methods-use-this
+  138:1  warning  This line has a length of 122. Maximum allowed is 120             max-len
+  146:1  warning  This line has a length of 223. Maximum allowed is 120             max-len
+  258:3  warning  Expected 'this' to be used by class method 'buildSystemPrompt'    class-methods-use-this
+  290:1  warning  This line has a length of 125. Maximum allowed is 120             max-len
+  374:3  warning  Expected 'this' to be used by class method 'calculateConfidence'  class-methods-use-this
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\services\assignmentService.js
+   17:13  warning  Identifier 'course_id' is not in camel case                                  camelcase
+   22:7   warning  Identifier 'course_id' is not in camel case                                  camelcase
+   38:12  warning  Redundant use of `await` on a return value                                   no-return-await
+   44:3   warning  Expected 'this' to be used by class async method 'getAssignmentById'         class-methods-use-this
+   45:12  warning  Redundant use of `await` on a return value                                   no-return-await
+   73:3   warning  Expected 'this' to be used by class async method 'getAssignmentsByCourse'    class-methods-use-this
+   84:12  warning  Redundant use of `await` on a return value                                   no-return-await
+  100:3   warning  Expected 'this' to be used by class async method 'getStudentAssignments'     class-methods-use-this
+  243:9   warning  Unexpected `await` inside a loop                                             no-await-in-loop
+  282:1   warning  This line has a length of 167. Maximum allowed is 120                        max-len
+  289:12  warning  Redundant use of `await` on a return value                                   no-return-await
+  300:3   warning  Expected 'this' to be used by class async method 'gradeSubmission'           class-methods-use-this
+  339:1   warning  This line has a length of 152. Maximum allowed is 120                        max-len
+  352:3   warning  Expected 'this' to be used by class async method 'publishAssignment'         class-methods-use-this
+  378:1   warning  This line has a length of 176. Maximum allowed is 120                        max-len
+  393:3   warning  Expected 'this' to be used by class async method 'getSubmissionsForGrading'  class-methods-use-this
+  400:12  warning  Redundant use of `await` on a return value                                   no-return-await
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\services\emailService.js
+   74:12  warning  Redundant use of `await` on a return value                        no-return-await
+  103:1   warning  This line has a length of 126. Maximum allowed is 120             max-len
+  107:1   warning  This line has a length of 171. Maximum allowed is 120             max-len
+  111:1   warning  This line has a length of 122. Maximum allowed is 120             max-len
+  121:1   warning  This line has a length of 201. Maximum allowed is 120             max-len
+  136:1   warning  This line has a length of 146. Maximum allowed is 120             max-len
+  148:1   warning  This line has a length of 205. Maximum allowed is 120             max-len
+  178:3   warning  Expected 'this' to be used by class method 'generateTextVersion'  class-methods-use-this
+  199:3   warning  Expected 'this' to be used by class method 'getPriorityLabel'     class-methods-use-this
+  213:12  warning  Redundant use of `await` on a return value                        no-return-await
+  233:12  warning  Redundant use of `await` on a return value                        no-return-await
+  264:1   warning  This line has a length of 132. Maximum allowed is 120             max-len
+  266:1   warning  This line has a length of 122. Maximum allowed is 120             max-len
+  281:1   warning  This line has a length of 189. Maximum allowed is 120             max-len
+  302:12  warning  Redundant use of `await` on a return value                        no-return-await
+
+C:\Users\ptan1\OneDrive\Documents\code\Test\ai-school-dashboard\ai-school-dashboard\backend\services\notificationService.js
+   71:28  warning  Unexpected `await` inside a loop                                          no-await-in-loop
+   84:3   warning  Expected 'this' to be used by class async method 'sendEmailNotification'  class-methods-use-this
+  117:3   warning  Expected 'this' to be used by class method 'emitRealTimeNotification'     class-methods-use-this
+  138:3   warning  Expected 'this' to be used by class async method 'getUserNotifications'   class-methods-use-this
+  177:3   warning  Expected 'this' to be used by class async method 'markAsRead'             class-methods-use-this
+  189:12  warning  Redundant use of `await` on a return value                                no-return-await
+  195:3   warning  Expected 'this' to be used by class async method 'markAllAsRead'          class-methods-use-this
+  196:12  warning  Redundant use of `await` on a return value                                no-return-await
+  202:3   warning  Expected 'this' to be used by class async method 'deleteNotification'     class-methods-use-this
+  216:3   warning  Expected 'this' to be used by class async method 'getUnreadCount'         class-methods-use-this
+  217:12  warning  Redundant use of `await` on a return value                                no-return-await
+  226:12  warning  Redundant use of `await` on a return value                                no-return-await
+  242:12  warning  Redundant use of `await` on a return value                                no-return-await
+  258:12  warning  Redundant use of `await` on a return value                                no-return-await
+  272:12  warning  Redundant use of `await` on a return value                                no-return-await
+  287:12  warning  Redundant use of `await` on a return value                                no-return-await
+
+✖ 327 problems (29 errors, 298 warnings)
+

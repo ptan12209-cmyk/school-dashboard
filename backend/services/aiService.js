@@ -95,7 +95,9 @@ class AIService {
       if (shouldRetry) {
         const retryDelay = geminiConfig.retryDelay * (3 - retries); // Exponential backoff: 2s, 4s, 6s
         console.log(`⚠️  ${error.code || 'Service overloaded'}, retrying in ${retryDelay / 1000}s... (${retries} retries left)`);
-        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+        await new Promise((resolve) => {
+          setTimeout(resolve, retryDelay);
+        });
         return this.callGemini(prompt, history, retries - 1);
       }
 

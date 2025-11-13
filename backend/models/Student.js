@@ -273,6 +273,7 @@ Student.findByClass = async function (classId) {
  * @returns {Promise<Student[]>} Array of students
  */
 Student.findByAgeRange = async function (minAge, maxAge) {
+  // eslint-disable-next-line global-require
   const { Op } = require('sequelize');
   const today = new Date();
 
@@ -307,6 +308,7 @@ Student.findUnassigned = async function () {
  * @returns {Promise<Student[]>} Array of matching students
  */
 Student.searchByName = async function (searchTerm) {
+  // eslint-disable-next-line global-require
   const { Op } = require('sequelize');
   return await this.findAll({
     where: {

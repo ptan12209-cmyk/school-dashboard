@@ -144,7 +144,7 @@ Question.prototype.checkAnswer = function (studentAnswer) {
       return studentAnswer === this.correct_answer;
 
     case 'short_answer':
-    case 'fill_blank':
+    case 'fill_blank': {
       const correctAnswers = [
         this.correct_answer,
         ...(this.alternative_answers || []),
@@ -155,6 +155,7 @@ Question.prototype.checkAnswer = function (studentAnswer) {
       }
       const lowerAnswer = studentAnswer.toLowerCase().trim();
       return correctAnswers.some((ans) => ans.toLowerCase().trim() === lowerAnswer);
+    }
 
     case 'essay':
       // Essays require manual grading

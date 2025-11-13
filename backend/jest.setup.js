@@ -12,6 +12,7 @@ require('dotenv').config({
 
 // If .env.test doesn't exist, try .env
 if (!process.env.DB_PASSWORD) {
+  // eslint-disable-next-line global-require
   require('dotenv').config({
     path: '.env',
   });
