@@ -245,6 +245,20 @@ app.use(`${API_PREFIX}/ai`, aiRoutes);
 
 /**
  * ============================================
+ * API DOCUMENTATION (Swagger)
+ * ============================================
+ */
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./config/swagger');
+
+// Swagger UI available at /api-docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'AI School Dashboard API Documentation',
+}));
+
+/**
+ * ============================================
  * ERROR HANDLING
  * ============================================
  */

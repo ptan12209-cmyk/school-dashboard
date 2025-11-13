@@ -9,9 +9,114 @@ const { verifyToken } = require('../middleware/authMiddleware');
 const { validate } = require('../middleware/validation');
 
 /**
- * @route   POST /api/auth/register
- * @desc    Đăng ký người dùng mới
- * @access  Public
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     description: Create a new user account with role-based profile (student, teacher, admin)
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - role
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: student@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 8
+ *                 example: Student@123
+ *                 description: Must contain at least 8 characters, 1 uppercase, 1 lowercase, and 1 number
+ *               role:
+ *                 type: string
+ *                 enum: [admin, teacher, parent, student]
+ *                 example: student
+ *               firstName:
+ *                 type: string
+ *                 example: John
+ *               lastName:
+ *                 type: string
+ *                 example: Doe
+ *               dateOfBirth:
+ *                 type: string
+ *                 format: date
+ *                 example: 2005-01-15
+ *               gender:
+ *                 type: string
+ *                 enum: [M, F, Other]
+ *                 example: M
+ *               department:
+ *                 type: string
+ *                 example: Mathematics
+ *                 description: Required for teachers
+ *               phone:
+ *                 type: string
+ *                 example: +1234567890
+ *               parentName:
+ *                 type: string
+ *                 example: Jane Doe
+ *                 description: Required for students
+ *               parentPhone:
+ *                 type: string
+ *                 example: +1234567890
+ *               parentEmail:
+ *                 type: string
+ *                 format: email
+ *                 example: parent@example.com
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         headers:
+ *           Set-Cookie:
+ *             schema:
+ *               type: string
+ *               example: accessToken=eyJhbG...; Path=/; HttpOnly
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: User registered successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *                     profile:
+ *                       oneOf:
+ *                         - $ref: '#/components/schemas/Student'
+ *                         - $ref: '#/components/schemas/Teacher'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       409:
+ *         description: Email already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Email already exists
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.post(
   '/register',
@@ -75,9 +180,77 @@ router.post(
 );
 
 /**
- * @route   POST /api/auth/login
- * @desc    Đăng nhập
- * @access  Public
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login user
+ *     description: Authenticate user and return JWT token in httpOnly cookie
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: student@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: Student@123
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         headers:
+ *           Set-Cookie:
+ *             schema:
+ *               type: string
+ *               example: accessToken=eyJhbG...; Path=/; HttpOnly; Secure; SameSite=Strict
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Login successful
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *                     profile:
+ *                       oneOf:
+ *                         - $ref: '#/components/schemas/Student'
+ *                         - $ref: '#/components/schemas/Teacher'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         description: Account inactive
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Account is inactive. Please contact administrator.
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.post(
   '/login',
