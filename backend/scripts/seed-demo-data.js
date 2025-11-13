@@ -17,6 +17,9 @@
  * Usage: node scripts/seed-demo-data.js
  */
 
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
 const { sequelize, User, Teacher, Student, Class, Course, Grade, Attendance, Assignment, Submission, Notification } = require('../models');
 const bcrypt = require('bcrypt');
 
@@ -57,11 +60,12 @@ function generateName(gender = null) {
   return { firstName, lastName, gender: g };
 }
 
-function generateEmail(firstName, lastName, role) {
+function generateEmail(firstName, lastName, role, uniqueId = null) {
   const normalized = `${firstName}${lastName}`.toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/đ/g, 'd').replace(/Đ/g, 'D');
-  return `${normalized}.${role}@school.edu.vn`;
+  const suffix = uniqueId !== null ? uniqueId.toString().padStart(3, '0') : '';
+  return `${normalized}${suffix}.${role}@school.edu.vn`;
 }
 
 function generatePhone() {
@@ -117,18 +121,20 @@ async function seedDemoData() {
     await sequelize.authenticate();
     console.log('✅ Database connected\n');
 
-    // Clear existing data
+    // Clear existing data using TRUNCATE CASCADE (more forceful)
     console.log('🗑️  Clearing existing data...');
-    await Notification.destroy({ where: {} });
-    await Submission.destroy({ where: {} });
-    await Assignment.destroy({ where: {} });
-    await Attendance.destroy({ where: {} });
-    await Grade.destroy({ where: {} });
-    await Course.destroy({ where: {} });
-    await Class.destroy({ where: {} });
-    await Student.destroy({ where: {} });
-    await Teacher.destroy({ where: {} });
-    await User.destroy({ where: {} });
+    await sequelize.query('SET session_replication_role = replica;');
+    await sequelize.query('TRUNCATE TABLE notifications CASCADE;');
+    await sequelize.query('TRUNCATE TABLE submissions CASCADE;');
+    await sequelize.query('TRUNCATE TABLE assignments CASCADE;');
+    await sequelize.query('TRUNCATE TABLE attendance CASCADE;');
+    await sequelize.query('TRUNCATE TABLE grades CASCADE;');
+    await sequelize.query('TRUNCATE TABLE courses CASCADE;');
+    await sequelize.query('TRUNCATE TABLE classes CASCADE;');
+    await sequelize.query('TRUNCATE TABLE students CASCADE;');
+    await sequelize.query('TRUNCATE TABLE teachers CASCADE;');
+    await sequelize.query('TRUNCATE TABLE users CASCADE;');
+    await sequelize.query('SET session_replication_role = DEFAULT;');
     console.log('✅ Existing data cleared\n');
 
     // 1. Create Admin User
@@ -202,14 +208,16 @@ async function seedDemoData() {
     const students = [];
     const studentTypes = ['excellent', 'good', 'average', 'struggling'];
     const studentsPerClass = 20; // 100 students total (20 × 5 = 100)
+    let studentGlobalId = 1; // Global counter for unique emails
 
     for (let classIdx = 0; classIdx < classes.length; classIdx++) {
       const cls = classes[classIdx];
 
       for (let i = 0; i < studentsPerClass; i++) {
         const { firstName, lastName, gender } = generateName();
-        const email = generateEmail(firstName, lastName, 'student');
+        const email = generateEmail(firstName, lastName, 'student', studentGlobalId);
         const password = await bcrypt.hash('Student@123', 10);
+        studentGlobalId++; // Increment for next student
 
         // Determine student type (for grade generation)
         let studentType;
@@ -259,7 +267,7 @@ async function seedDemoData() {
           credits: 3,
           teacher_id: teacher.id,
           class_id: cls.id,
-          semester: 'HK1',
+          semester: '1',
           school_year: '2024-2025',
           start_date: new Date(2024, 8, 5), // Sept 5, 2024
           end_date: new Date(2025, 0, 15), // Jan 15, 2025
@@ -273,7 +281,7 @@ async function seedDemoData() {
 
     // 6. Create Grades
     console.log('📊 Creating grades...');
-    const gradeTypes = ['Miệng', '15 phút', '1 Tiết', 'Giữa kỳ', 'Cuối kỳ'];
+    const gradeTypes = ['Quiz', 'Test', 'Assignment', 'Project', 'Midterm', 'Final'];
     let gradeCount = 0;
 
     for (const student of students) {
@@ -283,24 +291,29 @@ async function seedDemoData() {
       });
 
       for (const course of studentCourses) {
-        // Create multiple grades per course (23-25 grades to reach 24,000 total)
-        const numGrades = randomInt(23, 25);
-        for (let i = 0; i < numGrades; i++) {
-          const gradeType = randomElement(gradeTypes);
-          const score = generateGrade(student.studentType, course.subject);
+        // Create grades for all 3 semesters
+        // 100 students × 10 courses × 6 grade types × 3 semesters = 18,000 grades total
 
-          await Grade.create({
-            student_id: student.id,
-            course_id: course.id,
-            score,
-            grade_type: gradeType,
-            weight: gradeType === 'Cuối kỳ' ? 3 : gradeType === 'Giữa kỳ' ? 2 : 1,
-            semester: 'HK1',
-            graded_date: new Date(2024, 8 + i, randomInt(1, 28)),
-            is_published: true,
-            comments: score >= 8 ? 'Tốt' : score >= 6.5 ? 'Khá' : score >= 5 ? 'Trung bình' : 'Cần cố gắng'
-          });
-          gradeCount++;
+        const semesters = ['1', '2', 'Final']; // All 3 valid semester values
+
+        for (const semester of semesters) {
+          // For each semester, create one grade of each type
+          for (const gradeType of gradeTypes) {
+            const score = generateGrade(student.studentType, course.subject);
+
+            await Grade.create({
+              student_id: student.id,
+              course_id: course.id,
+              score,
+              grade_type: gradeType,
+              weight: gradeType === 'Final' ? 3 : gradeType === 'Midterm' ? 2 : 1,
+              semester: semester,
+              graded_date: new Date(2024, semester === '1' ? 8 : 11, randomInt(1, 28)),
+              is_published: true,
+              comments: score >= 8 ? 'Tốt' : score >= 6.5 ? 'Khá' : score >= 5 ? 'Trung bình' : 'Cần cố gắng'
+            });
+            gradeCount++;
+          }
         }
       }
     }
@@ -370,12 +383,13 @@ async function seedDemoData() {
         const dueDate = new Date(2024, 9 + i, randomInt(5, 25));
         const assignment = await Assignment.create({
           course_id: course.id,
+          teacher_id: course.teacher_id,
           title: `Bài tập ${i + 1}: ${course.subject}`,
           description: `Hoàn thành bài tập chương ${i + 1}`,
-          type: randomElement(['Homework', 'Project', 'Quiz']),
+          type: randomElement(['homework', 'quiz', 'exam', 'practice']),
           max_score: 10,
           due_date: dueDate,
-          status: dueDate < new Date() ? 'closed' : 'active'
+          status: dueDate < new Date() ? 'closed' : 'published'
         });
         assignments.push(assignment);
       }
@@ -411,6 +425,7 @@ async function seedDemoData() {
           submitted_at: submittedOn,
           status: 'graded',
           score,
+          max_score: assignment.max_score || 10,
           feedback: score >= 8 ? 'Làm tốt!' : score >= 6.5 ? 'Khá tốt' : 'Cần cải thiện'
         });
         submissionCount++;
@@ -421,7 +436,7 @@ async function seedDemoData() {
 
     // 10. Create Notifications
     console.log('🔔 Creating notifications...');
-    const notificationTypes = ['Grade', 'Assignment', 'Attendance', 'General'];
+    const notificationTypes = ['grade_posted', 'assignment_due', 'attendance_marked', 'announcement'];
     let notificationCount = 0;
 
     // Create notifications for each student
@@ -451,7 +466,7 @@ async function seedDemoData() {
           type,
           title: message,
           message: `Chi tiết thông báo về ${type.toLowerCase()}`,
-          priority: randomElement(['low', 'normal', 'high']),
+          priority: randomElement(['low', 'medium', 'high']),
           is_read: Math.random() > 0.3 // 70% đã đọc
         });
         notificationCount++;
