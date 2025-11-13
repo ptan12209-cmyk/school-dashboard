@@ -27,7 +27,8 @@
       "Bash(Select-String -Pattern \"global-require|\\.js\" -Context 0,0)",
       "Bash(git diff:*)",
       "Bash(psql:*)",
-      "Bash(node scripts/setup-test-db.js:*)"
+      "Bash(node scripts/setup-test-db.js:*)",
+      "Bash(tests/load/results/README.md)"
     ],
     "deny": [],
     "ask": []
