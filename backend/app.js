@@ -21,6 +21,15 @@ require('dotenv').config();
 
 const { rateLimitConfig } = require('./config/auth');
 
+// ✅ Phase 3: Security & Performance Middleware
+const {
+  sanitizeInput,
+  xssProtection,
+  sqlInjectionPrevention,
+  enhancedSecurityHeaders,
+} = require('./middleware/security');
+const { performanceMonitoring } = require('./middleware/performance');
+
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const studentRoutes = require('./routes/student.routes');
@@ -51,6 +60,13 @@ const app = express();
  * Helmet helps secure Express apps by setting various HTTP headers
  */
 app.use(helmet());
+
+/**
+ * 1.5. Enhanced Security Headers
+ * -------------------------------
+ * ✅ Phase 3: Additional security headers
+ */
+app.use(enhancedSecurityHeaders);
 
 /**
  * 2. CORS (Cross-Origin Resource Sharing)
@@ -108,6 +124,25 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
  * ✅ SECURITY FIX: Parse cookies for httpOnly JWT tokens
  */
 app.use(cookieParser());
+
+/**
+ * 3.6. Input Sanitization & Attack Prevention
+ * --------------------------------------------
+ * ✅ Phase 3: Security middleware
+ */
+app.use(sanitizeInput); // NoSQL injection prevention
+app.use(xssProtection); // XSS attack prevention
+app.use(sqlInjectionPrevention); // SQL injection detection
+
+/**
+ * 3.7. Performance Monitoring
+ * ---------------------------
+ * ✅ Phase 3: Track response times and performance metrics
+ */
+app.use(performanceMonitoring({
+  slowThreshold: 1000, // Log requests slower than 1s
+  logAll: false, // Only log slow requests in production
+}));
 
 /**
  * 4. Compression
@@ -242,6 +277,25 @@ app.use(`${API_PREFIX}/dashboard`, dashboardRoutes);
  * AI routes (protected)
  */
 app.use(`${API_PREFIX}/ai`, aiRoutes);
+
+/**
+ * ============================================
+ * MONITORING & ADMIN ENDPOINTS
+ * ============================================
+ */
+const { performanceReportHandler, healthCheckHandler } = require('./middleware/performance');
+const { verifyToken, checkRole } = require('./middleware/authMiddleware');
+
+// Performance metrics (admin only)
+app.get(
+  `${API_PREFIX}/admin/performance`,
+  verifyToken,
+  checkRole('admin'),
+  performanceReportHandler
+);
+
+// Enhanced health check
+app.get(`${API_PREFIX}/health`, healthCheckHandler);
 
 /**
  * ============================================
