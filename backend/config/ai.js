@@ -22,14 +22,14 @@ const geminiConfig = {
   apiUrl: 'https://generativelanguage.googleapis.com/v1beta',
 
   // Generation config
-  maxTokens: parseInt(process.env.GEMINI_MAX_TOKENS) || 2048,
+  maxTokens: parseInt(process.env.GEMINI_MAX_TOKENS, 10) || 2048,
 
   // Temperature (0-1, higher = more creative)
   temperature: 0.7,
 
   // Timeout for requests (ms)
   // ✅ IMPROVED: Increased timeout for Gemini thinking time
-  timeout: parseInt(process.env.GEMINI_TIMEOUT) || 120000, // 2 minutes (was 30s)
+  timeout: parseInt(process.env.GEMINI_TIMEOUT, 10) || 120000, // 2 minutes (was 30s)
 
   // Retry configuration
   retries: 3,

@@ -13,8 +13,8 @@ const {
  */
 exports.getAllAttendance = catchAsync(async (req, res) => {
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 50;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 50;
   const offset = (page - 1) * limit;
 
   // Filtering
@@ -614,9 +614,9 @@ exports.getAttendanceStats = catchAsync(async (req, res) => {
         : 0,
       byStatus: byStatus.map((item) => ({
         status: item.status,
-        count: parseInt(item.dataValues.count),
+        count: parseInt(item.dataValues.count, 10),
         percentage: totalRecords > 0
-          ? Math.round((parseInt(item.dataValues.count) / totalRecords) * 10000) / 100
+          ? Math.round((parseInt(item.dataValues.count, 10) / totalRecords) * 10000) / 100
           : 0,
       })),
       poorAttendance: poorAttendance.slice(0, 10), // Top 10 students with poor attendance

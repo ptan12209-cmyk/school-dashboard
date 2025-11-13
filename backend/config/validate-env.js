@@ -87,8 +87,8 @@ if (process.env.NODE_ENV) {
 
 // 4. Port check
 if (process.env.PORT) {
-  const port = parseInt(process.env.PORT);
-  if (isNaN(port) || port < 1 || port > 65535) {
+  const port = parseInt(process.env.PORT, 10);
+  if (Number.isNaN(port) || port < 1 || port > 65535) {
     console.error('❌ PORT must be a valid number between 1-65535');
     hasErrors = true;
   } else {

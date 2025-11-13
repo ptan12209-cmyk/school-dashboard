@@ -49,7 +49,7 @@ const jwtConfig = {
 const passwordConfig = {
   // Salt rounds for bcrypt (higher = more secure but slower)
   // Recommended: 10-12 for production
-  saltRounds: parseInt(process.env.BCRYPT_ROUNDS) || 12,
+  saltRounds: parseInt(process.env.BCRYPT_ROUNDS, 10) || 12,
 
   // Minimum password requirements
   minLength: 8,
@@ -118,10 +118,10 @@ const corsConfig = {
  */
 const rateLimitConfig = {
   // Time window in milliseconds
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutes
 
   // Maximum requests per window
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
 
   // Error message
   message: 'Too many requests from this IP, please try again later.',

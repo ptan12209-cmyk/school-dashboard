@@ -81,7 +81,7 @@ const verifyToken = async (req, res, next) => {
       req.user.studentProfile = user.studentProfile;
     }
 
-    next();
+    return next();
   } catch (error) {
     console.error('Auth middleware error:', error);
 
@@ -123,7 +123,7 @@ const checkRole = (...allowedRoles) => (req, res, next) => {
     });
   }
 
-  next();
+  return next();
 };
 
 const optionalAuth = async (req, res, next) => {
@@ -148,10 +148,10 @@ const optionalAuth = async (req, res, next) => {
     }
 
     // Continue regardless of whether user was found
-    next();
+    return next();
   } catch (error) {
     // If token is invalid, continue without user
-    next();
+    return next();
   }
 };
 

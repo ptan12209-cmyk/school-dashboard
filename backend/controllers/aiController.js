@@ -95,7 +95,7 @@ exports.getStudyRecommendations = catchAsync(async (req, res) => {
   const { studentId } = req.params;
 
   // Check permissions
-  if (req.user.role === 'student' && req.user.studentProfile?.id !== parseInt(studentId)) {
+  if (req.user.role === 'student' && req.user.studentProfile?.id !== parseInt(studentId, 10)) {
     return res.status(403).json({
       success: false,
       message: 'Không có quyền truy cập',
@@ -172,7 +172,7 @@ exports.predictPerformance = catchAsync(async (req, res) => {
   const { studentId } = req.params;
 
   // Check permissions
-  if (req.user.role === 'student' && req.user.studentProfile?.id !== parseInt(studentId)) {
+  if (req.user.role === 'student' && req.user.studentProfile?.id !== parseInt(studentId, 10)) {
     return res.status(403).json({
       success: false,
       message: 'Không có quyền truy cập',
