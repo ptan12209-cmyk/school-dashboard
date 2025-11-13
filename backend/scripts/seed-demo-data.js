@@ -180,7 +180,7 @@ async function seedDemoData() {
     // 3. Create Classes
     console.log('🏫 Creating classes...');
     const classes = [];
-    const classNames = ['10A1', '10A2', '10A3'];
+    const classNames = ['10A1', '10A2', '10A3', '10A4', '10A5']; // 5 classes for 100+ students
 
     for (let i = 0; i < classNames.length; i++) {
       const homeRoomTeacher = teachers[i % teachers.length];
@@ -201,7 +201,7 @@ async function seedDemoData() {
     console.log('👨‍🎓 Creating students...');
     const students = [];
     const studentTypes = ['excellent', 'good', 'average', 'struggling'];
-    const studentsPerClass = 17; // ~50 students total
+    const studentsPerClass = 20; // 100 students total (20 × 5 = 100)
 
     for (let classIdx = 0; classIdx < classes.length; classIdx++) {
       const cls = classes[classIdx];
@@ -213,10 +213,10 @@ async function seedDemoData() {
 
         // Determine student type (for grade generation)
         let studentType;
-        if (i < 3) studentType = 'excellent'; // Top 3 students
-        else if (i < 8) studentType = 'good'; // Next 5
-        else if (i < 14) studentType = 'average'; // Next 6
-        else studentType = 'struggling'; // Last 3
+        if (i < 3) studentType = 'excellent'; // Top 3 students (15%)
+        else if (i < 8) studentType = 'good'; // Next 5 students (25%)
+        else if (i < 15) studentType = 'average'; // Next 7 students (35%)
+        else studentType = 'struggling'; // Last 5 students (25%)
 
         const user = await User.create({
           email,
@@ -283,8 +283,8 @@ async function seedDemoData() {
       });
 
       for (const course of studentCourses) {
-        // Create multiple grades per course
-        const numGrades = randomInt(5, 8);
+        // Create multiple grades per course (23-25 grades to reach 24,000 total)
+        const numGrades = randomInt(23, 25);
         for (let i = 0; i < numGrades; i++) {
           const gradeType = randomElement(gradeTypes);
           const score = generateGrade(student.studentType, course.subject);
