@@ -106,6 +106,85 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
+/**
+ * Special middleware for refresh token endpoint
+ * Accepts expired tokens but still validates signature
+ * This prevents the chicken-and-egg problem where expired tokens
+ * cannot be refreshed because verifyToken rejects them
+ */
+const verifyTokenForRefresh = async (req, res, next) => {
+  try {
+    let token;
+
+    // Try to get token from httpOnly cookie first
+    if (req.cookies && req.cookies.accessToken) {
+      token = req.cookies.accessToken;
+    } else {
+      // Fallback to Authorization header
+      const authHeader = req.headers.authorization;
+
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+          success: false,
+          message: 'No token provided. Access denied.',
+        });
+      }
+
+      [, token] = authHeader.split(' ');
+    }
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'No token provided. Access denied.',
+      });
+    }
+
+    // ✅ FIX: Verify token with ignoreExpiration option for refresh endpoint
+    const decoded = jwt.verify(token, jwtConfig.secret, { ignoreExpiration: true });
+
+    // Load user
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found. Token invalid.',
+      });
+    }
+
+    if (!user.is_active) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account is inactive',
+      });
+    }
+
+    // Attach user to request object
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    return next();
+  } catch (error) {
+    console.error('Refresh token middleware error:', error);
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token',
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
 const checkRole = (...allowedRoles) => (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
@@ -157,6 +236,7 @@ const optionalAuth = async (req, res, next) => {
 
 module.exports = {
   verifyToken,
+  verifyTokenForRefresh,
   checkRole,
   optionalAuth,
 };

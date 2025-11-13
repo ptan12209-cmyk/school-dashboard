@@ -4,8 +4,8 @@ const router = express.Router();
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 
-// mport middleware (sẽ tạo sau)
-const { verifyToken } = require('../middleware/authMiddleware');
+// Import middleware
+const { verifyToken, verifyTokenForRefresh } = require('../middleware/authMiddleware');
 const { validate } = require('../middleware/validation');
 
 /**
@@ -324,7 +324,7 @@ router.post(
  */
 router.post(
   '/refresh-token',
-  verifyToken,
+  verifyTokenForRefresh, // ✅ FIX: Use special middleware that accepts expired tokens
   authController.refreshToken,
 );
 
@@ -346,7 +346,7 @@ router.post(
  */
 router.post(
   '/refresh',
-  verifyToken,
+  verifyTokenForRefresh, // ✅ FIX: Use special middleware that accepts expired tokens
   authController.refreshToken,
 );
 
