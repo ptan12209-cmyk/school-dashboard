@@ -15,7 +15,7 @@ const validate = (req, res, next) => {
     });
   }
 
-  next();
+  return next();
 };
 
 module.exports = { validate };

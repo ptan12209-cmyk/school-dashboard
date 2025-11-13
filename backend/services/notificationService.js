@@ -85,7 +85,7 @@ class NotificationService {
     try {
       if (!user || !user.email) {
         console.warn('Cannot send email: user or email not provided');
-        return;
+        return false;
       }
 
       const emailData = {

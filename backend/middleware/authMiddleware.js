@@ -21,7 +21,7 @@ const verifyToken = async (req, res, next) => {
       }
 
       // Extract token (format: "Bearer <token>")
-      token = authHeader.split(' ')[1];
+      [, token] = authHeader.split(' ');
     }
 
     if (!token) {

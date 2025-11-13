@@ -19,7 +19,9 @@
       "Bash(npx eslint:*)",
       "Bash(node -e:*)",
       "Bash(node -p:*)",
-      "Bash(npm run lint:backend:*)"
+      "Bash(npm run lint:backend:*)",
+      "Bash(gh pr create:*)",
+      "Bash(eslint-results.json)"
     ],
     "deny": [],
     "ask": []

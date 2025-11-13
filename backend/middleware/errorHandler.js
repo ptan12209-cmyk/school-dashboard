@@ -127,9 +127,8 @@ const sendErrorProd = (err, res) => {
       message: err.message,
       ...(err.errors && { errors: err.errors }),
     });
-  }
-  // Programming or unknown error: don't leak error details
-  else {
+  } else {
+    // Programming or unknown error: don't leak error details
     console.error('ERROR 💥:', err);
 
     res.status(500).json({
@@ -144,22 +143,31 @@ const sendErrorProd = (err, res) => {
  */
 const errorHandler = (err, req, res) => {
   // Default values
+  // eslint-disable-next-line no-param-reassign
   err.statusCode = err.statusCode || 500;
+  // eslint-disable-next-line no-param-reassign
   err.status = err.status || 'error';
 
   // Handle specific error types
   const sequelizeError = handleSequelizeError(err);
   if (sequelizeError) {
+    // eslint-disable-next-line no-param-reassign
     err.statusCode = sequelizeError.statusCode;
+    // eslint-disable-next-line no-param-reassign
     err.message = sequelizeError.message;
+    // eslint-disable-next-line no-param-reassign
     err.errors = sequelizeError.errors;
+    // eslint-disable-next-line no-param-reassign
     err.isOperational = true;
   }
 
   const jwtError = handleJWTError(err);
   if (jwtError) {
+    // eslint-disable-next-line no-param-reassign
     err.statusCode = jwtError.statusCode;
+    // eslint-disable-next-line no-param-reassign
     err.message = jwtError.message;
+    // eslint-disable-next-line no-param-reassign
     err.isOperational = true;
   }
 

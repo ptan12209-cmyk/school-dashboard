@@ -40,6 +40,7 @@ function initializeSocket(httpServer) {
       }
 
       // Attach user to socket
+      // eslint-disable-next-line no-param-reassign
       socket.user = {
         id: user.id,
         email: user.email,
@@ -49,7 +50,7 @@ function initializeSocket(httpServer) {
       return next();
     } catch (error) {
       console.error('Socket authentication error:', error);
-      next(new Error('Authentication failed'));
+      return next(new Error('Authentication failed'));
     }
   });
 

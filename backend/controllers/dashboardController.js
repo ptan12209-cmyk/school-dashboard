@@ -4,127 +4,7 @@ const {
 } = require('../models');
 const { catchAsync } = require('../middleware/errorHandler');
 
-exports.getDashboardStats = catchAsync(async (req, res) => {
-  // ✅ FIXED: Filter dashboard stats based on user role
-  let courseFilter = {};
-  let studentFilter = {};
-
-  // For teachers: only show stats for their courses and students
-  if (req.user.role === 'teacher') {
-    const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });
-    if (teacher) {
-      // Get teacher's courses
-      const teacherCourses = await Course.findAll({
-        where: { teacher_id: teacher.id },
-        attributes: ['id'],
-      });
-      const courseIds = teacherCourses.map((c) => c.id);
-
-      if (courseIds.length === 0) {
-        // Teacher has no courses, return empty stats
-        return res.json({
-          success: true,
-          data: {
-            stats: {
-              totalStudents: 0,
-              totalTeachers: 1,
-              totalCourses: 0,
-              totalClasses: 0,
-              averageGrade: 0,
-              topStudents: [],
-              topTeachers: [],
-            },
-            charts: {
-              performanceData: [],
-              subjectData: [],
-              gradeDistribution: [],
-            },
-            recentActivities: [],
-          },
-        });
-      }
-
-      courseFilter = { id: { [Op.in]: courseIds } };
-
-      // Get unique students enrolled in teacher's courses
-      const enrolledStudents = await Grade.findAll({
-        where: { course_id: { [Op.in]: courseIds } },
-        attributes: ['student_id'],
-        group: ['student_id'],
-      });
-      const studentIds = [...new Set(enrolledStudents.map((g) => g.student_id))];
-      studentFilter = { id: { [Op.in]: studentIds } };
-    }
-  }
-
-  const totalStudents = await Student.count(studentFilter.id ? { where: studentFilter } : {});
-  const totalTeachers = await Teacher.count();
-  const totalCourses = await Course.count(courseFilter.id ? { where: courseFilter } : {});
-  const totalClasses = await Class.count();
-
-  const gradesWhere = courseFilter.id ? { course_id: courseFilter.id } : {};
-  const grades = await Grade.findAll({
-    where: gradesWhere,
-    attributes: ['score'],
-  });
-
-  const averageGrade = grades.length > 0
-    ? parseFloat((grades.reduce((sum, g) => sum + parseFloat(g.score || 0), 0) / grades.length / 10).toFixed(1))
-    : 0;
-
-  const topStudents = await Student.findAll({
-    where: studentFilter.id ? studentFilter : {},
-    include: [{
-      model: Grade,
-      as: 'grades',
-      attributes: ['score'],
-      where: courseFilter.id ? { course_id: courseFilter.id } : {},
-      required: true,
-    }],
-    limit: 5,
-    order: [[{ model: Grade, as: 'grades' }, 'score', 'DESC']],
-  });
-
-  const topTeachers = await Teacher.findAll({
-    include: [{
-      model: Course,
-      as: 'courses',
-      attributes: ['id', 'name'],
-    }],
-    limit: 5,
-  });
-
-  return res.json({
-    success: true,
-    data: {
-      stats: {
-        totalStudents,
-        totalTeachers,
-        totalCourses,
-        totalClasses,
-        averageGrade,
-        topStudents: topStudents.map((s) => ({
-          id: s.id,
-          name: `${s.first_name} ${s.last_name}`,
-          averageGrade: s.grades && s.grades.length > 0
-            ? parseFloat((s.grades.reduce((sum, g) => sum + parseFloat(g.score || 0), 0) / s.grades.length / 10).toFixed(1))
-            : 0,
-        })),
-        topTeachers: topTeachers.map((t) => ({
-          id: t.id,
-          name: `${t.first_name} ${t.last_name}`,
-          coursesCount: t.courses ? t.courses.length : 0,
-        })),
-      },
-      charts: {
-        performanceData: await getPerformanceData(courseFilter),
-        subjectData: await getSubjectData(courseFilter),
-        gradeDistribution: await getGradeDistribution(courseFilter),
-      },
-      recentActivities: await getRecentActivities(courseFilter),
-    },
-  });
-});
+// Helper functions defined before main export to fix no-use-before-define errors
 
 const getPerformanceData = async (courseFilter = {}) => {
   const last6Months = [];
@@ -258,3 +138,125 @@ const getRecentActivities = async (courseFilter = {}) => {
     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
     .slice(0, 10);
 };
+
+exports.getDashboardStats = catchAsync(async (req, res) => {
+  // ✅ FIXED: Filter dashboard stats based on user role
+  let courseFilter = {};
+  let studentFilter = {};
+
+  // For teachers: only show stats for their courses and students
+  if (req.user.role === 'teacher') {
+    const teacher = await Teacher.findOne({ where: { user_id: req.user.id } });
+    if (teacher) {
+      // Get teacher's courses
+      const teacherCourses = await Course.findAll({
+        where: { teacher_id: teacher.id },
+        attributes: ['id'],
+      });
+      const courseIds = teacherCourses.map((c) => c.id);
+
+      if (courseIds.length === 0) {
+        // Teacher has no courses, return empty stats
+        return res.json({
+          success: true,
+          data: {
+            stats: {
+              totalStudents: 0,
+              totalTeachers: 1,
+              totalCourses: 0,
+              totalClasses: 0,
+              averageGrade: 0,
+              topStudents: [],
+              topTeachers: [],
+            },
+            charts: {
+              performanceData: [],
+              subjectData: [],
+              gradeDistribution: [],
+            },
+            recentActivities: [],
+          },
+        });
+      }
+
+      courseFilter = { id: { [Op.in]: courseIds } };
+
+      // Get unique students enrolled in teacher's courses
+      const enrolledStudents = await Grade.findAll({
+        where: { course_id: { [Op.in]: courseIds } },
+        attributes: ['student_id'],
+        group: ['student_id'],
+      });
+      const studentIds = [...new Set(enrolledStudents.map((g) => g.student_id))];
+      studentFilter = { id: { [Op.in]: studentIds } };
+    }
+  }
+
+  const totalStudents = await Student.count(studentFilter.id ? { where: studentFilter } : {});
+  const totalTeachers = await Teacher.count();
+  const totalCourses = await Course.count(courseFilter.id ? { where: courseFilter } : {});
+  const totalClasses = await Class.count();
+
+  const gradesWhere = courseFilter.id ? { course_id: courseFilter.id } : {};
+  const grades = await Grade.findAll({
+    where: gradesWhere,
+    attributes: ['score'],
+  });
+
+  const averageGrade = grades.length > 0
+    ? parseFloat((grades.reduce((sum, g) => sum + parseFloat(g.score || 0), 0) / grades.length / 10).toFixed(1))
+    : 0;
+
+  const topStudents = await Student.findAll({
+    where: studentFilter.id ? studentFilter : {},
+    include: [{
+      model: Grade,
+      as: 'grades',
+      attributes: ['score'],
+      where: courseFilter.id ? { course_id: courseFilter.id } : {},
+      required: true,
+    }],
+    limit: 5,
+    order: [[{ model: Grade, as: 'grades' }, 'score', 'DESC']],
+  });
+
+  const topTeachers = await Teacher.findAll({
+    include: [{
+      model: Course,
+      as: 'courses',
+      attributes: ['id', 'name'],
+    }],
+    limit: 5,
+  });
+
+  return res.json({
+    success: true,
+    data: {
+      stats: {
+        totalStudents,
+        totalTeachers,
+        totalCourses,
+        totalClasses,
+        averageGrade,
+        topStudents: topStudents.map((s) => ({
+          id: s.id,
+          name: `${s.first_name} ${s.last_name}`,
+          averageGrade: s.grades && s.grades.length > 0
+            ? parseFloat((s.grades.reduce((sum, g) => sum + parseFloat(g.score || 0), 0) / s.grades.length / 10).toFixed(1))
+            : 0,
+        })),
+        topTeachers: topTeachers.map((t) => ({
+          id: t.id,
+          name: `${t.first_name} ${t.last_name}`,
+          coursesCount: t.courses ? t.courses.length : 0,
+        })),
+      },
+      charts: {
+        performanceData: await getPerformanceData(courseFilter),
+        subjectData: await getSubjectData(courseFilter),
+        gradeDistribution: await getGradeDistribution(courseFilter),
+      },
+      recentActivities: await getRecentActivities(courseFilter),
+    },
+  });
+});

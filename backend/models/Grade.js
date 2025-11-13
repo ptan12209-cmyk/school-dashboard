@@ -124,6 +124,7 @@ const Grade = sequelize.define('Grade', {
      * Before save hook - Calculate letter grade
      */
     beforeSave: (grade) => {
+      // eslint-disable-next-line no-param-reassign
       grade.letter_grade = Grade.calculateLetterGrade(grade.score);
     },
   },

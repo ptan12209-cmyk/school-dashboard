@@ -100,6 +100,7 @@ const User = sequelize.define('User', {
     beforeCreate: async (user) => {
       if (user.password_hash) {
         const salt = await bcrypt.genSalt(passwordConfig.saltRounds);
+        // eslint-disable-next-line no-param-reassign
         user.password_hash = await bcrypt.hash(user.password_hash, salt);
       }
     },
@@ -108,6 +109,7 @@ const User = sequelize.define('User', {
     beforeUpdate: async (user) => {
       if (user.changed('password_hash')) {
         const salt = await bcrypt.genSalt(passwordConfig.saltRounds);
+        // eslint-disable-next-line no-param-reassign
         user.password_hash = await bcrypt.hash(user.password_hash, salt);
       }
     },
